@@ -49,19 +49,16 @@ function LobbyPageContent() {
   const isRoomMaker = currentRoom?.roomMakerUid === playerId;
   const players = currentRoom ? Object.values(currentRoom.players) : [];
   const maxPlayers = getMaxPlayersForMode(currentRoom?.mode);
-  const hasBots = players.some((p) => p.isBot);
   const seatedCount = players.length;
 
   const startReadiness = useMemo(() => {
     const humans = players.filter((p) => !p.isBot);
     const allSeatsFilled = seatedCount >= maxPlayers;
     const allHumansReady = humans.length > 0 && humans.every((p) => p.ready);
-    const canStart = allSeatsFilled && allHumansReady && !hasBots;
+    const canStart = allSeatsFilled && allHumansReady;
 
     let reason: string | null = null;
-    if (hasBots) {
-      reason = 'Bot games are not supported in gameplay yet.';
-    } else if (seatedCount < maxPlayers) {
+    if (seatedCount < maxPlayers) {
       const need = maxPlayers - seatedCount;
       reason = `Need ${need} more player${need === 1 ? '' : 's'} (${seatedCount}/${maxPlayers} seats).`;
     } else if (!allHumansReady) {
@@ -70,7 +67,7 @@ function LobbyPageContent() {
     }
 
     return { canStart, reason, allSeatsFilled, allHumansReady };
-  }, [players, seatedCount, maxPlayers, hasBots]);
+  }, [players, seatedCount, maxPlayers]);
 
   const handleCopyCode = () => {
     if (code) {

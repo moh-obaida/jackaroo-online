@@ -34,6 +34,7 @@ export function applyAction(
   currentPlayerHand: any[],
   burnTargetHand: any[] = []
 ): { state: GameState; currentPlayerHand: any[]; burnTargetHand: any[] } {
+  const previousState = state;
   let newState = { ...state };
   let updatedCurrentHand = [...currentPlayerHand];
   let updatedBurnTargetHand = [...burnTargetHand];
@@ -70,11 +71,14 @@ export function applyAction(
     ({ state: newState, currentPlayerHand: updatedCurrentHand } = removeCardFromHand(newState, updatedCurrentHand, action.playerId, action.cardId));
   }
 
-  // Add event to log
-  newState = addEvent(newState, action);
+  // Add action event to log (including card usage and eat detection).
+  const eatenCount = getEatenCount(previousState, newState, action.playerId);
+  newState = addActionEvent(newState, action, eatenCount);
 
   // Advance turn
+  const previousTurnPlayerId = newState.currentTurnPlayerId;
   newState = advanceTurn(newState);
+  newState = addTurnChangedEvent(newState, previousTurnPlayerId);
 
   // Check win condition
   newState = checkWinCondition(newState);
@@ -383,13 +387,13 @@ function checkWinCondition(state: GameState): GameState {
   return state;
 }
 
-function addEvent(state: GameState, action: GameAction): GameState {
+function addActionEvent(state: GameState, action: GameAction, eatenCount: number): GameState {
   const event: GameEvent = {
     id: `event_${state.turnNumber}_${Date.now()}`,
     timestamp: Date.now(),
     type: mapActionToEventType(action.type),
     playerId: action.playerId,
-    description: getEventDescription(action, state),
+    description: getEventDescription(action, state, eatenCount),
   };
 
   return {
@@ -412,19 +416,55 @@ function mapActionToEventType(actionType: string): GameEvent['type'] {
   }
 }
 
-function getEventDescription(action: GameAction, state: GameState): string {
+function getEventDescription(action: GameAction, state: GameState, eatenCount: number): string {
   const player = state.players.find((p) => p.id === action.playerId);
   const name = player?.name || 'Unknown';
+  const cardRank = getCardRankFromCardId(action.cardId);
+  const cardLabel = cardRank ? ` (${cardRank})` : '';
 
   switch (action.type) {
-    case 'bring_out': return `${name} brought a marble out`;
-    case 'move': return `${name} moved a marble`;
+    case 'bring_out': return `${name} brought a marble out${cardLabel}`;
+    case 'move': return `${name} moved a marble${cardLabel}${eatenCount > 0 ? ` and ate ${eatenCount}` : ''}`;
     case 'move_backward': return `${name} moved backward 4`;
-    case 'split_seven': return `${name} split 7`;
+    case 'split_seven': return `${name} split 7${eatenCount > 0 ? ` and ate ${eatenCount}` : ''}`;
     case 'swap': return `${name} swapped two marbles`;
     case 'burn_next_player': return `${name} burned the next player's card`;
     case 'burn_all_cards': return `${name} discarded all cards (no legal moves)`;
     case 'skip_no_cards': return `${name} skipped (no cards)`;
     default: return `${name} performed an action`;
   }
+}
+
+function addTurnChangedEvent(state: GameState, previousTurnPlayerId: string): GameState {
+  if (previousTurnPlayerId === state.currentTurnPlayerId) return state;
+  const nextPlayer = state.players.find((p) => p.id === state.currentTurnPlayerId);
+  const description = `Turn changed to ${nextPlayer?.name || 'next player'}.`;
+  const event: GameEvent = {
+    id: `event_turn_${state.turnNumber}_${Date.now()}`,
+    timestamp: Date.now(),
+    type: 'move',
+    playerId: state.currentTurnPlayerId,
+    description,
+  };
+  return {
+    ...state,
+    eventLog: [...state.eventLog, event],
+  };
+}
+
+function getEatenCount(previous: GameState, next: GameState, actorId: string): number {
+  const actor = previous.players.find((p) => p.id === actorId);
+  if (!actor) return 0;
+  const prevById = new Map(previous.marbles.map((m) => [m.id, m]));
+  let eaten = 0;
+  for (const marble of next.marbles) {
+    const before = prevById.get(marble.id);
+    if (!before) continue;
+    const movedToBase =
+      before.position.type !== 'base' &&
+      marble.position.type === 'base' &&
+      before.color !== actor.color;
+    if (movedToBase) eaten += 1;
+  }
+  return eaten;
 }

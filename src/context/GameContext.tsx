@@ -167,7 +167,22 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         handCounts: Object.fromEntries(Object.entries(hands).map(([pid,cards]) => [pid, cards.length])),
         deck: remainingDeck,
         discardPile: [],
-        eventLog: [],
+        eventLog: [
+          {
+            id: `event_start_${Date.now()}`,
+            timestamp: Date.now(),
+            type: 'deal',
+            playerId,
+            description: `Game started in ${room.mode}.`,
+          },
+          {
+            id: `event_deal_${Date.now() + 1}`,
+            timestamp: Date.now() + 1,
+            type: 'deal',
+            playerId,
+            description: `Cards dealt for round 1.`,
+          },
+        ],
         winner: null,
         turnNumber: 0,
       };

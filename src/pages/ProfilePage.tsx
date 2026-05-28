@@ -9,14 +9,14 @@ import {
 import { CustomRulesConfig, DEFAULT_CUSTOM_RULES } from '../types/game';
 import { BackHomeButton } from '../components/common/BackHomeButton';
 
-const CUSTOM_TOGGLES: { key: keyof CustomRulesConfig; labelKey: string }[] = [
-  { key: 'jokerEnabled', labelKey: 'custom.joker' },
+const CUSTOM_TOGGLES: { key: keyof CustomRulesConfig; labelKey: string; futureOnly?: boolean }[] = [
+  { key: 'jokerEnabled', labelKey: 'custom.joker', futureOnly: true },
   { key: 'queenBurnEnabled', labelKey: 'custom.queenBurn' },
   { key: 'tenBurnEnabled', labelKey: 'custom.tenBurn' },
   { key: 'kingPathEatingEnabled', labelKey: 'custom.kingEating' },
   { key: 'fiveCanMoveAnyone', labelKey: 'custom.fiveAnyone' },
-  { key: 'longerTwoPlayerVariant', labelKey: 'custom.longerTwoPlayer' },
-  { key: 'timerEnabled', labelKey: 'custom.timer' },
+  { key: 'longerTwoPlayerVariant', labelKey: 'custom.longerTwoPlayer', futureOnly: true },
+  { key: 'timerEnabled', labelKey: 'custom.timer', futureOnly: true },
 ];
 
 export function ProfilePage() {
@@ -159,7 +159,7 @@ export function ProfilePage() {
               </div>
 
               {/* Toggle Options */}
-              {CUSTOM_TOGGLES.map(({ key, labelKey }) => (
+              {CUSTOM_TOGGLES.map(({ key, labelKey, futureOnly }) => (
                 <label key={key} className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -172,7 +172,7 @@ export function ProfilePage() {
                     }
                     className="w-4 h-4 rounded border-wood-500 bg-surface-inset text-gold-500"
                   />
-                  <span className="text-sm text-cream-200/80">{t(labelKey)}</span>
+                  <span className="text-sm text-cream-200/80">{t(labelKey)}{futureOnly ? (<span className="text-[10px] text-amber-300/80 ms-1"> {t('custom.futureToggle')}</span>) : null}</span>
                 </label>
               ))}
 
