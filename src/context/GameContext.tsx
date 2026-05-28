@@ -2,7 +2,7 @@
 // GAME CONTEXT — Game state management with Firebase sync
 // ============================================================================
 
-import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import {
   GameState,
   GameAction,
@@ -24,8 +24,9 @@ import { isFirebaseConfigured } from '../lib/firebase/config';
 import { generateLegalActions } from '../lib/game/legalMoves';
 import { applyAction } from '../lib/game/applyAction';
 import { validateAction } from '../lib/game/validators';
-import { initializeDealBlock, dealRound, allHandsEmpty, isDealBlockExhausted, getNextStartingSeat } from '../lib/game/dealing';
+import { initializeDealBlock, dealRound, isDealBlockExhausted, getNextStartingSeat } from '../lib/game/dealing';
 import { createInitialMarbles } from '../lib/game/board';
+import { pickRandomCardIndex } from '../lib/game/cards';
 import { useApp } from './AppContext';
 
 interface GameContextType {
@@ -102,7 +103,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       return [];
     }
     return generateLegalActions(gameState, myHand);
-  }, [gameState, playerId]);
+  }, [gameState, playerId, myHand]);
 
   const isMyTurn = gameState?.currentTurnPlayerId === playerId;
 
@@ -118,7 +119,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
     setLoading(true);
     try {
-      const players = Object.values(room.players);
+      const players = Object.values(room.players).sort((a, b) => a.seat - b.seat);
       const activeColors = players.map((p) => p.color);
       const marbles = createInitialMarbles(activeColors);
 
@@ -147,6 +148,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           dealRoundInBlock: 0,
           startingSeat: 0,
           cardsPerPlayer: (dealBlock.dealPattern as number[])[0] || 4,
+          dealPattern: dealBlock.dealPattern,
         },
         handCounts: Object.fromEntries(Object.entries(hands).map(([pid,cards]) => [pid, cards.length])),
         deck: remainingDeck,
@@ -185,28 +187,59 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Apply action
-      const privateHands: Record<string, Card[]> = {};
-      for (const p of gameState.players) { privateHands[p.id] = await getPrivateHand(roomCode, p.id); }
-      const applied = applyAction(gameState, action, privateHands);
-      let newState = applied.state;
-      const newPrivateHands = applied.privateHands;
+      // For burn, the authoritative updater picks the random card exactly once.
+      // Non-burn actions only need the acting player's private hand.
+      let normalizedAction = { ...action };
+      let burnTargetHand: Card[] = [];
+      if (action.type === 'burn_next_player' && action.burnTargetPlayerId) {
+        burnTargetHand = await getPrivateHand(roomCode, action.burnTargetPlayerId);
+        if (burnTargetHand.length === 0) {
+          setError('Target player has no cards to burn');
+          return;
+        }
+        const burnIndex = pickRandomCardIndex(burnTargetHand.length);
+        normalizedAction = {
+          ...action,
+          burnCardIndex: burnIndex,
+          burnCardId: burnTargetHand[burnIndex]?.id,
+        };
+      }
 
-      if (allHandsEmpty(newPrivateHands)) {
+      const applied = applyAction(gameState, normalizedAction, myHand, burnTargetHand);
+      let newState = applied.state;
+      const newPrivateHands: Record<string, Card[]> = { [action.playerId]: applied.currentPlayerHand };
+      if (normalizedAction.type === 'burn_next_player' && normalizedAction.burnTargetPlayerId) {
+        newPrivateHands[normalizedAction.burnTargetPlayerId] = applied.burnTargetHand;
+      }
+
+      if (Object.values(newState.handCounts).every((count) => count === 0)) {
         const nextRound = gameState.dealState.dealRoundInBlock + 1;
-        let dealBlock = initializeDealBlock(gameState.mode, gameState.dealState.startingSeat);
+        let activeDeck = [...newState.deck];
+        let dealPattern = gameState.dealState.dealPattern;
         let roundIndex = nextRound;
         let startingSeat = gameState.dealState.startingSeat;
         let dealBlockNum = gameState.dealState.dealBlock;
         if (isDealBlockExhausted(gameState.mode, nextRound)) {
           dealBlockNum += 1;
           startingSeat = getNextStartingSeat(gameState.dealState.startingSeat, gameState.players.length);
-          dealBlock = initializeDealBlock(gameState.mode, startingSeat);
+          const nextBlock = initializeDealBlock(gameState.mode, startingSeat);
+          activeDeck = nextBlock.deck;
+          dealPattern = nextBlock.dealPattern;
           roundIndex = 0;
         }
-        const dealt = dealRound(dealBlock.deck, gameState.players, gameState.mode, dealBlock.dealPattern, roundIndex);
+        const dealt = dealRound(activeDeck, gameState.players, gameState.mode, dealPattern, roundIndex);
         Object.assign(newPrivateHands, dealt.hands);
-        newState = { ...newState, deck: dealt.remainingDeck, dealState: { ...newState.dealState, dealBlock: dealBlockNum, dealRoundInBlock: roundIndex, startingSeat } };
+        newState = {
+          ...newState,
+          deck: dealt.remainingDeck,
+          dealState: {
+            ...newState.dealState,
+            dealBlock: dealBlockNum,
+            dealRoundInBlock: roundIndex,
+            startingSeat,
+            dealPattern,
+          },
+        };
         newState.handCounts = Object.fromEntries(Object.entries(newPrivateHands).map(([pid, cards]) => [pid, cards.length]));
       }
 
@@ -223,7 +256,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         await updateRoomStatus(roomCode, 'finished');
       }
     },
-    [gameState, roomCode]
+    [gameState, roomCode, myHand]
   );
 
   const value: GameContextType = {

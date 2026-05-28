@@ -27,9 +27,15 @@ import { isKing } from './cards';
  * Returns the new game state.
  * All randomness (e.g., burned card index) is pre-computed and included in the action.
  */
-export function applyAction(state: GameState, action: GameAction, privateHands: Record<string, any[]>): { state: GameState; privateHands: Record<string, any[]> } {
+export function applyAction(
+  state: GameState,
+  action: GameAction,
+  currentPlayerHand: any[],
+  burnTargetHand: any[] = []
+): { state: GameState; currentPlayerHand: any[]; burnTargetHand: any[] } {
   let newState = { ...state };
-  let updatedHands = { ...privateHands };
+  let updatedCurrentHand = [...currentPlayerHand];
+  let updatedBurnTargetHand = [...burnTargetHand];
 
   switch (action.type) {
     case 'bring_out':
@@ -48,10 +54,10 @@ export function applyAction(state: GameState, action: GameAction, privateHands: 
       newState = applySwap(newState, action);
       break;
     case 'burn_next_player':
-      ({ state: newState, privateHands: updatedHands } = applyBurn(newState, action, updatedHands));
+      ({ state: newState, burnTargetHand: updatedBurnTargetHand } = applyBurn(newState, action, updatedBurnTargetHand));
       break;
     case 'burn_all_cards':
-      ({ state: newState, privateHands: updatedHands } = applyBurnAll(newState, action, updatedHands));
+      ({ state: newState, currentPlayerHand: updatedCurrentHand } = applyBurnAll(newState, action, updatedCurrentHand));
       break;
     case 'skip_no_cards':
       // Just advance turn
@@ -60,7 +66,7 @@ export function applyAction(state: GameState, action: GameAction, privateHands: 
 
   // Remove played card from hand (except burn_all and skip)
   if (action.cardId && action.type !== 'burn_all_cards' && action.type !== 'skip_no_cards') {
-    ({ state: newState, privateHands: updatedHands } = removeCardFromHand(newState, updatedHands, action.playerId, action.cardId));
+    ({ state: newState, currentPlayerHand: updatedCurrentHand } = removeCardFromHand(newState, updatedCurrentHand, action.playerId, action.cardId));
   }
 
   // Add event to log
@@ -72,7 +78,7 @@ export function applyAction(state: GameState, action: GameAction, privateHands: 
   // Check win condition
   newState = checkWinCondition(newState);
 
-  return { state: newState, privateHands: updatedHands };
+  return { state: newState, currentPlayerHand: updatedCurrentHand, burnTargetHand: updatedBurnTargetHand };
 }
 
 // ============================================================================
@@ -116,10 +122,10 @@ function applyMove(state: GameState, action: GameAction): GameState {
   if (marbleIndex === -1) return state;
 
   const marble = marbles[marbleIndex];
-  const card = action.cardId ? findCardInHands(state, action.cardId, updatedHands) : null;
+  const cardRank = getCardRankFromCardId(action.cardId);
 
   // King path eating
-  if (card && isKing(card.rank) && isOnMainTrack(marble)) {
+  if (cardRank && isKing(cardRank) && isOnMainTrack(marble)) {
     const steps = 13;
     const eatenMarbles = getMarblesInPath(marble.position, steps, marbles, marble.id);
     for (const eaten of eatenMarbles) {
@@ -261,56 +267,48 @@ function applySwap(state: GameState, action: GameAction): GameState {
   return { ...state, marbles };
 }
 
-function applyBurn(state: GameState, action: GameAction, privateHands: Record<string, any[]>): { state: GameState; privateHands: Record<string, any[]> } {
-  if (!action.burnTargetPlayerId) return { state, privateHands };
+function applyBurn(state: GameState, action: GameAction, targetHandInput: any[]): { state: GameState; burnTargetHand: any[] } {
+  if (!action.burnTargetPlayerId) return { state, burnTargetHand: targetHandInput };
 
-  const hands = { ...privateHands };
-  const targetHand = [...(hands[action.burnTargetPlayerId] || [])];
-
-  if (targetHand.length === 0) return { state, privateHands };
+  const targetHand = [...targetHandInput];
+  if (targetHand.length === 0) return { state, burnTargetHand: targetHandInput };
 
   const burnIndex = action.burnCardIndex ?? -1;
-  if (burnIndex < 0 || burnIndex >= targetHand.length) return { state, privateHands };
+  if (burnIndex < 0 || burnIndex >= targetHand.length) return { state, burnTargetHand: targetHandInput };
   const burnedCard = targetHand[burnIndex];
 
   // Remove from hand
   targetHand.splice(burnIndex, 1);
-  hands[action.burnTargetPlayerId] = targetHand;
 
   // Add to discard pile
   const discardPile = [...state.discardPile, burnedCard];
 
-  const handCounts = { ...state.handCounts, [action.playerId]: 0 };
-  return { state: { ...state, handCounts, discardPile }, privateHands: hands };
+  const handCounts = { ...state.handCounts, [action.burnTargetPlayerId]: targetHand.length };
+  return { state: { ...state, handCounts, discardPile }, burnTargetHand: targetHand };
 }
 
-function applyBurnAll(state: GameState, action: GameAction, privateHands: Record<string, any[]>): { state: GameState; privateHands: Record<string, any[]> } {
-  const hands = { ...privateHands };
-  const playerHand = hands[action.playerId] || [];
+function applyBurnAll(state: GameState, action: GameAction, currentPlayerHand: any[]): { state: GameState; currentPlayerHand: any[] } {
+  const playerHand = [...currentPlayerHand];
 
   // Move all cards to discard
   const discardPile = [...state.discardPile, ...playerHand];
-  hands[action.playerId] = [];
-
   const handCounts = { ...state.handCounts, [action.playerId]: 0 };
-  return { state: { ...state, handCounts, discardPile }, privateHands: hands };
+  return { state: { ...state, handCounts, discardPile }, currentPlayerHand: [] };
 }
 
 // ============================================================================
 // HELPERS
 // ============================================================================
 
-function removeCardFromHand(state: GameState, privateHands: Record<string, any[]>, playerId: string, cardId: string): { state: GameState; privateHands: Record<string, any[]> } {
-  const hands = { ...privateHands };
-  const hand = [...(hands[playerId] || [])];
+function removeCardFromHand(state: GameState, currentPlayerHand: any[], playerId: string, cardId: string): { state: GameState; currentPlayerHand: any[] } {
+  const hand = [...currentPlayerHand];
   const cardIndex = hand.findIndex((c) => c.id === cardId);
   if (cardIndex !== -1) {
     const removedCard = hand.splice(cardIndex, 1)[0];
-    hands[playerId] = hand;
     const handCounts = { ...state.handCounts, [playerId]: hand.length };
-    return { state: { ...state, handCounts, discardPile: [...state.discardPile, removedCard] }, privateHands: hands };
+    return { state: { ...state, handCounts, discardPile: [...state.discardPile, removedCard] }, currentPlayerHand: hand };
   }
-  return { state, privateHands: hands };
+  return { state, currentPlayerHand: hand };
 }
 
 function getNextBaseIndex(marbles: Marble[], color: string): number {
@@ -324,15 +322,11 @@ function getNextBaseIndex(marbles: Marble[], color: string): number {
   return 0;
 }
 
-function findCardInHands(state: GameState, cardId: string, privateHands: Record<string, any[]>): { rank: CardRank } | null {
-  for (const hand of Object.values(privateHands)) {
-    const card = hand.find((c) => c.id === cardId);
-    if (card) return card;
-  }
-  // Also check discard pile
-  const discardCard = state.discardPile.find((c) => c.id === cardId);
-  if (discardCard) return discardCard;
-  return null;
+function getCardRankFromCardId(cardId?: string): CardRank | null {
+  if (!cardId) return null;
+  const [rank] = cardId.split('_');
+  const validRanks: CardRank[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  return validRanks.includes(rank as CardRank) ? (rank as CardRank) : null;
 }
 
 function advanceTurn(state: GameState): GameState {

@@ -3,21 +3,23 @@
     "rooms": {
       "$roomCode": {
         ".read": true,
-        ".write": "auth != null",
-        "privateHands": {
-          "$playerId": {
-            ".read": "auth != null && auth.uid === $playerId",
-            ".write": "auth != null"
-          }
-        },
+        ".write": "auth != null && (!data.exists() ? newData.child('roomMakerUid').val() === auth.uid : data.child('roomMakerUid').val() === auth.uid)",
         "gameState": {
           ".read": true,
-          ".write": "auth != null"
+          ".write": "auth != null && (auth.uid === data.parent().child('roomMakerUid').val() || auth.uid === data.child('currentTurnPlayerId').val() || (!data.exists() && auth.uid === data.parent().child('roomMakerUid').val()))"
         },
         "players": {
           "$playerId": {
             ".write": "auth != null && (auth.uid === $playerId || data.parent().parent().child('roomMakerUid').val() === auth.uid)"
           }
+        }
+      }
+    },
+    "privateHands": {
+      "$roomCode": {
+        "$playerId": {
+          ".read": "auth != null && auth.uid === $playerId",
+          ".write": "auth != null && (auth.uid === $playerId || auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val())"
         }
       }
     },

@@ -1,5 +1,5 @@
 import React from 'react';
-import { GameState, Marble, PlayerColor, COLORS_ORDER, TRACK_LENGTH, HOME_LENGTH } from '../../types/game';
+import { GameState, Marble, PlayerColor, COLORS_ORDER, TRACK_LENGTH, HOME_LENGTH, TOTAL_OUTER_SPOTS } from '../../types/game';
 
 interface GameBoardProps {
   gameState: GameState;
@@ -10,7 +10,7 @@ interface GameBoardProps {
 /**
  * Visual board representation.
  * Uses SVG for the octagonal Jackaroo board layout.
- * 18 track spots per color section + start/gate + 4 home spots.
+ * 18 track spots per color section + separate start/gate + 4 home spots.
  */
 export function GameBoard({ gameState, selectedCardId, playerId }: GameBoardProps) {
   const { marbles, players } = gameState;
@@ -37,10 +37,11 @@ export function GameBoard({ gameState, selectedCardId, playerId }: GameBoardProp
   };
 
   // Calculate track positions around the board (octagonal layout)
-  const getTrackPosition = (colorIndex: number, spotIndex: number): { x: number; y: number } => {
-    // Each color has 18 spots. Total 72 spots in a circle.
-    const globalIndex = colorIndex * TRACK_LENGTH + spotIndex;
-    const angle = (globalIndex / 72) * Math.PI * 2 - Math.PI / 2;
+  const getTrackPosition = (colorIndex: number, trackIndex: number): { x: number; y: number } => {
+    // Outer loop has 19 spots per section: start/gate + 18 track spots.
+    const sectionSize = TRACK_LENGTH + 1;
+    const globalIndex = colorIndex * sectionSize + 1 + trackIndex;
+    const angle = (globalIndex / TOTAL_OUTER_SPOTS) * Math.PI * 2 - Math.PI / 2;
     const x = center + outerRadius * Math.cos(angle);
     const y = center + outerRadius * Math.sin(angle);
     return { x, y };
@@ -48,12 +49,18 @@ export function GameBoard({ gameState, selectedCardId, playerId }: GameBoardProp
 
   // Start/gate position (first spot of each color section)
   const getStartGatePosition = (colorIndex: number): { x: number; y: number } => {
-    return getTrackPosition(colorIndex, 0);
+    const sectionSize = TRACK_LENGTH + 1;
+    const globalIndex = colorIndex * sectionSize;
+    const angle = (globalIndex / TOTAL_OUTER_SPOTS) * Math.PI * 2 - Math.PI / 2;
+    return {
+      x: center + outerRadius * Math.cos(angle),
+      y: center + outerRadius * Math.sin(angle),
+    };
   };
 
   // Home positions (toward center)
   const getHomePosition = (colorIndex: number, homeIndex: number): { x: number; y: number } => {
-    const angle = (colorIndex * TRACK_LENGTH / 72) * Math.PI * 2 - Math.PI / 2;
+    const angle = ((colorIndex * (TRACK_LENGTH + 1)) / TOTAL_OUTER_SPOTS) * Math.PI * 2 - Math.PI / 2;
     const radius = homeRadius + (HOME_LENGTH - homeIndex - 1) * 25;
     const x = center + radius * Math.cos(angle);
     const y = center + radius * Math.sin(angle);
@@ -62,7 +69,7 @@ export function GameBoard({ gameState, selectedCardId, playerId }: GameBoardProp
 
   // Base positions (outside the board)
   const getBasePosition = (colorIndex: number, baseIndex: number): { x: number; y: number } => {
-    const angle = (colorIndex * TRACK_LENGTH / 72) * Math.PI * 2 - Math.PI / 2;
+    const angle = ((colorIndex * (TRACK_LENGTH + 1)) / TOTAL_OUTER_SPOTS) * Math.PI * 2 - Math.PI / 2;
     const radius = outerRadius + 30 + baseIndex * 18;
     const x = center + radius * Math.cos(angle);
     const y = center + radius * Math.sin(angle);
@@ -113,8 +120,8 @@ export function GameBoard({ gameState, selectedCardId, playerId }: GameBoardProp
         />
       );
 
-      // Track spots
-      for (let si = 1; si < TRACK_LENGTH; si++) {
+      // Track spots (18 normal spots per section)
+      for (let si = 0; si < TRACK_LENGTH; si++) {
         const pos = getTrackPosition(ci, si);
         spots.push(
           <circle
@@ -204,7 +211,7 @@ export function GameBoard({ gameState, selectedCardId, playerId }: GameBoardProp
   const renderPlayerLabels = () => {
     return players.map((player, i) => {
       const colorIndex = COLORS_ORDER.indexOf(player.color);
-      const angle = (colorIndex * TRACK_LENGTH / 72) * Math.PI * 2 - Math.PI / 2;
+      const angle = ((colorIndex * (TRACK_LENGTH + 1)) / TOTAL_OUTER_SPOTS) * Math.PI * 2 - Math.PI / 2;
       const labelRadius = outerRadius + 70;
       const x = center + labelRadius * Math.cos(angle);
       const y = center + labelRadius * Math.sin(angle);

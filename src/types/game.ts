@@ -84,6 +84,7 @@ export interface GameAction {
   /** For burn */
   burnTargetPlayerId?: string;
   burnCardIndex?: number;
+  burnCardId?: string;
 }
 
 export interface LegalAction {
@@ -96,7 +97,6 @@ export interface LegalAction {
   swapMarbleId2?: string;
   splitMoves?: SplitSevenMove[];
   burnTargetPlayerId?: string;
-  burnCardIndex?: number;
 }
 
 // ============================================================================
@@ -122,6 +122,7 @@ export interface DealState {
   dealRoundInBlock: number;
   startingSeat: number;
   cardsPerPlayer: number;
+  dealPattern: number[] | number[][];
 }
 
 export interface GameState {
@@ -233,4 +234,6 @@ export const TEAM_ASSIGNMENTS: Record<number, TeamId> = {
 export const TRACK_LENGTH = 18; // spots per player section
 export const HOME_LENGTH = 4;
 export const BASE_COUNT = 4;
-export const TOTAL_TRACK_SPOTS = TRACK_LENGTH * 4; // 72
+export const SECTION_OUTER_SPOTS = TRACK_LENGTH + 1; // 18 track + 1 start/gate
+export const TOTAL_TRACK_SPOTS = TRACK_LENGTH * 4; // 72 normal track spots
+export const TOTAL_OUTER_SPOTS = SECTION_OUTER_SPOTS * 4; // 76 including start/gates

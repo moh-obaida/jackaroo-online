@@ -11,6 +11,7 @@ import {
   update,
   remove,
   onValue,
+  runTransaction,
   DataSnapshot,
 } from 'firebase/database';
 import { database, isFirebaseConfigured } from './config';
@@ -177,37 +178,49 @@ export async function joinRoom(params: {
     return { success: false, error: 'Game already in progress' };
   }
 
-  // Check available seats
-  const playerCount = Object.keys(room.players).length;
   const maxPlayers = getMaxPlayers(room.mode);
-  if (playerCount >= maxPlayers) {
+  const playersRef = ref(database, `rooms/${params.code}/players`);
+  const txnResult = await runTransaction(playersRef, (current) => {
+    const currentPlayers = (current || {}) as Record<string, PlayerState>;
+
+    // Reconnect path
+    if (currentPlayers[params.playerUid]) {
+      currentPlayers[params.playerUid] = {
+        ...currentPlayers[params.playerUid],
+        connected: true,
+      };
+      return currentPlayers;
+    }
+
+    if (Object.keys(currentPlayers).length >= maxPlayers) {
+      return;
+    }
+
+    const usedSeats = Object.values(currentPlayers).map((p) => p.seat);
+    let nextSeat = 0;
+    while (usedSeats.includes(nextSeat)) nextSeat++;
+
+    const color = COLORS_ORDER[nextSeat];
+    const team = room.mode === '4p_teams' ? TEAM_ASSIGNMENTS[nextSeat] : null;
+    currentPlayers[params.playerUid] = {
+      id: params.playerUid,
+      uid: params.playerUid,
+      name: params.playerName,
+      color,
+      seat: nextSeat,
+      team,
+      isBot: false,
+      botDifficulty: null,
+      connected: true,
+      ready: false,
+      guest: params.playerGuest,
+    };
+    return currentPlayers;
+  });
+
+  if (!txnResult.committed) {
     return { success: false, error: 'Room is full' };
   }
-
-  // Assign next available seat/color
-  const usedSeats = Object.values(room.players).map((p) => p.seat);
-  let nextSeat = 0;
-  while (usedSeats.includes(nextSeat)) nextSeat++;
-
-  const color = COLORS_ORDER[nextSeat];
-  const team = room.mode === '4p_teams' ? TEAM_ASSIGNMENTS[nextSeat] : null;
-
-  const newPlayer: PlayerState = {
-    id: params.playerUid,
-    uid: params.playerUid,
-    name: params.playerName,
-    color,
-    seat: nextSeat,
-    team,
-    isBot: false,
-    botDifficulty: null,
-    connected: true,
-    ready: false,
-    guest: params.playerGuest,
-  };
-
-  const playerRef = ref(database, `rooms/${params.code}/players/${params.playerUid}`);
-  await set(playerRef, newPlayer);
 
   const updateRef = ref(database, `rooms/${params.code}`);
   await update(updateRef, { updatedAt: Date.now() });
@@ -348,14 +361,14 @@ export async function updateGameState(code: string, updates: any): Promise<void>
 
 export async function getPrivateHand(code: string, playerId: string): Promise<any[]> {
   if (!database) return [];
-  const handRef = ref(database, `rooms/${code}/privateHands/${playerId}/cards`);
+  const handRef = ref(database, `privateHands/${code}/${playerId}/cards`);
   const snapshot = await get(handRef);
   return snapshot.exists() ? snapshot.val() : [];
 }
 
 export async function savePrivateHand(code: string, playerId: string, cards: any[]): Promise<void> {
   if (!database) return;
-  const handRef = ref(database, `rooms/${code}/privateHands/${playerId}/cards`);
+  const handRef = ref(database, `privateHands/${code}/${playerId}/cards`);
   await set(handRef, cards);
 }
 
@@ -384,7 +397,7 @@ export function subscribeToPrivateHand(
   callback: (cards: any[]) => void
 ): () => void {
   if (!database) return () => {};
-  const handRef = ref(database, `rooms/${code}/privateHands/${playerId}/cards`);
+  const handRef = ref(database, `privateHands/${code}/${playerId}/cards`);
   return onValue(handRef, (snapshot: DataSnapshot) => {
     if (snapshot.exists()) {
       callback(snapshot.val());

@@ -496,15 +496,12 @@ function generateBurnActions(
   const nextPlayerCount = state.handCounts[nextPlayer.id] || 0;
   if (nextPlayerCount === 0) return actions;
 
-  for (let i = 0; i < nextPlayerCount; i++) {
-    actions.push({
-      type: 'burn_next_player',
-      cardId: card.id,
-      burnTargetPlayerId: nextPlayer.id,
-      burnCardIndex: i,
-      description: `Burn ${nextPlayer.name}'s card (${card.rank})`,
-    });
-  }
+  actions.push({
+    type: 'burn_next_player',
+    cardId: card.id,
+    burnTargetPlayerId: nextPlayer.id,
+    description: `Burn next player's random card (${card.rank})`,
+  });
 
   return actions;
 }
@@ -571,14 +568,14 @@ function applyPriorityRules(
     return ownMoveActions;
   }
 
-  // 2. If no own moves, try teammate moves
+  // 2. If no own moves, teammate moves and burn are both allowed
   if (teammateMoveActions.length > 0) {
-    return teammateMoveActions;
+    return [...teammateMoveActions, ...burnActions];
   }
 
-  // 3. If no own/teammate moves, try opponent moves (only for 5)
+  // 3. If no own/teammate moves, opponent 5-moves and burn are both allowed
   if (opponentMoveActions.length > 0) {
-    return opponentMoveActions;
+    return [...opponentMoveActions, ...burnActions];
   }
 
   // 4. Only burn actions available

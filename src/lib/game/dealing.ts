@@ -145,10 +145,12 @@ export function allHandsEmpty(hands: Record<string, Card[]>): boolean {
  * Create the initial deal state for a new game.
  */
 export function createInitialDealState(startingSeat: number): DealState {
+  const dealPattern = generate4PlayerDealPattern();
   return {
     dealBlock: 0,
     dealRoundInBlock: 0,
     startingSeat,
     cardsPerPlayer: 4,
+    dealPattern,
   };
 }

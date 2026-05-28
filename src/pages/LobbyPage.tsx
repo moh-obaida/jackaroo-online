@@ -41,6 +41,7 @@ export function LobbyPage() {
   const isRoomMaker = currentRoom?.roomMakerUid === playerId;
   const players = currentRoom ? Object.values(currentRoom.players) : [];
   const maxPlayers = currentRoom?.mode === '4p_teams' ? 4 : currentRoom?.mode === '3p_solo' ? 3 : 2;
+  const hasBots = players.some((p) => p.isBot);
   const allReady = players.length === maxPlayers && players.every((p) => p.ready || p.isBot);
 
   const handleCopyCode = () => {
@@ -75,7 +76,8 @@ export function LobbyPage() {
   };
 
   const handleStart = async () => {
-    if (!allReady) return;
+    // Bot turns are not automated yet, so block bot lobbies from starting.
+    if (!allReady || hasBots) return;
     await startGame();
   };
 
@@ -229,10 +231,10 @@ export function LobbyPage() {
           {isRoomMaker && (
             <button
               onClick={handleStart}
-              disabled={!allReady}
+              disabled={!allReady || hasBots}
               className="btn-primary flex-1"
             >
-              {allReady ? t('lobby.start') : t('lobby.cannotStart')}
+              {hasBots ? 'Bots unavailable in gameplay yet' : allReady ? t('lobby.start') : t('lobby.cannotStart')}
             </button>
           )}
         </div>

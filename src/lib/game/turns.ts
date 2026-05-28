@@ -39,8 +39,7 @@ export function getStartingPlayer(state: GameState): PlayerState | undefined {
  * Check if the current player has cards.
  */
 export function currentPlayerHasCards(state: GameState): boolean {
-  const hand = state.hands[state.currentTurnPlayerId];
-  return hand !== undefined && hand.length > 0;
+  return (state.handCounts[state.currentTurnPlayerId] || 0) > 0;
 }
 
 /**
@@ -58,8 +57,5 @@ export function getTurnOrder(state: GameState): PlayerState[] {
  * Check if all players in the current round have empty hands.
  */
 export function allPlayersHandsEmpty(state: GameState): boolean {
-  return state.players.every((p) => {
-    const hand = state.hands[p.id];
-    return !hand || hand.length === 0;
-  });
+  return state.players.every((p) => (state.handCounts[p.id] || 0) === 0);
 }

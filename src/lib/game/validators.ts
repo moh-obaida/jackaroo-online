@@ -88,7 +88,7 @@ function findMatchingLegalAction(
           return lm.marbleId === am.marbleId && lm.steps === am.steps;
         });
       case 'burn_next_player':
-        return legal.burnTargetPlayerId === action.burnTargetPlayerId && legal.burnCardIndex === action.burnCardIndex;
+        return legal.burnTargetPlayerId === action.burnTargetPlayerId;
       default:
         return true;
     }

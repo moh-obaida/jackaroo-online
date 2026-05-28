@@ -9,6 +9,7 @@ import {
   Marble,
   COLORS_ORDER,
   TRACK_LENGTH,
+  TOTAL_OUTER_SPOTS,
   HOME_LENGTH,
   GameMode,
 } from '../../types/game';
@@ -78,27 +79,25 @@ export function getActiveColors(mode: GameMode, selectedColors?: PlayerColor[]):
 export function getGlobalTrackIndex(pos: BoardPosition): number {
   if (pos.type !== 'track' && pos.type !== 'start_gate') return -1;
   const colorIndex = COLORS_ORDER.indexOf(pos.color);
-  if (pos.type === 'start_gate') {
-    // Start/gate is at the beginning of each color's section (index 0 of their track)
-    return colorIndex * TRACK_LENGTH;
-  }
-  return colorIndex * TRACK_LENGTH + pos.index;
+  const sectionOffset = colorIndex * (TRACK_LENGTH + 1);
+  if (pos.type === 'start_gate') return sectionOffset;
+  return sectionOffset + 1 + pos.index;
 }
 
 /**
  * Get the board position from a global track index (0-71).
  */
 export function getPositionFromGlobalIndex(globalIndex: number): BoardPosition {
-  const normalized = ((globalIndex % 72) + 72) % 72;
-  const colorIndex = Math.floor(normalized / TRACK_LENGTH);
-  const spotIndex = normalized % TRACK_LENGTH;
+  const normalized = ((globalIndex % TOTAL_OUTER_SPOTS) + TOTAL_OUTER_SPOTS) % TOTAL_OUTER_SPOTS;
+  const sectionSize = TRACK_LENGTH + 1;
+  const colorIndex = Math.floor(normalized / sectionSize);
+  const spotIndex = normalized % sectionSize;
   const color = COLORS_ORDER[colorIndex];
 
-  // The start/gate spot is at index 0 of each color's section
   if (spotIndex === 0) {
     return { color, type: 'start_gate', index: 0 };
   }
-  return { color, type: 'track', index: spotIndex };
+  return { color, type: 'track', index: spotIndex - 1 };
 }
 
 /**
@@ -161,9 +160,9 @@ export function isOnMainTrack(marble: Marble): boolean {
  */
 export function getHomeEntryGlobalIndex(color: PlayerColor): number {
   const colorIndex = COLORS_ORDER.indexOf(color);
-  // Home entry is the spot just before the start/gate
-  // Start/gate is at colorIndex * 18, so entry is at (colorIndex * 18 - 1 + 72) % 72
-  return (colorIndex * TRACK_LENGTH - 1 + 72) % 72;
+  const sectionSize = TRACK_LENGTH + 1;
+  // Home entry is the final track spot before own start/gate.
+  return (colorIndex * sectionSize - 1 + TOTAL_OUTER_SPOTS) % TOTAL_OUTER_SPOTS;
 }
 
 /**
@@ -180,7 +179,7 @@ export function distanceToHomeEntry(marblePos: BoardPosition, marbleColor: Playe
   if (currentGlobal === homeEntryGlobal) return 0;
 
   // Forward distance around the circular track
-  return (homeEntryGlobal - currentGlobal + 72) % 72;
+  return (homeEntryGlobal - currentGlobal + TOTAL_OUTER_SPOTS) % TOTAL_OUTER_SPOTS;
 }
 
 /**
@@ -286,11 +285,11 @@ export function calculateBackward4(
   if (pos.type !== 'track' && pos.type !== 'start_gate') return null;
 
   const currentGlobal = getGlobalTrackIndex(pos);
-  const targetGlobal = (currentGlobal - 4 + 72) % 72;
+  const targetGlobal = (currentGlobal - 4 + TOTAL_OUTER_SPOTS) % TOTAL_OUTER_SPOTS;
 
   // Check if backward path passes through any locked start/gate
   for (let step = 1; step <= 4; step++) {
-    const checkGlobal = (currentGlobal - step + 72) % 72;
+      const checkGlobal = (currentGlobal - step + TOTAL_OUTER_SPOTS) % TOTAL_OUTER_SPOTS;
     const checkPos = getPositionFromGlobalIndex(checkGlobal);
     if (checkPos.type === 'start_gate') {
       // Check if owner's marble is locked there
@@ -332,7 +331,7 @@ export function getForwardPath(
   const startGlobal = getGlobalTrackIndex(fromPos);
 
   for (let i = 1; i <= steps; i++) {
-    const globalIdx = (startGlobal + i) % 72;
+    const globalIdx = (startGlobal + i) % TOTAL_OUTER_SPOTS;
     path.push(getPositionFromGlobalIndex(globalIdx));
   }
 
@@ -380,7 +379,7 @@ export function isBackwardPathBlocked(
   const startGlobal = getGlobalTrackIndex(fromPos);
 
   for (let i = 1; i <= steps; i++) {
-    const globalIdx = (startGlobal - i + 72) % 72;
+    const globalIdx = (startGlobal - i + TOTAL_OUTER_SPOTS) % TOTAL_OUTER_SPOTS;
     const checkPos = getPositionFromGlobalIndex(globalIdx);
     if (checkPos.type === 'start_gate') {
       const blocker = marbles.find(
@@ -487,7 +486,7 @@ export function calculateForwardTarget(
   }
 
   const currentGlobal = getGlobalTrackIndex(marble.position);
-  const targetGlobal = (currentGlobal + steps) % 72;
+  const targetGlobal = (currentGlobal + steps) % TOTAL_OUTER_SPOTS;
   const targetPos = getPositionFromGlobalIndex(targetGlobal);
 
   // Check if landing on a locked start/gate (can't land there either)
