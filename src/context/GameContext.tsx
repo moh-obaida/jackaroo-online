@@ -85,6 +85,15 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     return () => { unsub(); };
   }, [roomCode, room?.status]);
 
+  // If room disappears (left/deleted), clear game-related in-memory state.
+  useEffect(() => {
+    if (!roomCode) return;
+    if (room === null) {
+      setGameState(null);
+      setMyHand([]);
+    }
+  }, [roomCode, room]);
+
   // Subscribe to private hand
   useEffect(() => {
     if (!roomCode || !playerId || !room || room.status !== 'playing' || !isFirebaseConfigured) return;

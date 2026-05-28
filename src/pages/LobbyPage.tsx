@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
 import {
@@ -11,6 +11,7 @@ import {
 } from '../lib/firebase/rooms';
 import { getMaxPlayersForMode } from '../lib/game/normalize';
 import { RoomData } from '../types/game';
+import { GameStatusCard } from '../components/game/GameStatusCard';
 
 export function LobbyPage() {
   const { t, user } = useApp();
@@ -19,6 +20,9 @@ export function LobbyPage() {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [localRoom, setLocalRoom] = useState<RoomData | null>(null);
+  const [roomLoaded, setRoomLoaded] = useState(false);
+  const [leftRoom, setLeftRoom] = useState(false);
+  const [leaveError, setLeaveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (code) {
@@ -28,8 +32,10 @@ export function LobbyPage() {
 
   useEffect(() => {
     if (!code) return;
+    setRoomLoaded(false);
     const unsub = subscribeToRoom(code, (roomData) => {
       setLocalRoom(roomData);
+      setRoomLoaded(true);
       if (roomData?.status === 'playing') {
         navigate(`/game/${code}`);
       }
@@ -86,9 +92,16 @@ export function LobbyPage() {
 
   const handleLeave = async () => {
     if (!code || !playerId) return;
-    await leaveRoom(code, playerId);
-    setRoomCode(null);
-    navigate('/');
+    setLeaveError(null);
+    try {
+      await leaveRoom(code, playerId);
+      setLeftRoom(true);
+      setRoomCode(null);
+      navigate('/', { replace: true });
+    } catch (err: any) {
+      console.error('leaveRoom failed:', err);
+      setLeaveError(err?.message || 'Failed to leave room safely.');
+    }
   };
 
   const handleAddBot = async () => {
@@ -116,11 +129,54 @@ export function LobbyPage() {
     }
   };
 
+  if (!roomLoaded) {
+    return (
+      <GameStatusCard title="Loading room…" message={`Connecting to room ${code || ''}.`} />
+    );
+  }
+
+  if (leftRoom) {
+    return (
+      <GameStatusCard
+        title="You left the room"
+        message="You have exited the lobby safely."
+        action={
+          <Link to="/" className="btn-primary inline-block">
+            Back home
+          </Link>
+        }
+      />
+    );
+  }
+
   if (!currentRoom) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <p className="text-gray-400">{t('general.loading')}</p>
-      </div>
+      <GameStatusCard
+        title="Room not found"
+        message="This room no longer exists or has already been closed."
+        variant="warn"
+        action={
+          <Link to="/" className="btn-primary inline-block">
+            Back home
+          </Link>
+        }
+      />
+    );
+  }
+
+  const isStillInRoom = Boolean(playerId && currentRoom.players?.[playerId]);
+  if (!isStillInRoom) {
+    return (
+      <GameStatusCard
+        title="You are no longer in this room"
+        message="Leave/join state changed. Return home and join again if needed."
+        variant="warn"
+        action={
+          <Link to="/" className="btn-primary inline-block">
+            Back home
+          </Link>
+        }
+      />
     );
   }
 
@@ -237,6 +293,9 @@ export function LobbyPage() {
 
         {gameError && (
           <p className="text-sm text-red-300 mb-3 bg-red-950/40 rounded-lg px-3 py-2">{gameError}</p>
+        )}
+        {leaveError && (
+          <p className="text-sm text-red-300 mb-3 bg-red-950/40 rounded-lg px-3 py-2">{leaveError}</p>
         )}
 
         <div className="flex flex-col gap-2">

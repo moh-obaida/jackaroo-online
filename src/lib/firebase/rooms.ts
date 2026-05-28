@@ -242,8 +242,13 @@ export async function leaveRoom(code: string, playerUid: string): Promise<void> 
   const playerRef = ref(database, `rooms/${code}/players/${playerUid}`);
   await remove(playerRef);
 
+  // Best-effort metadata touch; this may be denied for non-room-makers by rules.
   const updateRef = ref(database, `rooms/${code}`);
-  await update(updateRef, { updatedAt: Date.now() });
+  try {
+    await update(updateRef, { updatedAt: Date.now() });
+  } catch (err) {
+    console.warn('leaveRoom: updatedAt touch skipped', err);
+  }
 }
 
 /**
