@@ -1,5 +1,4 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { Link } from 'react-router-dom';
 
 interface Props {
   children: ReactNode;
@@ -43,9 +42,17 @@ export class ErrorBoundary extends Component<Props, State> {
               >
                 Reload
               </button>
-              <Link to="/" className="btn-secondary flex-1 text-center">
+              <button
+                type="button"
+                className="btn-secondary flex-1 text-center"
+                onClick={() => {
+                  this.setState({ error: null }, () => {
+                    window.location.assign('/');
+                  });
+                }}
+              >
                 Back Home
-              </Link>
+              </button>
             </div>
           </div>
         </div>
