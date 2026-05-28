@@ -28,6 +28,7 @@ import {
   Card,
 } from '../../types/game';
 import { normalizeCards, normalizeGameState } from '../game/normalize';
+import { getNextTurnPlayer } from '../game/turns';
 
 // ============================================================================
 // ROOM CODE GENERATION — Numeric only, saved to Firebase
@@ -234,17 +235,62 @@ export async function joinRoom(params: {
   return { success: true };
 }
 
+function gameStatePlayerIndex(players: PlayerState[], playerUid: string): number {
+  return players.findIndex((p) => p.id === playerUid);
+}
+
 /**
- * Leave a room.
+ * Leave a room. In lobby, removes the player node. During play, marks disconnected
+ * and advances turn when the leaving player was up — keeps gameState turn order valid.
  */
 export async function leaveRoom(code: string, playerUid: string): Promise<void> {
   if (!database) return;
+
+  const roomRef = ref(database, `rooms/${code}`);
+  const snapshot = await get(roomRef);
+  if (!snapshot.exists()) return;
+
+  const room = snapshot.val() as RoomData & { gameState?: GameState };
+  const now = Date.now();
+
+  if (room.status === 'playing' && room.gameState && room.players[playerUid]) {
+    const gameState = normalizeGameState(room.gameState);
+    if (!gameState) {
+      await remove(ref(database, `rooms/${code}/players/${playerUid}`));
+      return;
+    }
+    const idx = gameStatePlayerIndex(gameState.players, playerUid);
+
+    const updates: Record<string, unknown> = {
+      [`rooms/${code}/players/${playerUid}/connected`]: false,
+      [`rooms/${code}/updatedAt`]: now,
+    };
+
+    if (idx >= 0) {
+      updates[`rooms/${code}/gameState/players/${idx}/connected`] = false;
+
+      if (gameState.currentTurnPlayerId === playerUid) {
+        const playersAfterLeave = gameState.players.map((p, i) =>
+          i === idx ? { ...p, connected: false } : p
+        );
+        const stateAfterLeave: GameState = { ...gameState, players: playersAfterLeave };
+        const next = getNextTurnPlayer(stateAfterLeave);
+        if (next) {
+          updates[`rooms/${code}/gameState/currentTurnPlayerId`] = next.id;
+          updates[`rooms/${code}/gameState/currentSeat`] = next.seat;
+          updates[`rooms/${code}/gameState/turnNumber`] = gameState.turnNumber + 1;
+        }
+      }
+    }
+
+    await update(ref(database), updates);
+    return;
+  }
+
   const playerRef = ref(database, `rooms/${code}/players/${playerUid}`);
   await remove(playerRef);
 
-  // Best-effort metadata touch — must not block or fail leave for the caller.
-  const updateRef = ref(database, `rooms/${code}`);
-  void update(updateRef, { updatedAt: Date.now() }).catch((err) => {
+  void update(roomRef, { updatedAt: now }).catch((err) => {
     console.warn('leaveRoom: updatedAt touch skipped', err);
   });
 }

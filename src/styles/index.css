@@ -10,19 +10,12 @@
   }
 
   body {
-<<<<<<< HEAD
     @apply min-h-screen text-cream-100 antialiased;
     background-color: var(--jkr-ink);
     background-image:
       radial-gradient(ellipse 140% 90% at 50% -30%, rgba(212, 165, 99, 0.1), transparent 50%),
       radial-gradient(ellipse 80% 50% at 100% 80%, rgba(26, 77, 46, 0.12), transparent),
       linear-gradient(180deg, #0c0906 0%, #060504 100%);
-=======
-    @apply min-h-screen bg-surface-base text-cream-100 antialiased;
-    background-image:
-      radial-gradient(ellipse 120% 80% at 50% -20%, rgba(212, 165, 99, 0.08), transparent),
-      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(92, 60, 24, 0.15), transparent);
->>>>>>> origin/main
   }
 
   html[dir='rtl'] {
@@ -32,22 +25,9 @@
   html[dir='ltr'] {
     font-family: 'Inter', system-ui, sans-serif;
   }
-
-  h1 {
-    @apply text-3xl md:text-4xl font-bold tracking-tight text-gold-300;
-  }
-
-  h2 {
-    @apply text-xl font-semibold text-cream-100;
-  }
-
-  p {
-    @apply leading-relaxed;
-  }
 }
 
 @layer components {
-<<<<<<< HEAD
   /* —— App shells —— */
   .marketing-shell {
     @apply min-h-screen flex flex-col text-cream-100 jkr-stack;
@@ -297,46 +277,6 @@
 
   .input-field {
     @apply w-full px-4 py-3 bg-black/40 border border-wood-700/80 rounded-xl text-cream-100 placeholder-cream-200/30 focus:outline-none focus:border-gold-500/70 focus:ring-2 focus:ring-gold-500/15 transition-colors;
-=======
-  .page-shell {
-    @apply flex-1 w-full max-w-6xl mx-auto px-4 py-6 md:py-8;
-  }
-
-  .page-title {
-    @apply text-2xl md:text-3xl font-bold text-gold-300 mb-2;
-  }
-
-  .page-subtitle {
-    @apply text-sm md:text-base text-cream-200/70 mb-6 max-w-xl;
-  }
-
-  .btn-primary {
-    @apply px-5 py-2.5 bg-gold-500 hover:bg-gold-400 active:bg-gold-600 text-board-dark font-semibold rounded-lg shadow-md shadow-black/30 transition-all duration-200 disabled:opacity-45 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:bg-gold-500;
-  }
-
-  .btn-secondary {
-    @apply px-5 py-2.5 bg-wood-800/80 hover:bg-wood-700 text-cream-100 font-medium rounded-lg border border-wood-600/80 transition-all duration-200 disabled:opacity-45 disabled:cursor-not-allowed;
-  }
-
-  .btn-danger {
-    @apply px-5 py-2.5 bg-red-900/90 hover:bg-red-800 text-cream-100 font-medium rounded-lg border border-red-700/60 transition-all duration-200 disabled:opacity-45 disabled:cursor-not-allowed;
-  }
-
-  .btn-ghost {
-    @apply px-3 py-1.5 text-sm text-gold-300 hover:text-gold-200 hover:bg-wood-800/50 rounded-md transition-colors;
-  }
-
-  .card-container {
-    @apply bg-surface-panel/95 border border-wood-700/60 rounded-xl p-4 md:p-5 shadow-xl shadow-black/25 backdrop-blur-sm;
-  }
-
-  .card-container-compact {
-    @apply card-container p-3 md:p-4;
-  }
-
-  .input-field {
-    @apply w-full px-4 py-2.5 bg-surface-inset border border-wood-700/70 rounded-lg text-cream-100 placeholder-cream-200/35 focus:outline-none focus:border-gold-500/80 focus:ring-2 focus:ring-gold-500/20 transition-colors;
->>>>>>> origin/main
   }
 
   .select-field {
@@ -344,7 +284,6 @@
   }
 
   .helper-text {
-<<<<<<< HEAD
     @apply text-xs text-cream-200/50 mt-1.5;
   }
 
@@ -779,62 +718,12 @@
   .playing-card-v2--selected {
     transform: translateY(-12px) scale(1.04);
     @apply jkr-layer-hand-top;
-=======
-    @apply text-xs text-cream-200/50 mt-1;
-  }
-
-  .badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border;
-  }
-
-  .badge-gold {
-    @apply badge bg-gold-500/15 text-gold-300 border-gold-500/30;
-  }
-
-  .feature-card {
-    @apply card-container-compact flex gap-3 items-start hover:border-gold-500/25 transition-colors;
-  }
-
-  .home-hero {
-    @apply relative overflow-hidden rounded-2xl border border-wood-700/50 bg-surface-panel/80 p-6 md:p-8 mb-8 w-full max-w-3xl;
-    background-image:
-      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212, 165, 99, 0.12), transparent),
-      linear-gradient(180deg, rgba(45, 32, 16, 0.5), transparent);
-  }
-
-  .lobby-card {
-    @apply shadow-2xl shadow-black/40 border-gold-500/10;
-  }
-
-  .game-table-root {
-    background:
-      radial-gradient(ellipse 90% 70% at 50% 40%, rgba(92, 60, 24, 0.25), transparent),
-      radial-gradient(ellipse 50% 40% at 50% 100%, rgba(0, 0, 0, 0.5), transparent),
-      #080604;
-  }
-
-  .game-table-bar {
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
-  }
-
-  .game-panel-compact {
-    @apply rounded-lg border border-wood-800/70 bg-black/35 p-2.5 backdrop-blur-sm;
-  }
-
-  .board-frame {
-    filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.65));
-  }
-
-  .board-stage {
-    perspective: 800px;
->>>>>>> origin/main
   }
 
   .turn-pulse {
     animation: turn-pulse 1.6s ease-in-out infinite;
   }
 
-<<<<<<< HEAD
   .pb-safe {
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
@@ -845,21 +734,12 @@
 
   .win-overlay-v2 {
     @apply fixed inset-0 jkr-layer-blocking flex items-center justify-center bg-black/80 backdrop-blur-sm;
-=======
-  .marble-glow {
-    animation: marble-glow 1.8s ease-in-out infinite;
-  }
-
-  .rtl-flip {
-    @apply rtl:scale-x-[-1];
->>>>>>> origin/main
   }
 }
 
 @keyframes turn-pulse {
   0%,
   100% {
-<<<<<<< HEAD
     box-shadow: 0 0 0 rgba(230, 184, 0, 0);
   }
   50% {
@@ -896,45 +776,4 @@ html[dir='rtl'] .text-start {
 .theme-light body {
   background: #f0ebe3;
   color: #1a1208;
-=======
-    opacity: 1;
-    box-shadow: 0 0 0 rgba(230, 184, 0, 0);
-  }
-  50% {
-    opacity: 1;
-    box-shadow: 0 0 12px rgba(230, 184, 0, 0.35);
-  }
-}
-
-@keyframes marble-glow {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-html[dir='rtl'] .text-start {
-  text-align: right;
-}
-
-html[dir='rtl'] .ms-auto {
-  margin-inline-start: auto;
-}
-
-.theme-light body,
-.theme-light .bg-surface-base {
-  background-color: #f5f0e8;
-  color: #1a1208;
-}
-
-.theme-light .card-container {
-  @apply bg-white border-amber-200/80 text-gray-900;
-}
-
-.theme-balanced body {
-  background-color: #241c12;
->>>>>>> origin/main
 }

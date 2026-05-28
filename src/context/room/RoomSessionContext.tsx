@@ -29,7 +29,7 @@ export type RoomSessionContextValue = {
   leaveWarning: string | null;
   sessionEpoch: number;
   myPlayer: PlayerState | null;
-  bindRoomFromRoute: (code: string) => void;
+  bindRoomFromRoute: (code: string, options?: { allowRejoin?: boolean }) => void;
   setRoomCode: (code: string | null) => void;
   clearGameSession: () => void;
   safeLeaveRoom: (code: string) => Promise<void>;
@@ -93,10 +93,21 @@ export function RoomSessionProvider({ children }: { children: React.ReactNode })
   );
 
   const bindRoomFromRoute = useCallback(
-    (code: string) => {
-      if (isLeavingRef.current || isLeaving) return;
+    (code: string, options?: { allowRejoin?: boolean }) => {
       const trimmed = code?.trim();
-      if (!trimmed || hasLeft(trimmed)) return;
+      if (!trimmed) return;
+
+      if (options?.allowRejoin) {
+        clearLeftMark(trimmed);
+        isLeavingRef.current = false;
+        setIsLeaving(false);
+        leaveInFlightRef.current = false;
+        setRoomCode(trimmed);
+        return;
+      }
+
+      if (isLeavingRef.current || isLeaving) return;
+      if (hasLeft(trimmed)) return;
       setRoomCode(trimmed);
     },
     [isLeaving, setRoomCode]

@@ -12,12 +12,19 @@
         },
         "gameState": {
           ".read": true,
-          ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val() || (!data.exists() && auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val()))"
+          ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val() || (!data.exists() && auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val()))",
+          "players": {
+            "$playerIndex": {
+              "connected": {
+                ".write": "auth != null && auth.uid === data.parent().child('id').val() && root.child('rooms/' + $roomCode + '/players/' + auth.uid).exists()"
+              }
+            }
+          }
         },
         "players": {
           "$playerId": {
             ".read": true,
-            ".write": "auth != null && (root.child('rooms/' + $roomCode + '/roomMakerUid').val() === auth.uid || (auth.uid === $playerId && ((!data.exists() && root.child('rooms/' + $roomCode + '/status').val() === 'lobby' && newData.child('uid').val() === auth.uid && newData.child('id').val() === auth.uid && newData.child('isBot').val() === false && ((root.child('rooms/' + $roomCode + '/mode').val() === '4p_teams' && data.parent().numChildren() < 4) || (root.child('rooms/' + $roomCode + '/mode').val() === '3p_solo' && data.parent().numChildren() < 3) || (root.child('rooms/' + $roomCode + '/mode').val() === '2p_solo' && data.parent().numChildren() < 2))) || (data.exists() && !newData.exists()))))",
+            ".write": "auth != null && (root.child('rooms/' + $roomCode + '/roomMakerUid').val() === auth.uid || (auth.uid === $playerId && ((!data.exists() && root.child('rooms/' + $roomCode + '/status').val() === 'lobby' && newData.child('uid').val() === auth.uid && newData.child('id').val() === auth.uid && newData.child('isBot').val() === false && ((root.child('rooms/' + $roomCode + '/mode').val() === '4p_teams' && data.parent().numChildren() < 4) || (root.child('rooms/' + $roomCode + '/mode').val() === '3p_solo' && data.parent().numChildren() < 3) || (root.child('rooms/' + $roomCode + '/mode').val() === '2p_solo' && data.parent().numChildren() < 2))) || (data.exists() && !newData.exists() && root.child('rooms/' + $roomCode + '/status').val() === 'lobby'))))",
             "ready": {
               ".write": "auth != null && auth.uid === $playerId && root.child('rooms/' + $roomCode + '/status').val() === 'lobby' && root.child('rooms/' + $roomCode + '/players/' + auth.uid).exists()"
             },

@@ -4,14 +4,10 @@ import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
 import { joinRoom } from '../lib/firebase/rooms';
 import { signInAsGuest } from '../lib/firebase/auth';
-<<<<<<< HEAD
 import { FormPage } from '../components/ui/FormPage';
 import { FormField, TextInput } from '../components/ui/FormField';
 import { Alert } from '../components/ui/Alert';
 import { Button } from '../components/ui/Button';
-=======
-import { BackHomeButton } from '../components/common/BackHomeButton';
->>>>>>> origin/main
 
 function mapJoinError(message: string, t: (key: string) => string): string {
   const lower = message.toLowerCase();
@@ -73,7 +69,7 @@ export function JoinRoomPage() {
         return;
       }
 
-      bindRoomFromRoute(code.trim());
+      bindRoomFromRoute(code.trim(), { allowRejoin: true });
       navigate(`/lobby/${code.trim()}`);
     } catch (err: any) {
       setError(mapJoinError(err.message || 'Failed to join room', t));
@@ -83,7 +79,6 @@ export function JoinRoomPage() {
   };
 
   return (
-<<<<<<< HEAD
     <FormPage title={t('join.title')} subtitle={t('create.passwordHelp')}>
       {!firebaseReady && (
         <Alert variant="warn" className="mb-4 rounded-xl text-left text-xs">
@@ -135,70 +130,5 @@ export function JoinRoomPage() {
         </Button>
       </form>
     </FormPage>
-=======
-    <div className="page-shell flex flex-col items-center">
-      <div className="w-full max-w-lg mb-4">
-        <BackHomeButton />
-      </div>
-
-      <div className="card-container w-full max-w-lg">
-        <h1 className="page-title">{t('join.title')}</h1>
-        <p className="page-subtitle">{t('create.passwordHelp')}</p>
-
-        {!firebaseReady && (
-          <div className="mb-4 p-3 bg-yellow-900/40 border border-yellow-600/60 rounded-lg">
-            <p className="text-yellow-200 text-xs">Firebase not configured.</p>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-cream-200/80 mb-1">{t('join.code')}</label>
-            <input
-              type="text"
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder={t('join.codePlaceholder')}
-              className="input-field text-center text-xl tracking-normal tabular-nums font-mono"
-              maxLength={6}
-              inputMode="numeric"
-              autoComplete="off"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-cream-200/80 mb-1">{t('join.password')}</label>
-            <input
-              type="text"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t('join.passwordPlaceholder')}
-              className="input-field"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-cream-200/80 mb-1">{t('join.name')}</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t('join.namePlaceholder')}
-              className="input-field"
-              maxLength={20}
-            />
-          </div>
-
-          {error && (
-            <p className="text-red-400 text-sm bg-red-950/30 rounded-lg px-3 py-2">{error}</p>
-          )}
-
-          <button type="submit" disabled={loading} className="btn-primary w-full text-lg">
-            {loading ? t('general.loading') : t('join.submit')}
-          </button>
-        </form>
-      </div>
-    </div>
->>>>>>> origin/main
   );
 }

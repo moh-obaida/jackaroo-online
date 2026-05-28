@@ -69,7 +69,6 @@ export function getCardGuideActionKeys(rank: CardRank): string[] {
 export function getCardGuideTitleKey(rank: CardRank): string {
   return `deckGuide.${rank}.title`;
 }
-<<<<<<< HEAD
 
 /** Primary action line for card face (Jackaroo-style, matches physical deck layout). */
 export function getCardFaceActionKey(rank: CardRank): string {
@@ -81,5 +80,3 @@ export function getCardFaceActionKey(rank: CardRank): string {
 export function getCardCornerLabel(rank: CardRank): string {
   return rank;
 }
-=======
->>>>>>> origin/main

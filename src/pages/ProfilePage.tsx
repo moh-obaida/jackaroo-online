@@ -7,14 +7,11 @@ import {
   deleteCustomTemplate,
 } from '../lib/firebase/rooms';
 import { CustomRulesConfig, DEFAULT_CUSTOM_RULES } from '../types/game';
-<<<<<<< HEAD
 import { PageFrame } from '../components/ui/PageFrame';
 import { Panel } from '../components/ui/Panel';
 import { FormField, TextInput } from '../components/ui/FormField';
 import { Alert } from '../components/ui/Alert';
 import { Button } from '../components/ui/Button';
-=======
->>>>>>> origin/main
 import { BackHomeButton } from '../components/common/BackHomeButton';
 
 const CUSTOM_TOGGLES: { key: keyof CustomRulesConfig; labelKey: string; futureOnly?: boolean }[] = [
@@ -72,7 +69,6 @@ export function ProfilePage() {
 
   if (isGuestUser) {
     return (
-<<<<<<< HEAD
       <PageFrame variant="form">
         <Panel title={t('profile.title')} glow className="text-center">
           <p className="text-cream-200/70 mb-2">{t('custom.guestSave')}</p>
@@ -97,35 +93,6 @@ export function ProfilePage() {
     <PageFrame variant="marketing" className="max-w-4xl">
       <div className="mb-5">
         <BackHomeButton intent="navigate" />
-=======
-      <div className="page-shell flex flex-col items-center justify-center">
-        <div className="card-container text-center max-w-md w-full">
-          <p className="text-cream-200/70 mb-2">{t('custom.guestSave')}</p>
-          <p className="text-sm text-cream-200/50 mb-4">{t('auth.guestNote')}</p>
-          <div className="flex flex-col gap-2">
-            <button type="button" onClick={() => navigate('/auth')} className="btn-primary">
-              {t('nav.login')}
-            </button>
-            <BackHomeButton />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="page-shell max-w-4xl">
-      <div className="mb-6">
-        <BackHomeButton />
-      </div>
-      <h1 className="page-title">{t('profile.title')}</h1>
-
-      <div className="card-container mb-6">
-        <p className="text-cream-200/80 font-medium">
-          {user?.displayName || user?.email || 'User'}
-        </p>
-        <p className="helper-text">{user?.email}</p>
->>>>>>> origin/main
       </div>
 
       <Panel title={t('profile.title')} glow className="mb-6">
@@ -180,17 +147,10 @@ export function ProfilePage() {
         </div>
 
         {editingTemplate && (
-<<<<<<< HEAD
           <div className="mt-5 p-4 rounded-xl bg-black/25 border border-wood-700/60">
             <Alert variant="warn" className="mb-4 rounded-lg text-xs text-left">
               {t('custom.notice')}
             </Alert>
-=======
-          <div className="mt-4 p-4 bg-surface-inset/60 rounded-xl border border-wood-700/60">
-            <p className="text-xs text-amber-300/90 border border-amber-700/40 rounded-lg px-2 py-1.5 mb-3">
-              {t('custom.notice')}
-            </p>
->>>>>>> origin/main
             <h3 className="text-sm font-semibold text-gold-300 mb-3">{t('custom.title')}</h3>
             <div className="space-y-3">
               <FormField label={t('custom.name')}>
@@ -207,10 +167,6 @@ export function ProfilePage() {
                 />
               </FormField>
 
-<<<<<<< HEAD
-=======
-              {/* Toggle Options */}
->>>>>>> origin/main
               {CUSTOM_TOGGLES.map(({ key, labelKey, futureOnly }) => (
                 <label key={key} className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -224,7 +180,6 @@ export function ProfilePage() {
                     }
                     className="w-4 h-4 rounded border-wood-500 bg-surface-inset text-gold-500"
                   />
-<<<<<<< HEAD
                   <span className="text-sm text-cream-200/80">
                     {t(labelKey)}
                     {futureOnly ? (
@@ -234,9 +189,6 @@ export function ProfilePage() {
                       </span>
                     ) : null}
                   </span>
-=======
-                  <span className="text-sm text-cream-200/80">{t(labelKey)}{futureOnly ? (<span className="text-[10px] text-amber-300/80 ms-1"> {t('custom.futureToggle')}</span>) : null}</span>
->>>>>>> origin/main
                 </label>
               ))}
 
@@ -274,18 +226,9 @@ export function ProfilePage() {
         )}
       </Panel>
 
-<<<<<<< HEAD
       <Panel title={t('profile.history')}>
         <p className="text-cream-200/45 text-sm">{t('profile.historyPlaceholder')}</p>
       </Panel>
     </PageFrame>
-=======
-      {/* Match History Placeholder */}
-      <div className="card-container">
-        <h2 className="text-lg font-semibold text-cream-200/90 mb-2">{t('profile.history')}</h2>
-        <p className="text-cream-200/45 text-sm">{t('profile.historyPlaceholder')}</p>
-      </div>
-    </div>
->>>>>>> origin/main
   );
 }

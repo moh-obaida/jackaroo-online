@@ -144,7 +144,6 @@ export const en: Translations = {
   'game.playAgain': 'Play Again',
   'game.backToLobby': 'Back to Lobby',
   'game.waitTurn': 'Wait for your turn to play a card.',
-<<<<<<< HEAD
   'game.playHint': 'Tap a highlighted card, then choose your move below.',
   'game.tapThenConfirm': 'Confirm your move — gold spots show where you can land.',
   'game.turnNow': 'Playing',
@@ -155,8 +154,6 @@ export const en: Translations = {
   'game.step.skip_turn': 'No cards — skip your turn',
   'game.moreActions': '{count} more moves',
   'game.fewerActions': 'Show fewer moves',
-=======
->>>>>>> origin/main
   'game.noLegalForCard': 'No legal move with this card.',
   'game.opponents': 'Players',
   'game.cardsCount': '{count} cards',
@@ -323,13 +320,10 @@ export const en: Translations = {
   'general.error': 'Error',
   'general.close': 'Close',
   'general.back': 'Back',
-<<<<<<< HEAD
   'connection.live': 'Live',
   'connection.syncing': 'Syncing room…',
   'connection.leaving': 'Leaving…',
   'connection.offline': 'Offline',
-=======
->>>>>>> origin/main
   'general.backHome': 'Back Home',
   'general.yes': 'Yes',
   'general.no': 'No',
@@ -471,7 +465,6 @@ export const ar: Translations = {
   'game.playAgain': 'لعب مرة أخرى',
   'game.backToLobby': 'العودة للوبي',
   'game.waitTurn': 'انتظر دورك للعب ورقة.',
-<<<<<<< HEAD
   'game.playHint': 'اختر ورقة مضيئة، ثم اختر حركتك بالأسفل.',
   'game.tapThenConfirm': 'أكّد حركتك — النقاط الذهبية تبيّن أين يمكنك الهبوط.',
   'game.turnNow': 'يلعب الآن',
@@ -482,8 +475,6 @@ export const ar: Translations = {
   'game.step.skip_turn': 'لا أوراق — تخطّ دورك',
   'game.moreActions': '{count} حركات إضافية',
   'game.fewerActions': 'عرض حركات أقل',
-=======
->>>>>>> origin/main
   'game.noLegalForCard': 'لا حركة قانونية بهذه الورقة.',
   'game.opponents': 'اللاعبون',
   'game.cardsCount': '{count} ورقة',
@@ -650,13 +641,10 @@ export const ar: Translations = {
   'general.error': 'خطأ',
   'general.close': 'إغلاق',
   'general.back': 'رجوع',
-<<<<<<< HEAD
   'connection.live': 'متصل',
   'connection.syncing': 'مزامنة الغرفة…',
   'connection.leaving': 'مغادرة…',
   'connection.offline': 'غير متصل',
-=======
->>>>>>> origin/main
   'general.backHome': 'العودة للرئيسية',
   'general.yes': 'نعم',
   'general.no': 'لا',

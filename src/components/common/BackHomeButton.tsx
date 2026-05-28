@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { useGame } from '../../context/GameContext';
 
-<<<<<<< HEAD
 export type BackHomeIntent = 'navigate' | 'clearSession';
 
 /**
@@ -18,21 +17,14 @@ export function BackHomeButton({
   className?: string;
   intent?: BackHomeIntent;
 }) {
-=======
-export function BackHomeButton({ className = '' }: { className?: string }) {
->>>>>>> origin/main
   const { t } = useApp();
   const navigate = useNavigate();
   const { clearGameSession } = useGame();
 
   const handleClick = () => {
-<<<<<<< HEAD
     if (intent === 'clearSession') {
       clearGameSession();
     }
-=======
-    clearGameSession();
->>>>>>> origin/main
     navigate('/', { replace: true });
   };
 

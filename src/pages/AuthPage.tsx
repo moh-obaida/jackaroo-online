@@ -2,14 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { signInWithEmail, registerWithEmail, signInAsGuest } from '../lib/firebase/auth';
-<<<<<<< HEAD
 import { FormPage } from '../components/ui/FormPage';
 import { FormField, TextInput } from '../components/ui/FormField';
 import { Alert } from '../components/ui/Alert';
 import { Button } from '../components/ui/Button';
-=======
-import { BackHomeButton } from '../components/common/BackHomeButton';
->>>>>>> origin/main
 
 export function AuthPage() {
   const { t } = useApp();
@@ -53,7 +49,6 @@ export function AuthPage() {
   };
 
   return (
-<<<<<<< HEAD
     <FormPage title={isLogin ? t('auth.login') : t('auth.register')}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isLogin && (
@@ -63,41 +58,6 @@ export function AuthPage() {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               required={!isLogin}
-=======
-    <div className="page-shell flex flex-col items-center">
-      <div className="w-full max-w-md mb-4">
-        <BackHomeButton />
-      </div>
-      <div className="card-container w-full max-w-md">
-        <h1 className="page-title">{isLogin ? t('auth.login') : t('auth.register')}</h1>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                {t('auth.displayName')}
-              </label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="input-field"
-                required={!isLogin}
-              />
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              {t('auth.email')}
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="input-field"
-              required
->>>>>>> origin/main
             />
           </FormField>
         )}
