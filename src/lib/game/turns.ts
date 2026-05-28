@@ -1,0 +1,65 @@
+// ============================================================================
+// TURNS MODULE — Turn flow management
+// ============================================================================
+
+import { GameState, PlayerState } from '../../types/game';
+
+/**
+ * Get the next player in turn order.
+ * Skips disconnected players (unless they're bots).
+ */
+export function getNextTurnPlayer(state: GameState): PlayerState | null {
+  const activePlayers = state.players.filter((p) => p.connected || p.isBot);
+  if (activePlayers.length === 0) return null;
+
+  const currentIndex = activePlayers.findIndex(
+    (p) => p.id === state.currentTurnPlayerId
+  );
+  if (currentIndex === -1) return activePlayers[0];
+
+  const nextIndex = (currentIndex + 1) % activePlayers.length;
+  return activePlayers[nextIndex];
+}
+
+/**
+ * Get the player whose turn it is based on seat number.
+ */
+export function getPlayerBySeat(state: GameState, seat: number): PlayerState | undefined {
+  return state.players.find((p) => p.seat === seat);
+}
+
+/**
+ * Get the starting player for a new deal round.
+ */
+export function getStartingPlayer(state: GameState): PlayerState | undefined {
+  return state.players.find((p) => p.seat === state.dealState.startingSeat);
+}
+
+/**
+ * Check if the current player has cards.
+ */
+export function currentPlayerHasCards(state: GameState): boolean {
+  const hand = state.hands[state.currentTurnPlayerId];
+  return hand !== undefined && hand.length > 0;
+}
+
+/**
+ * Get the turn order starting from a given seat.
+ */
+export function getTurnOrder(state: GameState): PlayerState[] {
+  const sorted = [...state.players].sort((a, b) => a.seat - b.seat);
+  const startIdx = sorted.findIndex((p) => p.seat === state.dealState.startingSeat);
+  if (startIdx === -1) return sorted;
+
+  return [...sorted.slice(startIdx), ...sorted.slice(0, startIdx)];
+}
+
+/**
+ * Check if all players in the current round have empty hands.
+ */
+export function allPlayersHandsEmpty(state: GameState): boolean {
+  return state.players.every((p) => {
+    const hand = state.hands[p.id];
+    return !hand || hand.length === 0;
+  });
+}

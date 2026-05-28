@@ -1,0 +1,242 @@
+// ============================================================================
+// GAME CONTEXT — Game state management with Firebase sync
+// ============================================================================
+
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import {
+  GameState,
+  GameAction,
+  LegalAction,
+  RoomData,
+  Card,
+  Marble,
+  PlayerState,
+} from '../types/game';
+import {
+  subscribeToRoom,
+  subscribeToGameState,
+  subscribeToPrivateHand,
+  saveGameState,
+  updateGameState,
+  savePrivateHand,
+  updateRoomStatus,
+} from '../lib/firebase/rooms';
+import { generateLegalActions } from '../lib/game/legalMoves';
+import { applyAction } from '../lib/game/applyAction';
+import { validateAction } from '../lib/game/validators';
+import { initializeDealBlock, dealRound } from '../lib/game/dealing';
+import { createInitialMarbles, getActiveColors } from '../lib/game/board';
+import { generateBotAction } from '../lib/game/bots';
+import { useApp } from './AppContext';
+
+interface GameContextType {
+  room: RoomData | null;
+  gameState: GameState | null;
+  myHand: Card[];
+  legalActions: LegalAction[];
+  isMyTurn: boolean;
+  myPlayer: PlayerState | null;
+  roomCode: string | null;
+  setRoomCode: (code: string | null) => void;
+  submitAction: (action: GameAction) => Promise<void>;
+  startGame: () => Promise<void>;
+  loading: boolean;
+  error: string | null;
+}
+
+const GameContext = createContext<GameContextType | null>(null);
+
+export function GameProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useApp();
+  const [room, setRoom] = useState<RoomData | null>(null);
+  const [gameState, setGameState] = useState<GameState | null>(null);
+  const [myHand, setMyHand] = useState<Card[]>([]);
+  const [roomCode, setRoomCode] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const unsubscribesRef = useRef<(() => void)[]>([]);
+
+  const playerId = user?.uid || null;
+
+  // Subscribe to room
+  useEffect(() => {
+    if (!roomCode) {
+      setRoom(null);
+      setGameState(null);
+      setMyHand([]);
+      return;
+    }
+
+    const unsub = subscribeToRoom(roomCode, (roomData) => {
+      setRoom(roomData);
+    });
+
+    unsubscribesRef.current.push(unsub);
+    return () => {
+      unsub();
+    };
+  }, [roomCode]);
+
+  // Subscribe to game state
+  useEffect(() => {
+    if (!roomCode || !room || room.status !== 'playing') return;
+
+    const unsub = subscribeToGameState(roomCode, (state) => {
+      if (state) {
+        setGameState(state);
+      }
+    });
+
+    unsubscribesRef.current.push(unsub);
+    return () => {
+      unsub();
+    };
+  }, [roomCode, room?.status]);
+
+  // Subscribe to private hand
+  useEffect(() => {
+    if (!roomCode || !playerId || !room || room.status !== 'playing') return;
+
+    const unsub = subscribeToPrivateHand(roomCode, playerId, (cards) => {
+      setMyHand(cards || []);
+    });
+
+    unsubscribesRef.current.push(unsub);
+    return () => {
+      unsub();
+    };
+  }, [roomCode, playerId, room?.status]);
+
+  // Compute legal actions
+  const legalActions = React.useMemo(() => {
+    if (!gameState || !playerId || gameState.currentTurnPlayerId !== playerId) {
+      return [];
+    }
+    return generateLegalActions(gameState);
+  }, [gameState, playerId]);
+
+  const isMyTurn = gameState?.currentTurnPlayerId === playerId;
+
+  const myPlayer = React.useMemo(() => {
+    if (!room || !playerId) return null;
+    return room.players[playerId] || null;
+  }, [room, playerId]);
+
+  // Start game
+  const startGame = useCallback(async () => {
+    if (!roomCode || !room || !playerId) return;
+    if (room.roomMakerUid !== playerId) return;
+
+    setLoading(true);
+    try {
+      const players = Object.values(room.players);
+      const activeColors = players.map((p) => p.color);
+      const marbles = createInitialMarbles(activeColors);
+
+      // Initialize deal block (shuffled deck + pattern) — generated ONCE
+      const dealBlock = initializeDealBlock(room.mode, 0);
+
+      // Deal first round
+      const { hands, remainingDeck } = dealRound(
+        dealBlock.deck,
+        players,
+        room.mode,
+        dealBlock.dealPattern,
+        0
+      );
+
+      const initialState: GameState = {
+        mode: room.mode,
+        rulesetType: room.rulesetType,
+        rulesetId: room.rulesetId || 'obaida_classic_v1',
+        players,
+        marbles,
+        currentTurnPlayerId: players[0].id,
+        currentSeat: 0,
+        dealState: {
+          dealBlock: 0,
+          dealRoundInBlock: 0,
+          startingSeat: 0,
+          cardsPerPlayer: (dealBlock.dealPattern as number[])[0] || 4,
+        },
+        hands,
+        deck: remainingDeck,
+        discardPile: [],
+        eventLog: [],
+        winner: null,
+        turnNumber: 0,
+      };
+
+      // Save to Firebase
+      await saveGameState(roomCode, initialState);
+
+      // Save private hands separately
+      for (const [pid, cards] of Object.entries(hands)) {
+        await savePrivateHand(roomCode, pid, cards);
+      }
+
+      // Update room status
+      await updateRoomStatus(roomCode, 'playing');
+    } catch (err: any) {
+      setError(err.message || 'Failed to start game');
+    } finally {
+      setLoading(false);
+    }
+  }, [roomCode, room, playerId]);
+
+  // Submit action
+  const submitAction = useCallback(
+    async (action: GameAction) => {
+      if (!gameState || !roomCode) return;
+
+      // Validate
+      const validation = validateAction(gameState, action);
+      if (!validation.valid) {
+        setError(validation.error || 'Invalid action');
+        return;
+      }
+
+      // Apply action
+      const newState = applyAction(gameState, action);
+
+      // Save to Firebase (authoritative update)
+      await saveGameState(roomCode, newState);
+
+      // Update private hands
+      for (const [pid, cards] of Object.entries(newState.hands)) {
+        await savePrivateHand(roomCode, pid, cards);
+      }
+
+      // Check if game is won
+      if (newState.winner) {
+        await updateRoomStatus(roomCode, 'finished');
+      }
+    },
+    [gameState, roomCode]
+  );
+
+  const value: GameContextType = {
+    room,
+    gameState,
+    myHand,
+    legalActions,
+    isMyTurn,
+    myPlayer,
+    roomCode,
+    setRoomCode,
+    submitAction,
+    startGame,
+    loading,
+    error,
+  };
+
+  return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
+}
+
+export function useGame(): GameContextType {
+  const context = useContext(GameContext);
+  if (!context) {
+    throw new Error('useGame must be used within GameProvider');
+  }
+  return context;
+}

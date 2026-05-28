@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply min-h-screen;
+  }
+
+  /* RTL support */
+  html[dir='rtl'] {
+    font-family: 'Noto Sans Arabic', system-ui, sans-serif;
+  }
+
+  html[dir='ltr'] {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-gold-500 hover:bg-gold-400 text-board-dark font-semibold rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 bg-wood-700 hover:bg-wood-600 text-white font-medium rounded-lg border border-wood-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply px-6 py-3 bg-red-700 hover:bg-red-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .card-container {
+    @apply bg-board-medium border border-wood-700 rounded-xl p-4 shadow-lg;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 bg-board-dark border border-wood-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors;
+  }
+
+  .select-field {
+    @apply w-full px-4 py-3 bg-board-dark border border-wood-700 rounded-lg text-white focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors appearance-none;
+  }
+}
+
+/* Light theme overrides */
+.theme-light {
+  --bg-primary: #f5f0e8;
+  --bg-secondary: #e8dcc8;
+  --text-primary: #1a1208;
+  --text-secondary: #4a3520;
+  --border-color: #d4a563;
+}
+
+.theme-light body,
+.theme-light .bg-board-dark {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Balanced theme overrides */
+.theme-balanced {
+  --bg-primary: #2d2418;
+  --bg-secondary: #3d3020;
+  --text-primary: #f5f0e8;
+  --text-secondary: #d4a563;
+}

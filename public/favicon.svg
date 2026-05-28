@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <circle cx="16" cy="16" r="15" fill="#2a1a0a" stroke="#e6b800" stroke-width="2"/>
+  <circle cx="10" cy="12" r="3" fill="#1a1a1a" stroke="#555" stroke-width="0.5"/>
+  <circle cx="22" cy="12" r="3" fill="#2d8a4e" stroke="#555" stroke-width="0.5"/>
+  <circle cx="10" cy="22" r="3" fill="#2563eb" stroke="#555" stroke-width="0.5"/>
+  <circle cx="22" cy="22" r="3" fill="#f5f0e8" stroke="#555" stroke-width="0.5"/>
+  <text x="16" y="19" text-anchor="middle" font-size="6" fill="#e6b800" font-weight="bold">J</text>
+</svg>

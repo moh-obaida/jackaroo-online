@@ -1,0 +1,34 @@
+{
+  "rules": {
+    "rooms": {
+      "$roomCode": {
+        ".read": true,
+        ".write": "auth != null",
+        "privateHands": {
+          "$playerId": {
+            ".read": "auth != null && auth.uid === $playerId",
+            ".write": "auth != null"
+          }
+        },
+        "gameState": {
+          ".read": true,
+          ".write": "auth != null"
+        },
+        "players": {
+          "$playerId": {
+            ".write": "auth != null && (auth.uid === $playerId || data.parent().parent().child('roomMakerUid').val() === auth.uid)"
+          }
+        }
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "profile": {
+          ".read": true
+        }
+      }
+    }
+  }
+}
