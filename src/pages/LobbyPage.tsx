@@ -54,22 +54,17 @@ function LobbyPageContent() {
     }
   }, [roomCode, leaveBusy, safeLeaveRoom]);
 
-  if (isTerminalRouteState(routeState)) {
-    return <RoomRouteFallback state={routeState} roomCode={roomCode} />;
-  }
-
   const currentRoom = room;
-  if (!currentRoom || !roomCode) {
-    return <RoomRouteFallback state={{ kind: 'loading_room' }} roomCode={roomCode} />;
-  }
-
   const playerId = user?.uid?.trim() || null;
-  const isRoomMaker = currentRoom.roomMakerUid === playerId;
-  const players = Object.values(currentRoom.players);
-  const maxPlayers = getMaxPlayersForMode(currentRoom.mode);
+  const players = currentRoom ? Object.values(currentRoom.players) : [];
+  const maxPlayers = currentRoom ? getMaxPlayersForMode(currentRoom.mode) : 0;
   const seatedCount = players.length;
+  const isRoomMaker = Boolean(currentRoom && playerId && currentRoom.roomMakerUid === playerId);
 
   const startReadiness = useMemo(() => {
+    if (!currentRoom) {
+      return { canStart: false, reason: null };
+    }
     const humans = players.filter((p) => !p.isBot);
     const allSeatsFilled = seatedCount >= maxPlayers;
     const allHumansReady = humans.length > 0 && humans.every((p) => p.ready);
@@ -85,7 +80,15 @@ function LobbyPageContent() {
     }
 
     return { canStart, reason };
-  }, [players, seatedCount, maxPlayers]);
+  }, [currentRoom, players, seatedCount, maxPlayers]);
+
+  if (isTerminalRouteState(routeState)) {
+    return <RoomRouteFallback state={routeState} roomCode={roomCode} />;
+  }
+
+  if (!currentRoom || !roomCode) {
+    return <RoomRouteFallback state={{ kind: 'loading_room' }} roomCode={roomCode} />;
+  }
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(roomCode);
