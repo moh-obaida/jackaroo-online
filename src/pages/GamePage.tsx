@@ -4,7 +4,9 @@ import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
 import { GameBoard } from '../components/board/GameBoard';
 import { PlayerHand } from '../components/cards/PlayerHand';
+import { CardGuideModal } from '../components/cards/CardGuideModal';
 import { ActionPanel } from '../components/game/ActionPanel';
+import { DeckInfoPanel } from '../components/game/DeckInfoPanel';
 import { EventLog } from '../components/game/EventLog';
 import { WinOverlay } from '../components/game/WinOverlay';
 import { GameStatusCard } from '../components/game/GameStatusCard';
@@ -30,6 +32,7 @@ function GamePageContent() {
   const [roomLoaded, setRoomLoaded] = useState(false);
   const [handLoaded, setHandLoaded] = useState(false);
   const [handError, setHandError] = useState<string | null>(null);
+  const [deckGuideOpen, setDeckGuideOpen] = useState(false);
 
   const playerId = user?.uid || null;
 
@@ -255,6 +258,8 @@ function GamePageContent() {
           </ul>
         </div>
 
+        <DeckInfoPanel gameState={gameState} onShowDeckGuide={() => setDeckGuideOpen(true)} />
+
         <div className="card-container">
           <h3 className="text-sm font-semibold text-cream-200/80 mb-2">{t('game.hand')}</h3>
           <PlayerHand
@@ -288,6 +293,8 @@ function GamePageContent() {
           {t('game.backToLobby')}
         </button>
       </div>
+
+      <CardGuideModal open={deckGuideOpen} onClose={() => setDeckGuideOpen(false)} />
     </div>
   );
 }
