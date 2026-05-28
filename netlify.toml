@@ -2,6 +2,10 @@
   command = "npm run build"
   publish = "dist"
 
+# .firebaserc only contains the public Firebase project id (same as VITE_* in the client bundle).
+[build.environment]
+  SECRETS_SCAN_OMIT_PATHS = ".firebaserc"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
