@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
-import { createRoom } from '../lib/firebase/rooms';
+import { createRoom, getCustomTemplates } from '../lib/firebase/rooms';
 import { signInAsGuest } from '../lib/firebase/auth';
-import { GameMode, RulesetType, BotDifficulty, BotSettings } from '../types/game';
+import { GameMode, RulesetType, BotDifficulty, BotSettings, CustomRulesConfig, DEFAULT_CUSTOM_RULES } from '../types/game';
 
 export function CreateRoomPage() {
-  const { t, user, language, theme, firebaseReady } = useApp();
+  const { t, user, language, theme, firebaseReady, isGuestUser } = useApp();
   const { setRoomCode } = useGame();
   const navigate = useNavigate();
 
@@ -17,8 +17,26 @@ export function CreateRoomPage() {
   const [rulesetType, setRulesetType] = useState<RulesetType>('obaida_classic');
   const [botsEnabled, setBotsEnabled] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>('very_easy');
+  const [customTemplates, setCustomTemplates] = useState<Record<string, CustomRulesConfig>>({});
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  React.useEffect(() => {
+    if (rulesetType !== 'custom' || !user || isGuestUser) return;
+    let cancelled = false;
+    const loadTemplates = async () => {
+      const templates = await getCustomTemplates(user.uid);
+      if (cancelled) return;
+      setCustomTemplates(templates);
+      const firstTemplateId = Object.keys(templates)[0] || '';
+      setSelectedTemplateId((prev) => (prev && templates[prev] ? prev : firstTemplateId));
+    };
+    loadTemplates();
+    return () => {
+      cancelled = true;
+    };
+  }, [rulesetType, user, isGuestUser]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +71,11 @@ export function CreateRoomPage() {
         difficulty: botDifficulty,
       };
 
+      const selectedTemplate =
+        rulesetType === 'custom'
+          ? (selectedTemplateId ? customTemplates[selectedTemplateId] : DEFAULT_CUSTOM_RULES)
+          : null;
+
       const code = await createRoom({
         roomMakerUid: currentUser.uid,
         roomMakerName: name.trim(),
@@ -60,8 +83,11 @@ export function CreateRoomPage() {
         password: password.trim(),
         mode,
         rulesetType,
-        rulesetId: rulesetType === 'obaida_classic' ? 'obaida_classic_v1' : 'custom',
-        customRulesSummary: null,
+        rulesetId:
+          rulesetType === 'obaida_classic'
+            ? 'obaida_classic_v1'
+            : (selectedTemplateId || 'custom_default'),
+        customRulesSummary: selectedTemplate,
         botSettings,
         language,
         theme,
@@ -150,7 +176,31 @@ export function CreateRoomPage() {
               <option value="custom">{t('create.ruleset.custom')}</option>
             </select>
             {rulesetType === 'custom' && (
-              <p className="mt-1 text-xs text-yellow-400">{t('create.customLabel')}</p>
+              <>
+                <p className="mt-1 text-xs text-yellow-400">{t('create.customLabel')}</p>
+                {!isGuestUser && (
+                  <div className="mt-2">
+                    <label className="block text-xs font-medium text-gray-400 mb-1">
+                      Custom template
+                    </label>
+                    <select
+                      value={selectedTemplateId}
+                      onChange={(e) => setSelectedTemplateId(e.target.value)}
+                      className="select-field text-sm"
+                    >
+                      {Object.keys(customTemplates).length === 0 ? (
+                        <option value="">Default custom rules</option>
+                      ) : (
+                        Object.entries(customTemplates).map(([id, config]) => (
+                          <option key={id} value={id}>
+                            {config.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+                )}
+              </>
             )}
           </div>
 

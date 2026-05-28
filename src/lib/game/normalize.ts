@@ -1,6 +1,6 @@
 // Normalize Firebase RTDB payloads (arrays often deserialize as keyed objects).
 
-import { Card, GameState, GameEvent, Marble, PlayerState } from '../../types/game';
+import { Card, GameState, GameEvent, Marble, PlayerState, CustomRulesConfig } from '../../types/game';
 
 export function normalizePlayers(players: unknown): PlayerState[] {
   if (!players) return [];
@@ -76,6 +76,7 @@ export function normalizeGameState(raw: unknown): GameState | null {
     discardPile: normalizeList(data.discardPile),
     deck: normalizeList(data.deck),
     handCounts: (data.handCounts as Record<string, number>) || {},
+    customRulesConfig: ((data.customRulesConfig as CustomRulesConfig | null) ?? null),
     dealState,
   };
 }

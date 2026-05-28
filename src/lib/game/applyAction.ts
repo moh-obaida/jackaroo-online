@@ -21,6 +21,7 @@ import {
   calculateForwardTarget as calculateForwardTargetFn,
 } from './board';
 import { isKing } from './cards';
+import { getRulesetConfig } from './rulesets';
 
 /**
  * Apply a validated game action to the state.
@@ -123,9 +124,10 @@ function applyMove(state: GameState, action: GameAction): GameState {
 
   const marble = marbles[marbleIndex];
   const cardRank = getCardRankFromCardId(action.cardId);
+  const rulesConfig = getRulesetConfig(state.rulesetType, state.customRulesConfig ?? null);
 
   // King path eating
-  if (cardRank && isKing(cardRank) && isOnMainTrack(marble)) {
+  if (cardRank && isKing(cardRank) && isOnMainTrack(marble) && rulesConfig.kingPathEatingEnabled) {
     const steps = 13;
     const eatenMarbles = getMarblesInPath(marble.position, steps, marbles, marble.id);
     for (const eaten of eatenMarbles) {

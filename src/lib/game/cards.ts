@@ -76,12 +76,14 @@ export function generate4PlayerDealPattern(): number[] {
  * Returns array of 4 patterns, each pattern is an array of 3 numbers.
  */
 export function generate3PlayerDealPatterns(): number[][] {
-  const patterns: number[][] = [];
-  for (let i = 0; i < 4; i++) {
-    const fiveCardPlayer = Math.floor(Math.random() * 3);
-    patterns.push([0, 1, 2].map((p) => (p === fiveCardPlayer ? 5 : 4)));
-  }
-  return patterns;
+  // Deterministic rotation per deal block to keep distribution fair:
+  // round 1: 5-4-4, round 2: 4-5-4, round 3: 4-4-5, round 4: 5-4-4
+  return [
+    [5, 4, 4],
+    [4, 5, 4],
+    [4, 4, 5],
+    [5, 4, 4],
+  ];
 }
 
 /**

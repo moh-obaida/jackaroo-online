@@ -16,6 +16,7 @@ import {
   BoardPosition,
   PlayerColor,
   SplitSevenMove,
+  CustomRulesConfig,
   COLORS_ORDER,
   TEAM_ASSIGNMENTS,
 } from '../../types/game';
@@ -43,6 +44,7 @@ import {
   getMarblesInPath,
   positionEquals,
 } from './board';
+import { getRulesetConfig } from './rulesets';
 
 // ============================================================================
 // MAIN ENTRY POINT
@@ -55,6 +57,7 @@ import {
 export function generateLegalActions(state: GameState, currentPlayerHand: Card[]): LegalAction[] {
   const player = state.players.find((p) => p.id === state.currentTurnPlayerId);
   if (!player) return [];
+  const rulesConfig = getRulesetConfig(state.rulesetType, state.customRulesConfig ?? null);
 
   const hand = currentPlayerHand || [];
   if (hand.length === 0) {
@@ -64,7 +67,7 @@ export function generateLegalActions(state: GameState, currentPlayerHand: Card[]
   const allActions: LegalAction[] = [];
 
   for (const card of hand) {
-    const actions = generateActionsForCard(state, player, card);
+    const actions = generateActionsForCard(state, player, card, rulesConfig);
     allActions.push(...actions);
   }
 
@@ -86,7 +89,8 @@ export function generateLegalActions(state: GameState, currentPlayerHand: Card[]
 function generateActionsForCard(
   state: GameState,
   player: PlayerState,
-  card: Card
+  card: Card,
+  rulesConfig: CustomRulesConfig
 ): LegalAction[] {
   const actions: LegalAction[] = [];
 
@@ -98,7 +102,7 @@ function generateActionsForCard(
 
   // Normal movement
   if (!isJack(card.rank)) {
-    const moveActions = generateMoveActions(state, player, card);
+    const moveActions = generateMoveActions(state, player, card, rulesConfig);
     actions.push(...moveActions);
   }
 
@@ -115,7 +119,7 @@ function generateActionsForCard(
   }
 
   // Burn (Queen, 10)
-  if (canBurn(card.rank)) {
+  if (isBurnEnabledByRules(card.rank, rulesConfig)) {
     const burnActions = generateBurnActions(state, player, card);
     actions.push(...burnActions);
   }
@@ -166,7 +170,8 @@ function generateBringOutActions(
 function generateMoveActions(
   state: GameState,
   player: PlayerState,
-  card: Card
+  card: Card,
+  rulesConfig: CustomRulesConfig
 ): LegalAction[] {
   const actions: LegalAction[] = [];
   const values = getCardMoveValue(card.rank);
@@ -177,7 +182,7 @@ function generateMoveActions(
   }
 
   // Special handling for 5 (move anyone eligible)
-  if (isFive(card.rank)) {
+  if (isFive(card.rank) && rulesConfig.fiveCanMoveAnyone) {
     return generateFiveMoveActions(state, player, card);
   }
 
@@ -636,4 +641,10 @@ function getMarbleOwnership(
   if (marble.color === player.color) return 'own';
   if (isTeammate(marble.color, player, state)) return 'teammate';
   return 'opponent';
+}
+
+function isBurnEnabledByRules(rank: Card['rank'], rulesConfig: CustomRulesConfig): boolean {
+  if (rank === 'Q') return rulesConfig.queenBurnEnabled;
+  if (rank === '10') return rulesConfig.tenBurnEnabled;
+  return canBurn(rank);
 }

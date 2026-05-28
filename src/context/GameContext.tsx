@@ -143,6 +143,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         mode: room.mode,
         rulesetType: room.rulesetType,
         rulesetId: room.rulesetId || 'obaida_classic_v1',
+        customRulesConfig: room.customRulesSummary || null,
         players,
         marbles,
         currentTurnPlayerId: players[0].id,

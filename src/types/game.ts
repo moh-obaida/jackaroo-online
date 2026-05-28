@@ -129,6 +129,7 @@ export interface GameState {
   mode: GameMode;
   rulesetType: RulesetType;
   rulesetId: string;
+  customRulesConfig?: CustomRulesConfig | null;
   players: PlayerState[];
   marbles: Marble[];
   currentTurnPlayerId: string;
