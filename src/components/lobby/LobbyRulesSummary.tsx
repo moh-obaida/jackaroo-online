@@ -6,13 +6,14 @@ import { Button } from '../ui/Button';
 type LobbyRulesSummaryProps = {
   rulesetType: 'obaida_classic' | 'custom';
   customLabel?: string;
+  compact?: boolean;
 };
 
 /**
  * Manus §13 — players see rules summary before readying up.
  * Obaida Classic: locked family rules + link to static deck reference (not live deck).
  */
-export function LobbyRulesSummary({ rulesetType, customLabel }: LobbyRulesSummaryProps) {
+export function LobbyRulesSummary({ rulesetType, customLabel, compact = false }: LobbyRulesSummaryProps) {
   const { t } = useApp();
   const [guideOpen, setGuideOpen] = useState(false);
 
@@ -20,7 +21,7 @@ export function LobbyRulesSummary({ rulesetType, customLabel }: LobbyRulesSummar
 
   return (
     <>
-      <div className="lobby-rules-summary">
+      <div className={`lobby-rules-summary ${compact ? 'lobby-rules-summary--compact' : ''}`}>
         <p className="lobby-rules-summary__badge">
           {isClassic ? t('lobby.rulesClassicBadge') : t('lobby.rulesCustomBadge')}
         </p>

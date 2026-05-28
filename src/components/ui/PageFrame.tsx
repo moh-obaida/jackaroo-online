@@ -15,8 +15,17 @@ export function PageFrame({ children, variant = 'marketing', className = '' }: P
         ? 'page-frame--lobby max-w-3xl'
         : 'page-frame--marketing max-w-5xl';
 
+  const densityClass =
+    variant === 'marketing'
+      ? 'page-frame--marketing'
+      : variant === 'lobby'
+        ? 'page-frame--lobby'
+        : 'page-frame--form';
+
   return (
-    <div className={`page-frame ${variantClass} mx-auto w-full px-4 py-8 md:py-10 ${className}`}>
+    <div
+      className={`page-frame ${variantClass} ${densityClass} mx-auto w-full px-4 py-5 md:py-6 ${className}`}
+    >
       {children}
     </div>
   );

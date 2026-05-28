@@ -7,10 +7,8 @@ import { CardGuideModal } from '../../cards/CardGuideModal';
 import { WinOverlay } from '../WinOverlay';
 import { PlayActionSheet } from '../play/PlayActionSheet';
 import { GameHUD } from './GameHUD';
-import { TurnCue } from './TurnCue';
 import { TablePlayArea } from './TablePlayArea';
 import { HandDock } from './HandDock';
-import { DeckDiscardPiles } from './DeckDiscardPiles';
 import { TableActivity } from './TableActivity';
 import { Alert } from '../../ui/Alert';
 
@@ -75,9 +73,14 @@ export function FullScreenGameTable({
     <div className="fullscreen-game-table jkr-stack flex flex-col h-[100dvh] max-h-[100dvh] w-full overflow-hidden max-w-[100vw]">
       {gameState.winner && <WinOverlay gameState={gameState} />}
 
-      <GameHUD roomCode={roomCode} gameState={gameState} onLeave={onLeave} leaveBusy={leaveBusy} />
-
-      <TurnCue isMyTurn={isMyTurn} turnPlayerName={turnPlayer?.name || ''} />
+      <GameHUD
+        roomCode={roomCode}
+        gameState={gameState}
+        isMyTurn={isMyTurn}
+        turnPlayerName={turnPlayer?.name || ''}
+        onLeave={onLeave}
+        leaveBusy={leaveBusy}
+      />
 
       {(gameError || leaveWarning) && (
         <Alert variant="warn" className="rounded-none border-x-0 shrink-0 text-xs py-1.5">
@@ -92,12 +95,12 @@ export function FullScreenGameTable({
           selectedCardId={selectedCardId}
           highlightPositions={highlightPositions}
           isMyTurn={isMyTurn}
+          onShowDeckGuide={() => setDeckGuideOpen(true)}
         />
       </div>
 
       <div className="game-hand-rail">
         <div className="game-hand-rail__top">
-          <DeckDiscardPiles gameState={gameState} onShowDeckGuide={() => setDeckGuideOpen(true)} />
           <TableActivity gameState={gameState} />
         </div>
         <HandDock

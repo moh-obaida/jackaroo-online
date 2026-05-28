@@ -2,6 +2,7 @@ import React from 'react';
 import { GameState, BoardPosition } from '../../../types/game';
 import { GameBoard } from '../../board/GameBoard';
 import { OpponentSeats } from './OpponentSeats';
+import { DeckDiscardPiles } from './DeckDiscardPiles';
 
 type TablePlayAreaProps = {
   gameState: GameState;
@@ -9,6 +10,7 @@ type TablePlayAreaProps = {
   selectedCardId: string | null;
   highlightPositions: BoardPosition[];
   isMyTurn: boolean;
+  onShowDeckGuide: () => void;
 };
 
 /** Single felt surface — Ludo board in the middle, seats on the rim. */
@@ -18,6 +20,7 @@ export function TablePlayArea({
   selectedCardId,
   highlightPositions,
   isMyTurn,
+  onShowDeckGuide,
 }: TablePlayAreaProps) {
   return (
     <div className="table-play-area">
@@ -34,6 +37,9 @@ export function TablePlayArea({
             playerId={playerId}
             isMyTurn={isMyTurn}
           />
+        </div>
+        <div className="table-play-area__piles">
+          <DeckDiscardPiles gameState={gameState} onShowDeckGuide={onShowDeckGuide} />
         </div>
       </div>
     </div>

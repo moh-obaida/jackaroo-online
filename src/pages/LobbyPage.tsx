@@ -139,92 +139,81 @@ function LobbyPageContent() {
     <PageFrame variant="lobby">
       <Panel
         title={t('lobby.title')}
-        subtitle={`${modeLabel} · ${rulesetLabel}`}
+        subtitle={`${modeLabel} · ${rulesetLabel} · ${seatedCount}/${maxPlayers}`}
         glow
-        className="lobby-page-panel"
+        className="lobby-page-panel jkr-panel--compact"
       >
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
           <Button variant="danger" size="sm" onClick={handleLeave} disabled={leaveBusy}>
             {t('lobby.leave')}
           </Button>
-          <button
-            type="button"
-            onClick={handleCopyCode}
-            className="btn-ghost text-sm"
-          >
+          <button type="button" onClick={handleCopyCode} className="btn-ghost text-sm">
             {copied ? t('lobby.copied') : t('lobby.copy')}
           </button>
         </div>
 
-        {leaveWarning && <Alert variant="warn" className="mb-4 rounded-xl">{leaveWarning}</Alert>}
-
-        <LobbyRulesSummary rulesetType={currentRoom.rulesetType} />
-
-        <LobbySeatRing
-          roomCode={roomCode}
-          maxPlayers={maxPlayers}
-          players={players}
-          roomMakerUid={currentRoom.roomMakerUid}
-          myPlayerId={playerId}
-          isRoomMaker={isRoomMaker}
-          onKick={(uid) => kickPlayer(roomCode, uid)}
-          onAddBot={() =>
-            addBots(roomCode, 1, currentRoom.botSettings.difficulty, currentRoom.mode)
-          }
-          botsEnabled={currentRoom.botSettings.enabled}
-          getColorClass={seatColorClass}
-        />
-
-        <div className="grid grid-cols-3 gap-2 mt-2 mb-5 text-center text-xs">
-          <div className="rounded-lg bg-black/30 border border-wood-800/50 py-2 px-2">
-            <span className="text-cream-200/45 block">{t('lobby.mode')}</span>
-            <span className="text-cream-100 font-medium">{modeLabel}</span>
-          </div>
-          <div className="rounded-lg bg-black/30 border border-wood-800/50 py-2 px-2">
-            <span className="text-cream-200/45 block">{t('lobby.ruleset')}</span>
-            <span className="text-cream-100 font-medium">{rulesetLabel}</span>
-          </div>
-          <div className="rounded-lg bg-black/30 border border-wood-800/50 py-2 px-2">
-            <span className="text-cream-200/45 block">Seats</span>
-            <span className="text-cream-100 font-medium">
-              {seatedCount}/{maxPlayers}
-            </span>
-          </div>
-        </div>
-
-        {gameError && (
-          <Alert variant="error" className="mb-4 rounded-xl">
-            {gameError}
+        {leaveWarning && (
+          <Alert variant="warn" className="mb-3 rounded-xl text-xs py-2">
+            {leaveWarning}
           </Alert>
         )}
 
-        <div className="flex flex-col gap-2">
-          {playerId && !isRoomMaker && (
-            <Button variant="primary" fullWidth onClick={handleReady}>
-              {players.find((p) => p.id === playerId)?.ready
-                ? t('lobby.unready')
-                : t('lobby.setReady')}
-            </Button>
-          )}
+        <div className="lobby-layout">
+          <div className="lobby-layout__table">
+            <LobbySeatRing
+              roomCode={roomCode}
+              maxPlayers={maxPlayers}
+              players={players}
+              roomMakerUid={currentRoom.roomMakerUid}
+              myPlayerId={playerId}
+              isRoomMaker={isRoomMaker}
+              onKick={(uid) => kickPlayer(roomCode, uid)}
+              onAddBot={() =>
+                addBots(roomCode, 1, currentRoom.botSettings.difficulty, currentRoom.mode)
+              }
+              botsEnabled={currentRoom.botSettings.enabled}
+              getColorClass={seatColorClass}
+            />
+          </div>
 
-          {isRoomMaker && (
-            <>
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                onClick={() => {
-                  if (startReadiness.canStart) void startGame();
-                }}
-                disabled={!startReadiness.canStart || loading}
-              >
-                {loading ? t('general.loading') : t('lobby.start')}
-              </Button>
-              {!startReadiness.canStart && startReadiness.reason && (
-                <p className="text-xs text-amber-300/90 text-center">{startReadiness.reason}</p>
+          <aside className="lobby-layout__side">
+            <LobbyRulesSummary rulesetType={currentRoom.rulesetType} compact />
+
+            {gameError && (
+              <Alert variant="error" className="rounded-xl text-xs py-2">
+                {gameError}
+              </Alert>
+            )}
+
+            <div className="lobby-layout__actions">
+              {playerId && !isRoomMaker && (
+                <Button variant="primary" fullWidth onClick={handleReady}>
+                  {players.find((p) => p.id === playerId)?.ready
+                    ? t('lobby.unready')
+                    : t('lobby.setReady')}
+                </Button>
               )}
-            </>
-          )}
+
+              {isRoomMaker && (
+                <>
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    onClick={() => {
+                      if (startReadiness.canStart) void startGame();
+                    }}
+                    disabled={!startReadiness.canStart || loading}
+                  >
+                    {loading ? t('general.loading') : t('lobby.start')}
+                  </Button>
+                  {!startReadiness.canStart && startReadiness.reason && (
+                    <p className="text-xs text-amber-300/90 text-center">{startReadiness.reason}</p>
+                  )}
+                </>
+              )}
+            </div>
+          </aside>
         </div>
       </Panel>
     </PageFrame>
