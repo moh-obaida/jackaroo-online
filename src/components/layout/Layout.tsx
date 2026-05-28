@@ -16,7 +16,7 @@ export function Layout() {
       }`}
     >
       {!isGameTable && <Header />}
-      {leaveWarning && !isGameTable && (
+      {leaveWarning && (
         <p className="text-xs text-amber-200/90 bg-amber-950/50 px-4 py-2 text-center shrink-0">
           {leaveWarning}
         </p>

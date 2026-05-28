@@ -2,16 +2,11 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
-import {
-  setPlayerReady,
-  kickPlayer,
-  addBots,
-  subscribeToRoom,
-} from '../lib/firebase/rooms';
+import { setPlayerReady, kickPlayer, addBots } from '../lib/firebase/rooms';
 import { getMaxPlayersForMode } from '../lib/game/normalize';
-import { RoomData } from '../types/game';
-import { GameStatusCard } from '../components/game/GameStatusCard';
-import { BackHomeButton } from '../components/common/BackHomeButton';
+import { useRoomRouteState } from '../hooks/useRoomRouteState';
+import { isTerminalRouteState } from '../lib/room/routeState';
+import { RoomRouteFallback } from '../components/game/RoomRouteFallback';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
 
 function normalizeRoomCode(raw: string | undefined): string | null {
@@ -21,48 +16,57 @@ function normalizeRoomCode(raw: string | undefined): string | null {
 
 function LobbyPageContent() {
   const { t, user } = useApp();
-  const { room, setRoomCode, startGame, loading, error: gameError, isLeaving, leaveWarning, safeLeaveRoom } =
-    useGame();
+  const {
+    room,
+    bindRoomFromRoute,
+    startGame,
+    loading,
+    error: gameError,
+    leaveWarning,
+    safeLeaveRoom,
+  } = useGame();
   const navigate = useNavigate();
   const { code: rawCode } = useParams<{ code: string }>();
   const roomCode = normalizeRoomCode(rawCode);
+  const routeState = useRoomRouteState('lobby', roomCode);
 
   const [copied, setCopied] = useState(false);
-  const [localRoom, setLocalRoom] = useState<RoomData | null>(null);
-  const [roomLoaded, setRoomLoaded] = useState(false);
   const [leaveBusy, setLeaveBusy] = useState(false);
 
   useEffect(() => {
-    if (isLeaving || !roomCode) return;
-    setRoomCode(roomCode);
-  }, [roomCode, isLeaving, setRoomCode]);
+    if (!roomCode) return;
+    bindRoomFromRoute(roomCode);
+  }, [roomCode, bindRoomFromRoute]);
 
   useEffect(() => {
-    if (isLeaving || !roomCode) {
-      if (!roomCode) setRoomLoaded(true);
-      return;
-    }
-    setRoomLoaded(false);
-    const unsub = subscribeToRoom(roomCode, (roomData) => {
-      setLocalRoom(roomData);
-      setRoomLoaded(true);
-    });
-    return unsub;
-  }, [roomCode, isLeaving]);
-
-  useEffect(() => {
-    if (isLeaving || !roomCode) return;
-    const active = room || localRoom;
-    if (active?.status === 'playing') {
+    if (routeState.kind === 'redirect_to_game' && roomCode) {
       navigate(`/game/${roomCode}`, { replace: true });
     }
-  }, [room, localRoom, roomCode, isLeaving, navigate]);
+  }, [routeState.kind, roomCode, navigate]);
 
-  const currentRoom = room || localRoom;
+  const handleLeave = useCallback(async () => {
+    if (!roomCode || leaveBusy) return;
+    setLeaveBusy(true);
+    try {
+      await safeLeaveRoom(roomCode);
+    } finally {
+      setLeaveBusy(false);
+    }
+  }, [roomCode, leaveBusy, safeLeaveRoom]);
+
+  if (isTerminalRouteState(routeState)) {
+    return <RoomRouteFallback state={routeState} roomCode={roomCode} />;
+  }
+
+  const currentRoom = room;
+  if (!currentRoom || !roomCode) {
+    return <RoomRouteFallback state={{ kind: 'loading_room' }} roomCode={roomCode} />;
+  }
+
   const playerId = user?.uid?.trim() || null;
-  const isRoomMaker = currentRoom?.roomMakerUid === playerId;
-  const players = currentRoom ? Object.values(currentRoom.players) : [];
-  const maxPlayers = getMaxPlayersForMode(currentRoom?.mode);
+  const isRoomMaker = currentRoom.roomMakerUid === playerId;
+  const players = Object.values(currentRoom.players);
+  const maxPlayers = getMaxPlayersForMode(currentRoom.mode);
   const seatedCount = players.length;
 
   const startReadiness = useMemo(() => {
@@ -80,40 +84,26 @@ function LobbyPageContent() {
       reason = `Waiting for: ${waiting.join(', ')}`;
     }
 
-    return { canStart, reason, allSeatsFilled, allHumansReady };
+    return { canStart, reason };
   }, [players, seatedCount, maxPlayers]);
 
   const handleCopyCode = () => {
-    if (roomCode) {
-      navigator.clipboard.writeText(roomCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+    navigator.clipboard.writeText(roomCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleReady = async () => {
-    if (!roomCode || !playerId) return;
+    if (!playerId) return;
     const myPlayer = players.find((p) => p.id === playerId);
     await setPlayerReady(roomCode, playerId, !myPlayer?.ready);
   };
 
   const handleKick = async (playerUid: string) => {
-    if (!roomCode) return;
     await kickPlayer(roomCode, playerUid);
   };
 
-  const handleLeave = useCallback(async () => {
-    if (!roomCode || !playerId || leaveBusy || isLeaving) return;
-    setLeaveBusy(true);
-    try {
-      await safeLeaveRoom(roomCode);
-    } finally {
-      setLeaveBusy(false);
-    }
-  }, [roomCode, playerId, leaveBusy, isLeaving, safeLeaveRoom]);
-
   const handleAddBot = async () => {
-    if (!roomCode || !currentRoom) return;
     await addBots(roomCode, 1, currentRoom.botSettings.difficulty, currentRoom.mode);
   };
 
@@ -136,63 +126,6 @@ function LobbyPageContent() {
         return 'bg-gray-700 border-gray-500';
     }
   };
-
-  if (isLeaving || leaveBusy) {
-    return (
-      <GameStatusCard title={t('lobby.leaving')} message={t('lobby.leavingMessage')} />
-    );
-  }
-
-  if (!roomLoaded) {
-    return (
-      <GameStatusCard
-        title={t('game.loadingRoom')}
-        message={roomCode ? t('game.loadingRoomMessage', { code: roomCode }) : t('general.loading')}
-      />
-    );
-  }
-
-  if (!roomCode) {
-    return (
-      <GameStatusCard
-        title={t('game.invalidLink')}
-        message={t('game.invalidLinkMessage')}
-        action={<BackHomeButton />}
-      />
-    );
-  }
-
-  if (!currentRoom) {
-    return (
-      <GameStatusCard
-        title={t('game.roomNotFound')}
-        message={t('game.roomNotFoundMessage', { code: roomCode })}
-        variant="warn"
-        action={<BackHomeButton />}
-      />
-    );
-  }
-
-  const isStillInRoom = Boolean(playerId && currentRoom.players?.[playerId]);
-  if (!isStillInRoom) {
-    return (
-      <GameStatusCard
-        title={t('game.notInRoom')}
-        message={t('game.notInRoomMessage')}
-        variant="warn"
-        action={<BackHomeButton />}
-      />
-    );
-  }
-
-  if (currentRoom.status === 'playing') {
-    return (
-      <GameStatusCard
-        title={t('lobby.redirectingToGame')}
-        message={t('game.loadingRoomMessage', { code: roomCode })}
-      />
-    );
-  }
 
   const rulesetLabel =
     currentRoom.rulesetType === 'obaida_classic'

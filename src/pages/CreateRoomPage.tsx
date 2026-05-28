@@ -16,7 +16,7 @@ import { BackHomeButton } from '../components/common/BackHomeButton';
 
 export function CreateRoomPage() {
   const { t, user, language, theme, firebaseReady, isGuestUser } = useApp();
-  const { setRoomCode } = useGame();
+  const { bindRoomFromRoute } = useGame();
   const navigate = useNavigate();
 
   const [name, setName] = useState(user?.displayName || '');
@@ -106,7 +106,7 @@ export function CreateRoomPage() {
         theme,
       });
 
-      setRoomCode(code);
+      bindRoomFromRoute(code);
       navigate(`/lobby/${code}`);
     } catch (err: any) {
       setError(err.message || 'Failed to create room');

@@ -17,7 +17,7 @@ function mapJoinError(message: string, t: (key: string) => string): string {
 
 export function JoinRoomPage() {
   const { t, user, firebaseReady } = useApp();
-  const { setRoomCode } = useGame();
+  const { bindRoomFromRoute } = useGame();
   const navigate = useNavigate();
 
   const [code, setCode] = useState('');
@@ -66,7 +66,7 @@ export function JoinRoomPage() {
         return;
       }
 
-      setRoomCode(code.trim());
+      bindRoomFromRoute(code.trim());
       navigate(`/lobby/${code.trim()}`);
     } catch (err: any) {
       setError(mapJoinError(err.message || 'Failed to join room', t));

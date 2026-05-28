@@ -107,6 +107,22 @@
     @apply shadow-2xl shadow-black/40 border-gold-500/10;
   }
 
+  .game-app-shell {
+    @apply bg-[#060504];
+  }
+
+  .fullscreen-game-table {
+    background:
+      radial-gradient(ellipse 100% 80% at 50% 30%, rgba(120, 72, 28, 0.22), transparent 55%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(0, 0, 0, 0.65), transparent),
+      linear-gradient(180deg, #0a0806 0%, #060504 100%);
+  }
+
+  .game-table-hud {
+    @apply border-b border-wood-900/90 bg-black/55 backdrop-blur-md;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+  }
+
   .game-table-root {
     background:
       radial-gradient(ellipse 90% 70% at 50% 40%, rgba(92, 60, 24, 0.25), transparent),
@@ -116,6 +132,35 @@
 
   .game-table-bar {
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  .board-wood-rim {
+    @apply rounded-2xl p-2 sm:p-3;
+    background: linear-gradient(145deg, #5c3c18 0%, #3d2810 40%, #2a1c0a 100%);
+    box-shadow:
+      0 0 0 2px rgba(212, 165, 99, 0.15),
+      0 16px 48px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 220, 160, 0.12);
+  }
+
+  .board-hero-stage {
+    @apply relative;
+  }
+
+  .hand-dock-panel {
+    @apply rounded-t-xl;
+  }
+
+  .opponent-chip {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+
+  .deck-pile-icon {
+    background: linear-gradient(135deg, #4a3520, #2a1c0a);
+  }
+
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
   }
 
   .game-panel-compact {
