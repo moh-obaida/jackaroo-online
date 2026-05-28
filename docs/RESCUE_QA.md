@@ -37,7 +37,7 @@ Repo [`firebase.database.rules.json`](../firebase.database.rules.json) includes:
 |-------|--------|
 | Rules file updated in repo | **Yes** (Slice 1) |
 | `.firebaserc` in git | **Removed** — Netlify secret scan blocked deploy when it was committed; copy `.firebaserc.example` locally |
-| **Deploy command** | `firebase deploy --only database --project jackaroo-online-f6b7f` |
+| **Deploy command** | `firebase deploy --only database --project <your-firebase-project-id>` (see Netlify `VITE_FIREBASE_PROJECT_ID`) |
 | Deploy confirmed from agent | **No** — requires `firebase login` on your machine |
 
 **Do not claim “leave fixed in production” until deploy is confirmed.**
