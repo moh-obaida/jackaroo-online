@@ -111,7 +111,7 @@ export async function createRoom(params: {
     isBot: false,
     botDifficulty: null,
     connected: true,
-    ready: false,
+    ready: true,
     guest: params.roomMakerGuest,
   };
 
@@ -345,6 +345,14 @@ export async function updateGameState(code: string, updates: any): Promise<void>
 /**
  * Save private hand for a player.
  */
+
+export async function getPrivateHand(code: string, playerId: string): Promise<any[]> {
+  if (!database) return [];
+  const handRef = ref(database, `rooms/${code}/privateHands/${playerId}/cards`);
+  const snapshot = await get(handRef);
+  return snapshot.exists() ? snapshot.val() : [];
+}
+
 export async function savePrivateHand(code: string, playerId: string, cards: any[]): Promise<void> {
   if (!database) return;
   const handRef = ref(database, `rooms/${code}/privateHands/${playerId}/cards`);

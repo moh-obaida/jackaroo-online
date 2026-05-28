@@ -52,11 +52,11 @@ import {
  * Generate all legal actions for the current player.
  * Respects Obaida Classic priority rules.
  */
-export function generateLegalActions(state: GameState): LegalAction[] {
+export function generateLegalActions(state: GameState, currentPlayerHand: Card[]): LegalAction[] {
   const player = state.players.find((p) => p.id === state.currentTurnPlayerId);
   if (!player) return [];
 
-  const hand = state.hands[player.id] || [];
+  const hand = currentPlayerHand || [];
   if (hand.length === 0) {
     return [{ type: 'skip_no_cards', cardId: '', description: 'No cards — skip turn' }];
   }
@@ -493,15 +493,18 @@ function generateBurnActions(
   if (!nextPlayer) return actions;
 
   // Check if next player has cards
-  const nextPlayerHand = state.hands[nextPlayer.id] || [];
-  if (nextPlayerHand.length === 0) return actions;
+  const nextPlayerCount = state.handCounts[nextPlayer.id] || 0;
+  if (nextPlayerCount === 0) return actions;
 
-  actions.push({
-    type: 'burn_next_player',
-    cardId: card.id,
-    burnTargetPlayerId: nextPlayer.id,
-    description: `Burn ${nextPlayer.name}'s card (${card.rank})`,
-  });
+  for (let i = 0; i < nextPlayerCount; i++) {
+    actions.push({
+      type: 'burn_next_player',
+      cardId: card.id,
+      burnTargetPlayerId: nextPlayer.id,
+      burnCardIndex: i,
+      description: `Burn ${nextPlayer.name}'s card (${card.rank})`,
+    });
+  }
 
   return actions;
 }
@@ -564,19 +567,18 @@ function applyPriorityRules(
 
   // Priority logic:
   // 1. If own moves exist (excluding burn), player must use own moves
-  //    BUT burn is always an alternative for Queen/10
   if (ownMoveActions.length > 0) {
-    return [...ownMoveActions, ...burnActions];
+    return ownMoveActions;
   }
 
-  // 2. If no own moves, try teammate moves (+ burn as alternative)
+  // 2. If no own moves, try teammate moves
   if (teammateMoveActions.length > 0) {
-    return [...teammateMoveActions, ...burnActions];
+    return teammateMoveActions;
   }
 
   // 3. If no own/teammate moves, try opponent moves (only for 5)
   if (opponentMoveActions.length > 0) {
-    return [...opponentMoveActions, ...burnActions];
+    return opponentMoveActions;
   }
 
   // 4. Only burn actions available

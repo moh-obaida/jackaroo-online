@@ -14,7 +14,7 @@ import { generateLegalActions } from './legalMoves';
  * Validate a submitted action against the current game state.
  * Returns true if the action is legal, false otherwise.
  */
-export function validateAction(state: GameState, action: GameAction): { valid: boolean; error?: string } {
+export function validateAction(state: GameState, action: GameAction, currentPlayerHand: {id:string}[]): { valid: boolean; error?: string } {
   // Check it's the correct player's turn
   if (action.playerId !== state.currentTurnPlayerId) {
     return { valid: false, error: 'Not your turn' };
@@ -26,7 +26,7 @@ export function validateAction(state: GameState, action: GameAction): { valid: b
   }
 
   // Generate legal actions and check if submitted action matches one
-  const legalActions = generateLegalActions(state);
+  const legalActions = generateLegalActions(state, currentPlayerHand as any);
 
   // Special cases
   if (action.type === 'skip_no_cards') {
@@ -88,7 +88,7 @@ function findMatchingLegalAction(
           return lm.marbleId === am.marbleId && lm.steps === am.steps;
         });
       case 'burn_next_player':
-        return legal.burnTargetPlayerId === action.burnTargetPlayerId;
+        return legal.burnTargetPlayerId === action.burnTargetPlayerId && legal.burnCardIndex === action.burnCardIndex;
       default:
         return true;
     }
@@ -99,11 +99,11 @@ function findMatchingLegalAction(
  * Validate that a card belongs to the player's hand.
  */
 export function validateCardOwnership(
-  state: GameState,
+  privateHands: Record<string, {id: string}[]>,
   playerId: string,
   cardId: string
 ): boolean {
-  const hand = state.hands[playerId];
+  const hand = privateHands[playerId];
   if (!hand) return false;
   return hand.some((c) => c.id === cardId);
 }

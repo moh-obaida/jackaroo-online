@@ -18,12 +18,13 @@ import {
   saveGameState,
   savePrivateHand,
   updateRoomStatus,
+  getPrivateHand,
 } from '../lib/firebase/rooms';
 import { isFirebaseConfigured } from '../lib/firebase/config';
 import { generateLegalActions } from '../lib/game/legalMoves';
 import { applyAction } from '../lib/game/applyAction';
 import { validateAction } from '../lib/game/validators';
-import { initializeDealBlock, dealRound } from '../lib/game/dealing';
+import { initializeDealBlock, dealRound, allHandsEmpty, isDealBlockExhausted, getNextStartingSeat } from '../lib/game/dealing';
 import { createInitialMarbles } from '../lib/game/board';
 import { useApp } from './AppContext';
 
@@ -100,7 +101,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (!gameState || !playerId || gameState.currentTurnPlayerId !== playerId) {
       return [];
     }
-    return generateLegalActions(gameState);
+    return generateLegalActions(gameState, myHand);
   }, [gameState, playerId]);
 
   const isMyTurn = gameState?.currentTurnPlayerId === playerId;
@@ -147,7 +148,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           startingSeat: 0,
           cardsPerPlayer: (dealBlock.dealPattern as number[])[0] || 4,
         },
-        hands,
+        handCounts: Object.fromEntries(Object.entries(hands).map(([pid,cards]) => [pid, cards.length])),
         deck: remainingDeck,
         discardPile: [],
         eventLog: [],
@@ -178,20 +179,42 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (!gameState || !roomCode) return;
 
       // Validate
-      const validation = validateAction(gameState, action);
+      const validation = validateAction(gameState, action, myHand);
       if (!validation.valid) {
         setError(validation.error || 'Invalid action');
         return;
       }
 
       // Apply action
-      const newState = applyAction(gameState, action);
+      const privateHands: Record<string, Card[]> = {};
+      for (const p of gameState.players) { privateHands[p.id] = await getPrivateHand(roomCode, p.id); }
+      const applied = applyAction(gameState, action, privateHands);
+      let newState = applied.state;
+      const newPrivateHands = applied.privateHands;
+
+      if (allHandsEmpty(newPrivateHands)) {
+        const nextRound = gameState.dealState.dealRoundInBlock + 1;
+        let dealBlock = initializeDealBlock(gameState.mode, gameState.dealState.startingSeat);
+        let roundIndex = nextRound;
+        let startingSeat = gameState.dealState.startingSeat;
+        let dealBlockNum = gameState.dealState.dealBlock;
+        if (isDealBlockExhausted(gameState.mode, nextRound)) {
+          dealBlockNum += 1;
+          startingSeat = getNextStartingSeat(gameState.dealState.startingSeat, gameState.players.length);
+          dealBlock = initializeDealBlock(gameState.mode, startingSeat);
+          roundIndex = 0;
+        }
+        const dealt = dealRound(dealBlock.deck, gameState.players, gameState.mode, dealBlock.dealPattern, roundIndex);
+        Object.assign(newPrivateHands, dealt.hands);
+        newState = { ...newState, deck: dealt.remainingDeck, dealState: { ...newState.dealState, dealBlock: dealBlockNum, dealRoundInBlock: roundIndex, startingSeat } };
+        newState.handCounts = Object.fromEntries(Object.entries(newPrivateHands).map(([pid, cards]) => [pid, cards.length]));
+      }
 
       // Save to Firebase (authoritative update)
       await saveGameState(roomCode, newState);
 
       // Update private hands
-      for (const [pid, cards] of Object.entries(newState.hands)) {
+      for (const [pid, cards] of Object.entries(newPrivateHands)) {
         await savePrivateHand(roomCode, pid, cards);
       }
 

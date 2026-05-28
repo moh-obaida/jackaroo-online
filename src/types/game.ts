@@ -83,6 +83,7 @@ export interface GameAction {
   splitMoves?: SplitSevenMove[];
   /** For burn */
   burnTargetPlayerId?: string;
+  burnCardIndex?: number;
 }
 
 export interface LegalAction {
@@ -95,6 +96,7 @@ export interface LegalAction {
   swapMarbleId2?: string;
   splitMoves?: SplitSevenMove[];
   burnTargetPlayerId?: string;
+  burnCardIndex?: number;
 }
 
 // ============================================================================
@@ -131,7 +133,7 @@ export interface GameState {
   currentTurnPlayerId: string;
   currentSeat: number;
   dealState: DealState;
-  hands: Record<string, Card[]>; // playerId -> cards
+  handCounts: Record<string, number>; // playerId -> number of cards (public only)
   deck: Card[];
   discardPile: Card[];
   eventLog: GameEvent[];
