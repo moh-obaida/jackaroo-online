@@ -5,6 +5,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User } from 'firebase/auth';
 import { onAuthChange, isGuest } from '../lib/firebase/auth';
+import { isFirebaseConfigured } from '../lib/firebase/config';
 import { Language, getInitialLanguage, saveLanguage, applyDirection, t } from '../lib/i18n';
 import { Theme, getInitialTheme, saveTheme, applyTheme } from '../lib/theme';
 
@@ -14,6 +15,7 @@ interface AppContextType {
   isAuthenticated: boolean;
   isGuestUser: boolean;
   authLoading: boolean;
+  firebaseReady: boolean;
 
   // Language
   language: Language;
@@ -74,6 +76,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     isAuthenticated: !!user && !user.isAnonymous,
     isGuestUser: isGuest(user),
     authLoading,
+    firebaseReady: isFirebaseConfigured,
     language,
     setLanguage,
     t: translate,

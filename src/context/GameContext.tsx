@@ -9,7 +9,6 @@ import {
   LegalAction,
   RoomData,
   Card,
-  Marble,
   PlayerState,
 } from '../types/game';
 import {
@@ -17,16 +16,15 @@ import {
   subscribeToGameState,
   subscribeToPrivateHand,
   saveGameState,
-  updateGameState,
   savePrivateHand,
   updateRoomStatus,
 } from '../lib/firebase/rooms';
+import { isFirebaseConfigured } from '../lib/firebase/config';
 import { generateLegalActions } from '../lib/game/legalMoves';
 import { applyAction } from '../lib/game/applyAction';
 import { validateAction } from '../lib/game/validators';
 import { initializeDealBlock, dealRound } from '../lib/game/dealing';
-import { createInitialMarbles, getActiveColors } from '../lib/game/board';
-import { generateBotAction } from '../lib/game/bots';
+import { createInitialMarbles } from '../lib/game/board';
 import { useApp } from './AppContext';
 
 interface GameContextType {
@@ -54,13 +52,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const unsubscribesRef = useRef<(() => void)[]>([]);
 
   const playerId = user?.uid || null;
 
   // Subscribe to room
   useEffect(() => {
-    if (!roomCode) {
+    if (!roomCode || !isFirebaseConfigured) {
       setRoom(null);
       setGameState(null);
       setMyHand([]);
@@ -71,15 +68,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       setRoom(roomData);
     });
 
-    unsubscribesRef.current.push(unsub);
-    return () => {
-      unsub();
-    };
+    return () => { unsub(); };
   }, [roomCode]);
 
   // Subscribe to game state
   useEffect(() => {
-    if (!roomCode || !room || room.status !== 'playing') return;
+    if (!roomCode || !room || room.status !== 'playing' || !isFirebaseConfigured) return;
 
     const unsub = subscribeToGameState(roomCode, (state) => {
       if (state) {
@@ -87,24 +81,18 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    unsubscribesRef.current.push(unsub);
-    return () => {
-      unsub();
-    };
+    return () => { unsub(); };
   }, [roomCode, room?.status]);
 
   // Subscribe to private hand
   useEffect(() => {
-    if (!roomCode || !playerId || !room || room.status !== 'playing') return;
+    if (!roomCode || !playerId || !room || room.status !== 'playing' || !isFirebaseConfigured) return;
 
     const unsub = subscribeToPrivateHand(roomCode, playerId, (cards) => {
       setMyHand(cards || []);
     });
 
-    unsubscribesRef.current.push(unsub);
-    return () => {
-      unsub();
-    };
+    return () => { unsub(); };
   }, [roomCode, playerId, room?.status]);
 
   // Compute legal actions

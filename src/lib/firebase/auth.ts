@@ -1,6 +1,7 @@
 // ============================================================================
 // AUTH MODULE — Firebase Authentication helpers
 // Supports guest (anonymous) and email/password auth.
+// Handles missing Firebase config gracefully.
 // ============================================================================
 
 import {
@@ -13,14 +14,15 @@ import {
   User,
 } from 'firebase/auth';
 import { ref, set, serverTimestamp } from 'firebase/database';
-import { auth, database } from './config';
+import { auth, database, isFirebaseConfigured } from './config';
 
 export type AuthUser = User;
 
 /**
  * Sign in as guest (anonymous).
  */
-export async function signInAsGuest(): Promise<User> {
+export async function signInAsGuest(): Promise<User | null> {
+  if (!auth) return null;
   const result = await signInAnonymously(auth);
   return result.user;
 }
@@ -32,17 +34,20 @@ export async function registerWithEmail(
   email: string,
   password: string,
   displayName: string
-): Promise<User> {
+): Promise<User | null> {
+  if (!auth) return null;
   const result = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(result.user, { displayName });
 
   // Create user profile in database
-  const userRef = ref(database, `users/${result.user.uid}/profile`);
-  await set(userRef, {
-    displayName,
-    createdAt: serverTimestamp(),
-    lastSeen: serverTimestamp(),
-  });
+  if (database) {
+    const userRef = ref(database, `users/${result.user.uid}/profile`);
+    await set(userRef, {
+      displayName,
+      createdAt: serverTimestamp(),
+      lastSeen: serverTimestamp(),
+    });
+  }
 
   return result.user;
 }
@@ -53,7 +58,8 @@ export async function registerWithEmail(
 export async function signInWithEmail(
   email: string,
   password: string
-): Promise<User> {
+): Promise<User | null> {
+  if (!auth) return null;
   const result = await signInWithEmailAndPassword(auth, email, password);
   return result.user;
 }
@@ -62,6 +68,7 @@ export async function signInWithEmail(
  * Sign out.
  */
 export async function logOut(): Promise<void> {
+  if (!auth) return;
   await signOut(auth);
 }
 
@@ -69,7 +76,7 @@ export async function logOut(): Promise<void> {
  * Get current user.
  */
 export function getCurrentUser(): User | null {
-  return auth.currentUser;
+  return auth?.currentUser || null;
 }
 
 /**
@@ -83,6 +90,11 @@ export function isGuest(user: User | null): boolean {
  * Subscribe to auth state changes.
  */
 export function onAuthChange(callback: (user: User | null) => void): () => void {
+  if (!auth) {
+    // No Firebase — call with null immediately and return noop
+    callback(null);
+    return () => {};
+  }
   return onAuthStateChanged(auth, callback);
 }
 
@@ -90,6 +102,7 @@ export function onAuthChange(callback: (user: User | null) => void): () => void 
  * Update user's last seen timestamp.
  */
 export async function updateLastSeen(uid: string): Promise<void> {
+  if (!database) return;
   const userRef = ref(database, `users/${uid}/profile/lastSeen`);
   await set(userRef, serverTimestamp());
 }

@@ -1,6 +1,7 @@
 // ============================================================================
 // ROOMS MODULE — Firebase room CRUD and real-time sync
 // All randomness (room code, deck, etc.) generated ONCE and saved here.
+// Handles missing Firebase config gracefully.
 // ============================================================================
 
 import {
@@ -10,11 +11,9 @@ import {
   update,
   remove,
   onValue,
-  push,
-  serverTimestamp,
   DataSnapshot,
 } from 'firebase/database';
-import { database } from './config';
+import { database, isFirebaseConfigured } from './config';
 import {
   RoomData,
   PlayerState,
@@ -22,7 +21,6 @@ import {
   RulesetType,
   BotSettings,
   CustomRulesConfig,
-  PlayerColor,
   COLORS_ORDER,
   TEAM_ASSIGNMENTS,
 } from '../../types/game';
@@ -33,7 +31,6 @@ import {
 
 /**
  * Generate a random 6-digit numeric room code.
- * Check for collisions before saving.
  */
 export function generateRoomCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -79,6 +76,8 @@ export async function createRoom(params: {
   language: 'en' | 'ar';
   theme: 'dark' | 'light' | 'balanced';
 }): Promise<string> {
+  if (!database) throw new Error('Firebase not configured');
+
   // Generate room code, check for collision
   let code = generateRoomCode();
   let exists = true;
@@ -121,7 +120,7 @@ export async function createRoom(params: {
     passwordHash,
     createdAt: now,
     updatedAt: now,
-    expiresAt: now + 10 * 60 * 1000, // 10 minutes inactivity
+    expiresAt: now + 10 * 60 * 1000,
     roomMakerUid: params.roomMakerUid,
     status: 'lobby',
     lockedAfterStart: false,
@@ -151,6 +150,8 @@ export async function joinRoom(params: {
   playerName: string;
   playerGuest: boolean;
 }): Promise<{ success: boolean; error?: string }> {
+  if (!database) return { success: false, error: 'Firebase not configured' };
+
   const roomRef = ref(database, `rooms/${params.code}`);
   const snapshot = await get(roomRef);
 
@@ -168,9 +169,7 @@ export async function joinRoom(params: {
 
   // Check room status
   if (room.status !== 'lobby') {
-    // Allow reconnection
     if (room.players[params.playerUid]) {
-      // Reconnecting
       const playerRef = ref(database, `rooms/${params.code}/players/${params.playerUid}/connected`);
       await set(playerRef, true);
       return { success: true };
@@ -210,7 +209,6 @@ export async function joinRoom(params: {
   const playerRef = ref(database, `rooms/${params.code}/players/${params.playerUid}`);
   await set(playerRef, newPlayer);
 
-  // Update room timestamp
   const updateRef = ref(database, `rooms/${params.code}`);
   await update(updateRef, { updatedAt: Date.now() });
 
@@ -221,6 +219,7 @@ export async function joinRoom(params: {
  * Leave a room.
  */
 export async function leaveRoom(code: string, playerUid: string): Promise<void> {
+  if (!database) return;
   const playerRef = ref(database, `rooms/${code}/players/${playerUid}`);
   await remove(playerRef);
 
@@ -239,6 +238,7 @@ export async function kickPlayer(code: string, playerUid: string): Promise<void>
  * Set player ready status.
  */
 export async function setPlayerReady(code: string, playerUid: string, ready: boolean): Promise<void> {
+  if (!database) return;
   const readyRef = ref(database, `rooms/${code}/players/${playerUid}/ready`);
   await set(readyRef, ready);
 }
@@ -247,6 +247,7 @@ export async function setPlayerReady(code: string, playerUid: string, ready: boo
  * Update room status.
  */
 export async function updateRoomStatus(code: string, status: RoomData['status']): Promise<void> {
+  if (!database) return;
   const updateRef = ref(database, `rooms/${code}`);
   await update(updateRef, { status, updatedAt: Date.now() });
 }
@@ -258,6 +259,10 @@ export function subscribeToRoom(
   code: string,
   callback: (room: RoomData | null) => void
 ): () => void {
+  if (!database) {
+    callback(null);
+    return () => {};
+  }
   const roomRef = ref(database, `rooms/${code}`);
   const unsubscribe = onValue(roomRef, (snapshot: DataSnapshot) => {
     if (snapshot.exists()) {
@@ -278,6 +283,7 @@ export async function addBots(
   difficulty: string,
   mode: GameMode
 ): Promise<void> {
+  if (!database) return;
   const roomRef = ref(database, `rooms/${code}`);
   const snapshot = await get(roomRef);
   if (!snapshot.exists()) return;
@@ -322,6 +328,7 @@ export async function addBots(
  * Save initial game state to Firebase when game starts.
  */
 export async function saveGameState(code: string, gameState: any): Promise<void> {
+  if (!database) return;
   const gameRef = ref(database, `rooms/${code}/gameState`);
   await set(gameRef, gameState);
 }
@@ -330,6 +337,7 @@ export async function saveGameState(code: string, gameState: any): Promise<void>
  * Update game state in Firebase after an action.
  */
 export async function updateGameState(code: string, updates: any): Promise<void> {
+  if (!database) return;
   const gameRef = ref(database, `rooms/${code}/gameState`);
   await update(gameRef, updates);
 }
@@ -338,6 +346,7 @@ export async function updateGameState(code: string, updates: any): Promise<void>
  * Save private hand for a player.
  */
 export async function savePrivateHand(code: string, playerId: string, cards: any[]): Promise<void> {
+  if (!database) return;
   const handRef = ref(database, `rooms/${code}/privateHands/${playerId}/cards`);
   await set(handRef, cards);
 }
@@ -349,6 +358,7 @@ export function subscribeToGameState(
   code: string,
   callback: (state: any) => void
 ): () => void {
+  if (!database) return () => {};
   const gameRef = ref(database, `rooms/${code}/gameState`);
   return onValue(gameRef, (snapshot: DataSnapshot) => {
     if (snapshot.exists()) {
@@ -365,6 +375,7 @@ export function subscribeToPrivateHand(
   playerId: string,
   callback: (cards: any[]) => void
 ): () => void {
+  if (!database) return () => {};
   const handRef = ref(database, `rooms/${code}/privateHands/${playerId}/cards`);
   return onValue(handRef, (snapshot: DataSnapshot) => {
     if (snapshot.exists()) {
@@ -387,6 +398,7 @@ export async function saveCustomTemplate(
   templateId: string,
   config: CustomRulesConfig
 ): Promise<void> {
+  if (!database) return;
   const templateRef = ref(database, `users/${uid}/customRules/${templateId}`);
   await set(templateRef, {
     ...config,
@@ -398,6 +410,7 @@ export async function saveCustomTemplate(
  * Get all custom templates for a user.
  */
 export async function getCustomTemplates(uid: string): Promise<Record<string, CustomRulesConfig>> {
+  if (!database) return {};
   const templatesRef = ref(database, `users/${uid}/customRules`);
   const snapshot = await get(templatesRef);
   if (snapshot.exists()) {
@@ -410,6 +423,7 @@ export async function getCustomTemplates(uid: string): Promise<Record<string, Cu
  * Delete a custom template.
  */
 export async function deleteCustomTemplate(uid: string, templateId: string): Promise<void> {
+  if (!database) return;
   const templateRef = ref(database, `users/${uid}/customRules/${templateId}`);
   await remove(templateRef);
 }

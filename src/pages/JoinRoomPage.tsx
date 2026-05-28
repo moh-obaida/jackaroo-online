@@ -6,7 +6,7 @@ import { joinRoom } from '../lib/firebase/rooms';
 import { signInAsGuest } from '../lib/firebase/auth';
 
 export function JoinRoomPage() {
-  const { t, user } = useApp();
+  const { t, user, firebaseReady } = useApp();
   const { setRoomCode } = useGame();
   const navigate = useNavigate();
 
@@ -23,6 +23,11 @@ export function JoinRoomPage() {
       return;
     }
 
+    if (!firebaseReady) {
+      setError('Firebase is not configured. Add environment variables first.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -30,6 +35,12 @@ export function JoinRoomPage() {
       let currentUser = user;
       if (!currentUser) {
         currentUser = await signInAsGuest();
+      }
+
+      if (!currentUser) {
+        setError('Failed to authenticate');
+        setLoading(false);
+        return;
       }
 
       const result = await joinRoom({
@@ -58,6 +69,14 @@ export function JoinRoomPage() {
     <div className="flex-1 flex items-center justify-center px-4 py-8">
       <div className="card-container w-full max-w-lg">
         <h1 className="text-2xl font-bold text-gold-400 mb-6">{t('join.title')}</h1>
+
+        {!firebaseReady && (
+          <div className="mb-4 p-3 bg-yellow-900/50 border border-yellow-600 rounded-lg">
+            <p className="text-yellow-200 text-xs">
+              Firebase not configured. Joining rooms requires Firebase environment variables.
+            </p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Room Code */}

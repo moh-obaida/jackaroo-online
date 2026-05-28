@@ -7,7 +7,7 @@ import { signInAsGuest } from '../lib/firebase/auth';
 import { GameMode, RulesetType, BotDifficulty, BotSettings } from '../types/game';
 
 export function CreateRoomPage() {
-  const { t, user, language, theme } = useApp();
+  const { t, user, language, theme, firebaseReady } = useApp();
   const { setRoomCode } = useGame();
   const navigate = useNavigate();
 
@@ -27,6 +27,11 @@ export function CreateRoomPage() {
       return;
     }
 
+    if (!firebaseReady) {
+      setError('Firebase is not configured. Add environment variables first.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -34,6 +39,12 @@ export function CreateRoomPage() {
       let currentUser = user;
       if (!currentUser) {
         currentUser = await signInAsGuest();
+      }
+
+      if (!currentUser) {
+        setError('Failed to authenticate');
+        setLoading(false);
+        return;
       }
 
       const botSettings: BotSettings = {
@@ -69,6 +80,14 @@ export function CreateRoomPage() {
     <div className="flex-1 flex items-center justify-center px-4 py-8">
       <div className="card-container w-full max-w-lg">
         <h1 className="text-2xl font-bold text-gold-400 mb-6">{t('create.title')}</h1>
+
+        {!firebaseReady && (
+          <div className="mb-4 p-3 bg-yellow-900/50 border border-yellow-600 rounded-lg">
+            <p className="text-yellow-200 text-xs">
+              Firebase not configured. Room creation requires Firebase environment variables.
+            </p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Display Name */}

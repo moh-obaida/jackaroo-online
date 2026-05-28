@@ -4,10 +4,11 @@ import { useApp } from '../context/AppContext';
 import { signInAsGuest } from '../lib/firebase/auth';
 
 export function HomePage() {
-  const { t, user } = useApp();
+  const { t, user, firebaseReady } = useApp();
   const navigate = useNavigate();
 
   const handleGuest = async () => {
+    if (!firebaseReady) return;
     if (!user) {
       await signInAsGuest();
     }
@@ -25,6 +26,18 @@ export function HomePage() {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+      {/* Firebase not configured banner */}
+      {!firebaseReady && (
+        <div className="w-full max-w-2xl mb-8 p-4 bg-yellow-900/50 border border-yellow-600 rounded-lg text-center">
+          <p className="text-yellow-200 text-sm font-medium mb-1">
+            Firebase is not configured yet
+          </p>
+          <p className="text-yellow-300/70 text-xs">
+            Add your Firebase environment variables (VITE_FIREBASE_*) in Netlify or your local .env file to enable multiplayer functionality.
+          </p>
+        </div>
+      )}
+
       {/* Hero */}
       <div className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-bold text-gold-400 mb-4">
