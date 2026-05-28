@@ -24,7 +24,10 @@ import {
   CustomRulesConfig,
   COLORS_ORDER,
   TEAM_ASSIGNMENTS,
+  GameState,
+  Card,
 } from '../../types/game';
+import { normalizeCards, normalizeGameState } from '../game/normalize';
 
 // ============================================================================
 // ROOM CODE GENERATION — Numeric only, saved to Firebase
@@ -168,58 +171,61 @@ export async function joinRoom(params: {
     return { success: false, error: 'Incorrect password' };
   }
 
-  // Check room status
+  const maxPlayers = getMaxPlayers(room.mode);
+  const playerRef = ref(database, `rooms/${params.code}/players/${params.playerUid}`);
+
+  // Reconnect during an active game — only flip connected (rules allow this path).
   if (room.status !== 'lobby') {
     if (room.players[params.playerUid]) {
-      const playerRef = ref(database, `rooms/${params.code}/players/${params.playerUid}/connected`);
-      await set(playerRef, true);
+      await set(ref(database, `rooms/${params.code}/players/${params.playerUid}/connected`), true);
       return { success: true };
     }
     return { success: false, error: 'Game already in progress' };
   }
 
-  const maxPlayers = getMaxPlayers(room.mode);
-  const playersRef = ref(database, `rooms/${params.code}/players`);
-  const txnResult = await runTransaction(playersRef, (current) => {
-    const currentPlayers = (current || {}) as Record<string, PlayerState>;
+  // New join: claim a seat via per-player transaction (rules enforce lobby + capacity).
+  const playersSnap = await get(ref(database, `rooms/${params.code}/players`));
+  const currentPlayers = (playersSnap.val() || {}) as Record<string, PlayerState>;
 
-    // Reconnect path
-    if (currentPlayers[params.playerUid]) {
-      currentPlayers[params.playerUid] = {
-        ...currentPlayers[params.playerUid],
-        connected: true,
-      };
-      return currentPlayers;
+  if (currentPlayers[params.playerUid]) {
+    await set(ref(database, `rooms/${params.code}/players/${params.playerUid}/connected`), true);
+    return { success: true };
+  }
+
+  if (Object.keys(currentPlayers).length >= maxPlayers) {
+    return { success: false, error: 'Room is full' };
+  }
+
+  const usedSeats = Object.values(currentPlayers).map((p) => p.seat);
+  let nextSeat = 0;
+  while (usedSeats.includes(nextSeat)) nextSeat++;
+
+  const color = COLORS_ORDER[nextSeat];
+  const team = room.mode === '4p_teams' ? TEAM_ASSIGNMENTS[nextSeat] : null;
+
+  const newPlayer: PlayerState = {
+    id: params.playerUid,
+    uid: params.playerUid,
+    name: params.playerName,
+    color,
+    seat: nextSeat,
+    team,
+    isBot: false,
+    botDifficulty: null,
+    connected: true,
+    ready: false,
+    guest: params.playerGuest,
+  };
+
+  const txnResult = await runTransaction(playerRef, (current) => {
+    if (current) {
+      return { ...current, connected: true };
     }
-
-    if (Object.keys(currentPlayers).length >= maxPlayers) {
-      return;
-    }
-
-    const usedSeats = Object.values(currentPlayers).map((p) => p.seat);
-    let nextSeat = 0;
-    while (usedSeats.includes(nextSeat)) nextSeat++;
-
-    const color = COLORS_ORDER[nextSeat];
-    const team = room.mode === '4p_teams' ? TEAM_ASSIGNMENTS[nextSeat] : null;
-    currentPlayers[params.playerUid] = {
-      id: params.playerUid,
-      uid: params.playerUid,
-      name: params.playerName,
-      color,
-      seat: nextSeat,
-      team,
-      isBot: false,
-      botDifficulty: null,
-      connected: true,
-      ready: false,
-      guest: params.playerGuest,
-    };
-    return currentPlayers;
+    return newPlayer;
   });
 
   if (!txnResult.committed) {
-    return { success: false, error: 'Room is full' };
+    return { success: false, error: 'Room is full or join denied' };
   }
 
   const updateRef = ref(database, `rooms/${params.code}`);
@@ -258,11 +264,12 @@ export async function setPlayerReady(code: string, playerUid: string, ready: boo
 
 /**
  * Update room status.
+ * Writes status/updatedAt directly so non-makers can mark a room finished after winning.
  */
 export async function updateRoomStatus(code: string, status: RoomData['status']): Promise<void> {
   if (!database) return;
-  const updateRef = ref(database, `rooms/${code}`);
-  await update(updateRef, { status, updatedAt: Date.now() });
+  const now = Date.now();
+  await update(ref(database, `rooms/${code}`), { status, updatedAt: now });
 }
 
 /**
@@ -359,11 +366,11 @@ export async function updateGameState(code: string, updates: any): Promise<void>
  * Save private hand for a player.
  */
 
-export async function getPrivateHand(code: string, playerId: string): Promise<any[]> {
+export async function getPrivateHand(code: string, playerId: string): Promise<Card[]> {
   if (!database) return [];
   const handRef = ref(database, `privateHands/${code}/${playerId}/cards`);
   const snapshot = await get(handRef);
-  return snapshot.exists() ? snapshot.val() : [];
+  return snapshot.exists() ? normalizeCards(snapshot.val()) : [];
 }
 
 export async function savePrivateHand(code: string, playerId: string, cards: any[]): Promise<void> {
@@ -377,13 +384,15 @@ export async function savePrivateHand(code: string, playerId: string, cards: any
  */
 export function subscribeToGameState(
   code: string,
-  callback: (state: any) => void
+  callback: (state: GameState | null) => void
 ): () => void {
   if (!database) return () => {};
   const gameRef = ref(database, `rooms/${code}/gameState`);
   return onValue(gameRef, (snapshot: DataSnapshot) => {
     if (snapshot.exists()) {
-      callback(snapshot.val());
+      callback(normalizeGameState(snapshot.val()));
+    } else {
+      callback(null);
     }
   });
 }
@@ -394,13 +403,13 @@ export function subscribeToGameState(
 export function subscribeToPrivateHand(
   code: string,
   playerId: string,
-  callback: (cards: any[]) => void
+  callback: (cards: Card[]) => void
 ): () => void {
   if (!database) return () => {};
   const handRef = ref(database, `privateHands/${code}/${playerId}/cards`);
   return onValue(handRef, (snapshot: DataSnapshot) => {
     if (snapshot.exists()) {
-      callback(snapshot.val());
+      callback(normalizeCards(snapshot.val()));
     } else {
       callback([]);
     }

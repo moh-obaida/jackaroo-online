@@ -25,7 +25,7 @@ export function HomePage() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+    <div className="flex-1 flex flex-col items-center justify-center px-4 py-6 md:py-10">
       {/* Firebase not configured banner */}
       {!firebaseReady && (
         <div className="w-full max-w-2xl mb-8 p-4 bg-yellow-900/50 border border-yellow-600 rounded-lg text-center">
@@ -39,8 +39,8 @@ export function HomePage() {
       )}
 
       {/* Hero */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold text-gold-400 mb-4">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl md:text-5xl font-bold text-gold-400 mb-3">
           {t('app.name')}
         </h1>
         <p className="text-lg text-gray-300 max-w-md mx-auto">
@@ -49,7 +49,7 @@ export function HomePage() {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-12 w-full max-w-md">
+      <div className="flex flex-col sm:flex-row gap-3 mb-8 w-full max-w-md">
         <Link to="/create" className="btn-primary text-center flex-1 text-lg">
           {t('home.createRoom')}
         </Link>
@@ -58,7 +58,7 @@ export function HomePage() {
         </Link>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-12">
+      <div className="flex flex-col sm:flex-row gap-3 mb-8">
         <Link
           to="/auth"
           className="text-gold-300 hover:text-gold-200 transition-colors text-sm"

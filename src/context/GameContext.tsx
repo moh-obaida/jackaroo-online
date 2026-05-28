@@ -25,6 +25,7 @@ import { generateLegalActions } from '../lib/game/legalMoves';
 import { applyAction } from '../lib/game/applyAction';
 import { validateAction } from '../lib/game/validators';
 import { initializeDealBlock, dealRound, isDealBlockExhausted, getNextStartingSeat } from '../lib/game/dealing';
+import { getCardsPerPlayerForRound } from '../lib/game/cards';
 import { createInitialMarbles } from '../lib/game/board';
 import { pickRandomCardIndex } from '../lib/game/cards';
 import { useApp } from './AppContext';
@@ -78,9 +79,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (!roomCode || !room || room.status !== 'playing' || !isFirebaseConfigured) return;
 
     const unsub = subscribeToGameState(roomCode, (state) => {
-      if (state) {
-        setGameState(state);
-      }
+      setGameState(state);
     });
 
     return () => { unsub(); };
@@ -102,7 +101,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (!gameState || !playerId || gameState.currentTurnPlayerId !== playerId) {
       return [];
     }
-    return generateLegalActions(gameState, myHand);
+    try {
+      return generateLegalActions(gameState, myHand);
+    } catch (err) {
+      console.error('generateLegalActions failed:', err);
+      return [];
+    }
   }, [gameState, playerId, myHand]);
 
   const isMyTurn = gameState?.currentTurnPlayerId === playerId;
@@ -147,7 +151,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           dealBlock: 0,
           dealRoundInBlock: 0,
           startingSeat: 0,
-          cardsPerPlayer: (dealBlock.dealPattern as number[])[0] || 4,
+          cardsPerPlayer: getCardsPerPlayerForRound(room.mode, dealBlock.dealPattern, 0),
           dealPattern: dealBlock.dealPattern,
         },
         handCounts: Object.fromEntries(Object.entries(hands).map(([pid,cards]) => [pid, cards.length])),

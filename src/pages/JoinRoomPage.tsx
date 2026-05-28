@@ -89,7 +89,7 @@ export function JoinRoomPage() {
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder={t('join.codePlaceholder')}
-              className="input-field text-center text-2xl tracking-widest"
+              className="input-field text-center text-2xl tracking-normal tabular-nums font-mono"
               maxLength={6}
               inputMode="numeric"
             />
