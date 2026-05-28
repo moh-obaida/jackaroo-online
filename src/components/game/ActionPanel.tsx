@@ -21,7 +21,6 @@ export function ActionPanel({
   const grouped = useMemo(() => {
     const burnAll = legalActions.find((a) => a.type === 'burn_all_cards');
     const skip = legalActions.find((a) => a.type === 'skip_no_cards');
-    const burnNext = legalActions.find((a) => a.type === 'burn_next_player');
 
     const cardActions = selectedCardId
       ? legalActions.filter(
@@ -34,7 +33,11 @@ export function ActionPanel({
       : [];
 
     const burnForCard =
-      selectedCardId && burnNext?.cardId === selectedCardId ? burnNext : null;
+      selectedCardId
+        ? legalActions.find(
+            (a) => a.type === 'burn_next_player' && a.cardId === selectedCardId
+          ) || null
+        : null;
 
     return { burnAll, skip, burnForCard, cardActions };
   }, [legalActions, selectedCardId]);

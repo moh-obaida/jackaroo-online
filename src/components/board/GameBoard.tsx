@@ -160,7 +160,6 @@ export function GameBoard({ gameState, selectedCardId: _selectedCardId, playerId
     const spots: JSX.Element[] = [];
     for (let ci = 0; ci < 4; ci++) {
       const color = COLORS_ORDER[ci];
-      if (!activePlayerColors.has(color)) continue;
 
       const sgPos = geometry.getStartGatePosition(ci);
       spots.push(
