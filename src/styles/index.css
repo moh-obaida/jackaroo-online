@@ -1,3 +1,5 @@
+@import './design-tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,10 +10,12 @@
   }
 
   body {
-    @apply min-h-screen bg-surface-base text-cream-100 antialiased;
+    @apply min-h-screen text-cream-100 antialiased;
+    background-color: var(--jkr-ink);
     background-image:
-      radial-gradient(ellipse 120% 80% at 50% -20%, rgba(212, 165, 99, 0.08), transparent),
-      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(92, 60, 24, 0.15), transparent);
+      radial-gradient(ellipse 140% 90% at 50% -30%, rgba(212, 165, 99, 0.1), transparent 50%),
+      radial-gradient(ellipse 80% 50% at 100% 80%, rgba(26, 77, 46, 0.12), transparent),
+      linear-gradient(180deg, #0c0906 0%, #060504 100%);
   }
 
   html[dir='rtl'] {
@@ -21,59 +25,258 @@
   html[dir='ltr'] {
     font-family: 'Inter', system-ui, sans-serif;
   }
-
-  h1 {
-    @apply text-3xl md:text-4xl font-bold tracking-tight text-gold-300;
-  }
-
-  h2 {
-    @apply text-xl font-semibold text-cream-100;
-  }
-
-  p {
-    @apply leading-relaxed;
-  }
 }
 
 @layer components {
+  /* —— App shells —— */
+  .marketing-shell {
+    @apply min-h-screen flex flex-col text-cream-100 jkr-stack;
+  }
+
+  .marketing-shell::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 120% 80% at 50% -20%, rgba(212, 165, 99, 0.08), transparent 55%),
+      radial-gradient(ellipse 60% 40% at 0% 100%, rgba(26, 77, 46, 0.06), transparent);
+    z-index: var(--jkr-z-deep-bg);
+  }
+
+  .marketing-shell__main {
+    @apply flex-1 flex flex-col min-h-0;
+  }
+
+  .game-shell {
+    @apply min-h-screen flex flex-col bg-[#050403] text-cream-100 jkr-stack;
+  }
+
+  .game-shell::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse 90% 70% at 50% 30%, rgba(26, 77, 46, 0.12), transparent 60%);
+    z-index: var(--jkr-z-deep-bg);
+  }
+
+  .game-shell__main {
+    @apply flex-1 flex flex-col min-h-0 overflow-hidden;
+  }
+
+  /* —— Z-index layers (use these instead of ad-hoc z-*) —— */
+  .jkr-layer-deep-bg {
+    z-index: var(--jkr-z-deep-bg);
+  }
+
+  .jkr-layer-page-glow {
+    z-index: var(--jkr-z-page-glow);
+  }
+
+  .jkr-layer-felt {
+    z-index: var(--jkr-z-felt);
+  }
+
+  .jkr-layer-board {
+    z-index: var(--jkr-z-board);
+  }
+
+  .jkr-layer-seat {
+    z-index: var(--jkr-z-seat);
+  }
+
+  .jkr-layer-hand {
+    z-index: var(--jkr-z-hand);
+  }
+
+  .jkr-layer-hand-top {
+    z-index: var(--jkr-z-hand-top);
+  }
+
+  .jkr-layer-hud {
+    z-index: var(--jkr-z-hud);
+  }
+
+  .jkr-layer-site-chrome {
+    z-index: var(--jkr-z-site-chrome);
+  }
+
+  .jkr-layer-under-felt {
+    z-index: var(--jkr-z-under-felt);
+  }
+
+  .jkr-layer-scrim {
+    z-index: var(--jkr-z-scrim);
+  }
+
+  .jkr-layer-modal {
+    z-index: var(--jkr-z-modal);
+  }
+
+  .jkr-layer-critical {
+    z-index: var(--jkr-z-critical);
+  }
+
+  /** Isolated stacking context for table vs marketing shells */
+  .jkr-stack {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .jkr-layer-toast {
+    z-index: var(--jkr-z-toast);
+  }
+
+  .jkr-layer-blocking {
+    z-index: var(--jkr-z-blocking);
+  }
+
+  .site-header {
+    @apply sticky top-0 jkr-layer-site-chrome border-b border-wood-900/70 backdrop-blur-md;
+    background: linear-gradient(180deg, rgba(12, 9, 6, 0.95) 0%, rgba(8, 6, 4, 0.88) 100%);
+  }
+
+  .site-header__inner {
+    @apply max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3;
+  }
+
+  .site-header__brand-row {
+    @apply flex items-center gap-4 min-w-0;
+  }
+
+  .site-header__brand {
+    @apply flex items-center gap-2.5 shrink-0;
+  }
+
+  .site-header__logo {
+    @apply w-9 h-9 rounded-xl bg-gold-500/20 border border-gold-500/35 flex items-center justify-center text-gold-300 font-bold text-lg;
+  }
+
+  .site-header__name {
+    @apply text-lg font-bold text-gold-300 hidden sm:inline;
+  }
+
+  .site-header__controls {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .site-header__theme-select {
+    @apply py-1.5 px-2 text-xs w-auto min-w-[6.5rem];
+  }
+
+  .site-header__user {
+    @apply text-xs text-cream-200/55;
+  }
+
+  /* —— Layout —— */
+  .page-frame {
+    @apply relative flex-1;
+  }
+
   .page-shell {
     @apply flex-1 w-full max-w-6xl mx-auto px-4 py-6 md:py-8;
   }
 
-  .page-title {
-    @apply text-2xl md:text-3xl font-bold text-gold-300 mb-2;
+  .form-field__label {
+    @apply block text-sm font-medium text-cream-200/80 mb-1.5;
   }
 
-  .page-subtitle {
-    @apply text-sm md:text-base text-cream-200/70 mb-6 max-w-xl;
+  .form-field__hint {
+    @apply helper-text;
   }
 
-  .btn-primary {
-    @apply px-5 py-2.5 bg-gold-500 hover:bg-gold-400 active:bg-gold-600 text-board-dark font-semibold rounded-lg shadow-md shadow-black/30 transition-all duration-200 disabled:opacity-45 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:bg-gold-500;
+  .alert {
+    @apply px-4 py-2.5 text-sm text-center border;
   }
 
-  .btn-secondary {
-    @apply px-5 py-2.5 bg-wood-800/80 hover:bg-wood-700 text-cream-100 font-medium rounded-lg border border-wood-600/80 transition-all duration-200 disabled:opacity-45 disabled:cursor-not-allowed;
+  .alert--info {
+    @apply bg-wood-900/50 border-wood-700/50 text-cream-200/80;
+  }
+
+  .alert--warn {
+    @apply bg-amber-950/50 border-amber-700/50 text-amber-200/90;
+  }
+
+  .alert--error {
+    @apply bg-red-950/50 border-red-800/50 text-red-200/90;
+  }
+
+  .alert--success {
+    @apply bg-emerald-950/50 border-emerald-700/50 text-emerald-200/90;
+  }
+
+  .status-panel-screen {
+    @apply flex-1 flex items-center justify-center p-6 min-h-[40vh];
+  }
+
+  .status-panel {
+    @apply max-w-md w-full text-center;
+  }
+
+  .status-panel--error {
+    @apply border-red-800/50;
+  }
+
+  .status-panel--warn {
+    @apply border-amber-700/50;
+  }
+
+  .status-panel__title {
+    @apply text-lg font-semibold text-gold-300 mb-2;
+  }
+
+  .status-panel__message {
+    @apply text-sm text-cream-200/70 mb-5;
+  }
+
+  .status-panel__actions {
+    @apply flex flex-col gap-2 items-center w-full;
+  }
+
+  /* —— Panels (v2) —— */
+  .jkr-panel {
+    @apply rounded-2xl border border-wood-700/55 p-5 md:p-7;
+    background: linear-gradient(165deg, rgba(34, 26, 18, 0.97) 0%, rgba(15, 12, 9, 0.98) 100%);
+    box-shadow: var(--jkr-shadow-deep), var(--jkr-shadow-inset-rim);
+  }
+
+  .jkr-panel--glow {
+    box-shadow:
+      var(--jkr-shadow-deep),
+      0 0 60px -20px rgba(230, 184, 0, 0.15),
+      var(--jkr-shadow-inset-rim);
+  }
+
+  .jkr-panel__title {
+    @apply text-2xl md:text-3xl font-bold text-gold-300 tracking-tight mb-1;
+  }
+
+  .jkr-panel__subtitle {
+    @apply text-sm text-cream-200/65 max-w-prose;
+  }
+
+  /* —— Buttons (keep legacy names, v2 styling) —— */
+  .btn-primary,
+  .jkr-btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 bg-gold-500 hover:bg-gold-400 active:bg-gold-600 text-board-dark font-bold rounded-xl shadow-lg shadow-black/40 transition-all duration-200 disabled:opacity-45 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary,
+  .jkr-btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3 bg-wood-900/70 hover:bg-wood-800 text-gold-200 font-semibold rounded-xl border border-wood-600/70 transition-all duration-200 disabled:opacity-45;
   }
 
   .btn-danger {
-    @apply px-5 py-2.5 bg-red-900/90 hover:bg-red-800 text-cream-100 font-medium rounded-lg border border-red-700/60 transition-all duration-200 disabled:opacity-45 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center px-4 py-2 bg-red-950/80 hover:bg-red-900 text-cream-100 font-semibold rounded-lg border border-red-700/50 transition-all disabled:opacity-45;
   }
 
   .btn-ghost {
-    @apply px-3 py-1.5 text-sm text-gold-300 hover:text-gold-200 hover:bg-wood-800/50 rounded-md transition-colors;
-  }
-
-  .card-container {
-    @apply bg-surface-panel/95 border border-wood-700/60 rounded-xl p-4 md:p-5 shadow-xl shadow-black/25 backdrop-blur-sm;
-  }
-
-  .card-container-compact {
-    @apply card-container p-3 md:p-4;
+    @apply inline-flex items-center justify-center px-3 py-1.5 text-sm text-gold-300 hover:text-gold-200 hover:bg-wood-800/40 rounded-lg transition-colors;
   }
 
   .input-field {
-    @apply w-full px-4 py-2.5 bg-surface-inset border border-wood-700/70 rounded-lg text-cream-100 placeholder-cream-200/35 focus:outline-none focus:border-gold-500/80 focus:ring-2 focus:ring-gold-500/20 transition-colors;
+    @apply w-full px-4 py-3 bg-black/40 border border-wood-700/80 rounded-xl text-cream-100 placeholder-cream-200/30 focus:outline-none focus:border-gold-500/70 focus:ring-2 focus:ring-gold-500/15 transition-colors;
   }
 
   .select-field {
@@ -81,126 +284,482 @@
   }
 
   .helper-text {
-    @apply text-xs text-cream-200/50 mt-1;
+    @apply text-xs text-cream-200/50 mt-1.5;
   }
 
-  .badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border;
+  .card-container {
+    @apply jkr-panel;
   }
 
-  .badge-gold {
-    @apply badge bg-gold-500/15 text-gold-300 border-gold-500/30;
+  .card-container-compact {
+    @apply jkr-panel p-4;
   }
 
-  .feature-card {
-    @apply card-container-compact flex gap-3 items-start hover:border-gold-500/25 transition-colors;
+  .page-title {
+    @apply jkr-panel__title;
   }
 
-  .home-hero {
-    @apply relative overflow-hidden rounded-2xl border border-wood-700/50 bg-surface-panel/80 p-6 md:p-8 mb-8 w-full max-w-3xl;
-    background-image:
-      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212, 165, 99, 0.12), transparent),
-      linear-gradient(180deg, rgba(45, 32, 16, 0.5), transparent);
+  .page-subtitle {
+    @apply jkr-panel__subtitle mb-0;
   }
 
-  .lobby-card {
-    @apply shadow-2xl shadow-black/40 border-gold-500/10;
+  /* —— Landing (home v2) —— */
+  .landing-hero {
+    @apply relative overflow-hidden rounded-3xl border border-wood-700/45 p-8 md:p-12 mb-10 text-center jkr-stack;
+    background:
+      radial-gradient(ellipse 90% 70% at 50% 0%, rgba(230, 184, 0, 0.14), transparent 55%),
+      linear-gradient(180deg, rgba(61, 40, 16, 0.55) 0%, rgba(12, 9, 6, 0.9) 100%);
+    box-shadow: var(--jkr-shadow-lift);
   }
 
+  .landing-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4a563' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: var(--jkr-z-page-glow);
+  }
+
+  .landing-board-preview {
+    @apply mx-auto mt-8 w-48 h-48 md:w-56 md:h-56 rounded-full relative jkr-layer-board;
+    background: radial-gradient(circle at 50% 45%, var(--jkr-felt) 0%, var(--jkr-felt-dark) 70%);
+    box-shadow:
+      0 0 0 6px var(--jkr-rail),
+      0 0 0 10px rgba(0, 0, 0, 0.5),
+      var(--jkr-shadow-deep);
+  }
+
+  .landing-board-preview::after {
+    content: '';
+    position: absolute;
+    inset: 18%;
+    border-radius: 50%;
+    border: 2px dashed rgba(255, 220, 160, 0.2);
+  }
+
+  .feature-tile {
+    @apply jkr-panel p-4 flex gap-3 items-start hover:border-gold-500/30 transition-colors duration-200;
+  }
+
+  .feature-tile__icon {
+    @apply w-10 h-10 rounded-xl bg-gold-500/15 border border-gold-500/25 flex items-center justify-center text-lg shrink-0;
+  }
+
+  /* —— Lobby seat ring —— */
+  .lobby-table {
+    @apply relative mx-auto my-6;
+    width: min(100%, 20rem);
+    aspect-ratio: 1;
+  }
+
+  .lobby-table__felt {
+    @apply absolute inset-0 rounded-full jkr-layer-felt;
+    background: radial-gradient(circle at 50% 40%, var(--jkr-felt) 0%, var(--jkr-felt-dark) 75%);
+    box-shadow: inset 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 5px var(--jkr-rail);
+  }
+
+  .lobby-table__code {
+    @apply absolute inset-0 flex flex-col items-center justify-center jkr-layer-seat pointer-events-none;
+  }
+
+  .lobby-seat-slot {
+    @apply absolute w-[42%] max-w-[9rem];
+    transform: translate(-50%, -50%);
+  }
+
+  /* —— Game table (fullscreen) —— */
   .game-app-shell {
-    @apply bg-[#060504];
+    @apply bg-[#050403];
   }
 
   .fullscreen-game-table {
+    @apply jkr-layer-felt;
     background:
-      radial-gradient(ellipse 100% 80% at 50% 30%, rgba(120, 72, 28, 0.22), transparent 55%),
-      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(0, 0, 0, 0.65), transparent),
-      linear-gradient(180deg, #0a0806 0%, #060504 100%);
+      radial-gradient(ellipse 100% 80% at 50% 35%, rgba(26, 77, 46, 0.55), rgba(12, 40, 24, 0.9) 55%, #0a1410 100%);
   }
 
-  .game-table-hud {
-    @apply border-b border-wood-900/90 bg-black/55 backdrop-blur-md;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+  .table-play-area-wrap {
+    @apply relative px-1 sm:px-2 pt-1;
   }
 
-  .game-table-root {
+  .table-play-area {
+    @apply relative flex-1 min-h-0 w-full max-w-3xl mx-auto flex items-center justify-center;
+    aspect-ratio: 1;
+    max-height: min(62vh, 100%);
+  }
+
+  .table-play-area__felt {
+    @apply absolute inset-[-8%] rounded-[2rem] jkr-layer-under-felt;
     background:
-      radial-gradient(ellipse 90% 70% at 50% 40%, rgba(92, 60, 24, 0.25), transparent),
-      radial-gradient(ellipse 50% 40% at 50% 100%, rgba(0, 0, 0, 0.5), transparent),
-      #080604;
+      radial-gradient(ellipse 70% 60% at 50% 45%, rgba(34, 100, 62, 0.5), transparent 70%),
+      repeating-linear-gradient(
+        125deg,
+        rgba(0, 0, 0, 0.04) 0px,
+        rgba(0, 0, 0, 0.04) 2px,
+        transparent 2px,
+        transparent 6px
+      ),
+      linear-gradient(165deg, #1a5c38 0%, #0f3320 45%, #0a2418 100%);
+    box-shadow:
+      inset 0 0 80px rgba(0, 0, 0, 0.45),
+      0 0 0 4px #3d2810,
+      0 0 0 8px rgba(0, 0, 0, 0.5);
   }
 
-  .game-table-bar {
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  .table-play-area__seats {
+    @apply absolute inset-0 jkr-layer-seat;
+  }
+
+  .table-play-area__board {
+    @apply relative jkr-layer-board w-[88%] max-w-[min(100%,26rem)] mx-auto;
   }
 
   .board-wood-rim {
-    @apply rounded-2xl p-2 sm:p-3;
-    background: linear-gradient(145deg, #5c3c18 0%, #3d2810 40%, #2a1c0a 100%);
+    @apply rounded-[1.75rem] p-1.5 sm:p-3 jkr-layer-board;
+    background: linear-gradient(165deg, #8b5e2e 0%, #5c3a18 28%, #3d2810 55%, #1a1008 100%);
     box-shadow:
-      0 0 0 2px rgba(212, 165, 99, 0.15),
-      0 16px 48px rgba(0, 0, 0, 0.7),
-      inset 0 1px 0 rgba(255, 220, 160, 0.12);
+      0 0 0 2px rgba(255, 220, 160, 0.25),
+      0 0 0 6px #2a1808,
+      inset 0 3px 8px rgba(255, 230, 180, 0.2),
+      inset 0 -6px 16px rgba(0, 0, 0, 0.55),
+      0 16px 48px rgba(0, 0, 0, 0.65);
+  }
+
+  .board-wood-rim--hero {
+    @apply p-2 sm:p-3;
+  }
+
+  .game-table-hud {
+    @apply jkr-layer-hud flex items-center justify-between gap-2 px-3 py-2 shrink-0 border-b border-wood-900/50;
+    background: linear-gradient(180deg, rgba(20, 14, 8, 0.92) 0%, rgba(12, 9, 6, 0.75) 100%);
+  }
+
+  .game-hand-rail {
+    @apply jkr-layer-hand shrink-0 border-t-2 border-wood-800/80;
+    background: linear-gradient(0deg, #0a0806 0%, rgba(15, 51, 32, 0.35) 40%, rgba(8, 6, 4, 0.95) 100%);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.55);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .game-hand-rail__top {
+    @apply flex items-end justify-between gap-2 px-2 pt-1.5 pb-0 max-w-3xl mx-auto w-full;
   }
 
   .board-hero-stage {
-    @apply relative;
-  }
-
-  .hand-dock-panel {
-    @apply rounded-t-xl;
-  }
-
-  .opponent-chip {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  }
-
-  .deck-pile-icon {
-    background: linear-gradient(135deg, #4a3520, #2a1c0a);
-  }
-
-  .pb-safe {
-    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
-  }
-
-  .game-panel-compact {
-    @apply rounded-lg border border-wood-800/70 bg-black/35 p-2.5 backdrop-blur-sm;
-  }
-
-  .board-frame {
-    filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.65));
+    @apply relative jkr-layer-board;
   }
 
   .board-stage {
-    perspective: 800px;
+    perspective: 1200px;
+  }
+
+  .board-frame {
+    filter: drop-shadow(0 20px 50px rgba(0, 0, 0, 0.7));
+  }
+
+  .hand-dock-panel {
+    @apply max-w-3xl mx-auto w-full px-1 pb-safe pt-1;
+  }
+
+  .hand-dock-panel--card-selected .hand-dock-panel__actions {
+    @apply border-gold-500/40;
+    box-shadow: 0 -4px 24px rgba(230, 184, 0, 0.15);
+  }
+
+  .hand-dock-panel__actions {
+    @apply rounded-xl border border-wood-800/50 bg-black/35 px-2 py-2 mt-1;
+  }
+
+  .play-action-btn {
+    @apply text-base font-bold py-3.5 shadow-lg;
+  }
+
+  .play-action-btn--alt {
+    @apply text-sm font-medium py-2.5 opacity-90;
+  }
+
+  .play-step-bar {
+    @apply text-center mb-2;
+  }
+
+  .play-step-bar__label {
+    @apply text-sm font-semibold text-gold-300;
+  }
+
+  .play-step-bar--wait p {
+    @apply text-xs text-cream-200/55;
+  }
+
+  .play-step-bar--alert p {
+    @apply text-sm text-amber-200/90 font-medium;
+  }
+
+  .play-step-bar__track {
+    @apply flex justify-center gap-2 mb-1.5;
+  }
+
+  .play-step-bar__dot {
+    @apply w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center border border-wood-700/60 text-cream-200/40;
+  }
+
+  .play-step-bar__dot--on {
+    @apply bg-wood-900/80 text-cream-200/70;
+  }
+
+  .play-step-bar__dot--current {
+    @apply bg-gold-500 text-board-dark border-gold-400 scale-110;
+  }
+
+  .table-seat {
+    @apply flex flex-col items-center gap-0.5 pointer-events-none;
+  }
+
+  .table-seat--turn .table-seat__rim {
+    @apply ring-2 ring-gold-400/80;
+    animation: turn-pulse 1.4s ease-in-out infinite;
+  }
+
+  .table-seat__rim {
+    @apply flex items-center gap-1.5 rounded-full border-2 bg-black/50 backdrop-blur-sm px-2 py-1;
+  }
+
+  .table-seat__color-dot {
+    @apply w-3 h-3 rounded-full shrink-0 ring-2 ring-white/20;
+  }
+
+  .table-seat__color-dot--black {
+    background: #3a3a3a;
+  }
+  .table-seat__color-dot--green {
+    background: #2d8a4e;
+  }
+  .table-seat__color-dot--blue {
+    background: #2563eb;
+  }
+  .table-seat__color-dot--white {
+    background: #f0ebe0;
+  }
+
+  .table-seat__name {
+    @apply text-[11px] font-bold text-cream-100 truncate max-w-[5.5rem];
+  }
+
+  .table-seat__meta {
+    @apply text-[9px] text-cream-200/45;
+  }
+
+  .table-seat__team {
+    @apply text-[9px] font-bold px-1.5 py-0.5 rounded bg-gold-500/20 text-gold-300;
+  }
+
+  .table-seat__turn-badge {
+    @apply text-[8px] uppercase tracking-wide text-gold-300 font-bold px-1;
+  }
+
+  .table-seat__cards {
+    @apply flex items-end justify-center h-8;
+  }
+
+  .table-seat__card-back {
+    @apply !w-7 !h-9 shrink-0;
+  }
+
+  .table-seat__more {
+    @apply text-[9px] text-cream-200/50 ms-1;
+  }
+
+  .table-activity {
+    @apply flex-1 min-w-0 text-start;
+  }
+
+  .table-activity__toggle {
+    @apply w-full flex items-center gap-1 text-[10px] text-cream-200/50 hover:text-cream-200/70;
+  }
+
+  .table-activity__last {
+    @apply flex-1 text-start;
+  }
+
+  .table-activity__chevron {
+    @apply shrink-0 opacity-50;
+  }
+
+  .table-activity__list {
+    @apply mt-1 text-[10px] text-cream-200/45 space-y-0.5 max-h-20 overflow-y-auto list-none ps-0;
+  }
+
+  .opponent-seats-layer {
+    @apply jkr-layer-seat;
+  }
+
+  .game-table-dock {
+    @apply jkr-layer-hand;
+  }
+
+  .play-sheet {
+    @apply space-y-2 mt-2;
+  }
+
+  .play-sheet__hint {
+    @apply text-xs text-cream-200/55 text-center py-1;
+  }
+
+  .play-sheet__wait {
+    @apply text-xs text-cream-200/50 text-center py-2;
+  }
+
+  .turn-cue {
+    @apply jkr-layer-hud shrink-0 px-3 py-2 text-center border-b border-gold-600/30;
+    background: linear-gradient(90deg, rgba(230, 184, 0, 0.12), rgba(230, 184, 0, 0.22), rgba(230, 184, 0, 0.12));
+  }
+
+  .turn-cue--waiting {
+    @apply border-wood-800/50;
+    background: rgba(0, 0, 0, 0.35);
+  }
+
+  .modal-backdrop {
+    @apply fixed inset-0 jkr-layer-modal flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-sm;
+  }
+
+  .modal-panel {
+    @apply w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[85vh] jkr-panel flex flex-col overflow-hidden;
+  }
+
+  .action-rail {
+    @apply rounded-xl border border-wood-700/40 bg-black/50 backdrop-blur-sm;
+  }
+
+  .deck-pile-icon {
+    @apply rounded-md border border-wood-600/60;
+    background: linear-gradient(145deg, #4a3520, #1a1008);
+    box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.5);
+  }
+
+  .deck-pile-icon--deck {
+    @apply w-8 h-10;
+  }
+
+  .deck-pile-stack {
+    @apply shrink-0;
+  }
+
+  .player-hand {
+    @apply flex items-end justify-center overflow-x-auto overflow-y-visible pb-1 px-2 snap-x snap-mandatory min-h-[6.5rem] max-w-full;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .player-hand--docked .player-hand__slot {
+    @apply snap-center shrink-0 origin-bottom jkr-layer-hand -me-3 sm:-me-4 first:me-0;
+  }
+
+  .player-hand__slot--selected {
+    @apply jkr-layer-hand-top !-me-1 sm:!me-0;
+  }
+
+  .playing-card-v2--playable:not(.playing-card-v2--selected) .jackaroo-card-face {
+    box-shadow:
+      0 0 0 2px rgba(230, 184, 0, 0.65),
+      0 6px 20px rgba(230, 184, 0, 0.25);
+  }
+
+  .playing-card-v2--selected .jackaroo-card-face {
+    box-shadow:
+      0 0 0 3px rgba(255, 220, 120, 0.95),
+      0 12px 32px rgba(230, 184, 0, 0.45);
+  }
+
+  .legal-move-highlight {
+    animation: legal-pulse 1.4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .last-event-banner {
+    @apply jkr-layer-toast shrink-0 px-3 py-1.5 text-center border-b border-wood-900/60 relative;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .last-event-banner__text {
+    @apply text-[11px] text-cream-200/75 truncate;
+  }
+
+  .lobby-rules-summary {
+    @apply mb-4 p-4 rounded-xl border border-gold-600/25 bg-amber-950/25;
+  }
+
+  .lobby-rules-summary__badge {
+    @apply text-xs font-semibold text-gold-300 mb-2;
+  }
+
+  .lobby-rules-summary__list {
+    @apply text-xs text-cream-200/65 space-y-1 list-disc list-inside;
+  }
+
+  .lobby-rules-summary__custom {
+    @apply text-sm;
+  }
+
+  .marble-glow {
+    animation: marble-glow-pulse 1.5s ease-in-out infinite;
+  }
+
+  .playing-card-v2 {
+    @apply relative transition-transform duration-150;
+    transform-style: preserve-3d;
+  }
+
+  .playing-card-v2:hover:not(:disabled) {
+    transform: translateY(-6px) rotateX(4deg);
+  }
+
+  .playing-card-v2--selected {
+    transform: translateY(-12px) scale(1.04);
+    @apply jkr-layer-hand-top;
   }
 
   .turn-pulse {
     animation: turn-pulse 1.6s ease-in-out infinite;
   }
 
-  .marble-glow {
-    animation: marble-glow 1.8s ease-in-out infinite;
+  .pb-safe {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
 
-  .rtl-flip {
-    @apply rtl:scale-x-[-1];
+  .connection-bar {
+    @apply shrink-0;
+  }
+
+  .win-overlay-v2 {
+    @apply fixed inset-0 jkr-layer-blocking flex items-center justify-center bg-black/80 backdrop-blur-sm;
   }
 }
 
 @keyframes turn-pulse {
   0%,
   100% {
-    opacity: 1;
     box-shadow: 0 0 0 rgba(230, 184, 0, 0);
   }
   50% {
-    opacity: 1;
-    box-shadow: 0 0 12px rgba(230, 184, 0, 0.35);
+    box-shadow: 0 0 16px rgba(230, 184, 0, 0.45);
   }
 }
 
-@keyframes marble-glow {
+@keyframes legal-pulse {
+  0%,
+  100% {
+    stroke-opacity: 0.45;
+    r: 13;
+  }
+  50% {
+    stroke-opacity: 1;
+    r: 15;
+  }
+}
+
+@keyframes marble-glow-pulse {
   0%,
   100% {
     opacity: 0.5;
@@ -214,20 +773,7 @@ html[dir='rtl'] .text-start {
   text-align: right;
 }
 
-html[dir='rtl'] .ms-auto {
-  margin-inline-start: auto;
-}
-
-.theme-light body,
-.theme-light .bg-surface-base {
-  background-color: #f5f0e8;
+.theme-light body {
+  background: #f0ebe3;
   color: #1a1208;
-}
-
-.theme-light .card-container {
-  @apply bg-white border-amber-200/80 text-gray-900;
-}
-
-.theme-balanced body {
-  background-color: #241c12;
 }

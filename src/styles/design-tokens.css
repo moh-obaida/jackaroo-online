@@ -1,0 +1,36 @@
+/**
+ * Jakaroo depth stack — negative “under” layers and 10000+ overlays.
+ * Use CSS classes `.jkr-layer-*` (see index.css), not raw z-index in components.
+ */
+:root {
+  /* Far below table (ambient / page depth) */
+  --jkr-z-deep-bg: -10000;
+  --jkr-z-page-glow: -1000;
+  --jkr-z-under-felt: -2;
+  --jkr-z-felt: 0;
+  --jkr-z-board: 10;
+  --jkr-z-seat: 100;
+  --jkr-z-hand: 1000;
+  --jkr-z-hand-top: 1001;
+  --jkr-z-hud: 5000;
+  --jkr-z-site-chrome: 5500;
+  /* 10000+ — overlays only (never use for board/hand) */
+  --jkr-z-scrim: 9999;
+  --jkr-z-modal: 10000;
+  --jkr-z-toast: 10001;
+  --jkr-z-blocking: 10002;
+  --jkr-z-critical: 10003;
+
+  --jkr-felt: #1a4d2e;
+  --jkr-felt-dark: #0f3320;
+  --jkr-rail: #3d2810;
+  --jkr-rail-highlight: rgba(255, 220, 160, 0.14);
+  --jkr-gold: #e6b800;
+  --jkr-gold-soft: #ffe066;
+  --jkr-ink: #0c0906;
+  --jkr-cream: #f5f0e8;
+
+  --jkr-shadow-deep: 0 24px 80px -12px rgba(0, 0, 0, 0.85);
+  --jkr-shadow-lift: 0 8px 32px -8px rgba(0, 0, 0, 0.55);
+  --jkr-shadow-inset-rim: inset 0 2px 0 var(--jkr-rail-highlight), inset 0 -4px 12px rgba(0, 0, 0, 0.45);
+}

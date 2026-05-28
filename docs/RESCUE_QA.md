@@ -34,6 +34,21 @@ Do not claim “leave fixed” in PR without deploy confirmation.
 | Private hand not leaked | |
 | Show Deck = guide only, no order | |
 
+## Z-index stack (10000+)
+
+All overlays must use tokens in `design-tokens.css` / classes `.jkr-layer-*` — see [Z_INDEX_STACK.md](./Z_INDEX_STACK.md).
+
+| Check | Pass |
+|-------|------|
+| Win overlay above modal (10002 > 10000) | |
+| Card guide modal at 10000 | |
+| No raw `z-50` on game table | |
+
+## Reference docs
+
+- [ARCHITECTURE_REFERENCES.md](./ARCHITECTURE_REFERENCES.md) — Manus + Knowledge Connect + repo
+- [CARDS_AND_RULES_REFERENCE.md](./CARDS_AND_RULES_REFERENCE.md) — physical deck + engine boundary
+
 ## Known limitations / follow-up PR
 
 - Board SVG still topology-based; further art pass possible

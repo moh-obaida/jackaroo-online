@@ -1,0 +1,45 @@
+import React, { useState } from 'react';
+import { useApp } from '../../context/AppContext';
+import { CardGuideModal } from '../cards/CardGuideModal';
+import { Button } from '../ui/Button';
+
+type LobbyRulesSummaryProps = {
+  rulesetType: 'obaida_classic' | 'custom';
+  customLabel?: string;
+};
+
+/**
+ * Manus §13 — players see rules summary before readying up.
+ * Obaida Classic: locked family rules + link to static deck reference (not live deck).
+ */
+export function LobbyRulesSummary({ rulesetType, customLabel }: LobbyRulesSummaryProps) {
+  const { t } = useApp();
+  const [guideOpen, setGuideOpen] = useState(false);
+
+  const isClassic = rulesetType === 'obaida_classic';
+
+  return (
+    <>
+      <div className="lobby-rules-summary">
+        <p className="lobby-rules-summary__badge">
+          {isClassic ? t('lobby.rulesClassicBadge') : t('lobby.rulesCustomBadge')}
+        </p>
+        {isClassic ? (
+          <ul className="lobby-rules-summary__list">
+            <li>{t('lobby.rulesSummary.0')}</li>
+            <li>{t('lobby.rulesSummary.1')}</li>
+            <li>{t('lobby.rulesSummary.2')}</li>
+          </ul>
+        ) : (
+          <p className="lobby-rules-summary__custom text-sm text-cream-200/70">
+            {customLabel || t('create.ruleset.custom')}
+          </p>
+        )}
+        <Button variant="ghost" size="sm" onClick={() => setGuideOpen(true)} className="mt-2">
+          {t('game.showDeck')}
+        </Button>
+      </div>
+      <CardGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
+    </>
+  );
+}

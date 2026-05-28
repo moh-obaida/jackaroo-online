@@ -1,8 +1,9 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { RoomRouteState } from '../../lib/room/routeState';
-import { GameStatusCard } from './GameStatusCard';
+import { StatusPanel } from '../ui/StatusPanel';
 import { BackHomeButton } from '../common/BackHomeButton';
+import { Button } from '../ui/Button';
 
 type RoomRouteFallbackProps = {
   state: RoomRouteState;
@@ -14,22 +15,22 @@ export function RoomRouteFallback({ state, roomCode, onReload }: RoomRouteFallba
   const { t } = useApp();
 
   const reloadAction = onReload ? (
-    <button type="button" className="btn-primary w-full" onClick={onReload}>
+    <Button variant="primary" fullWidth onClick={onReload}>
       {t('game.reload')}
-    </button>
+    </Button>
   ) : null;
 
   switch (state.kind) {
     case 'loading_session':
       return (
-        <GameStatusCard
+        <StatusPanel
           title={t('game.loadingSession')}
           message={t('game.loadingSessionMessage')}
         />
       );
     case 'firebase_missing':
       return (
-        <GameStatusCard
+        <StatusPanel
           title={t('game.firebaseMissing')}
           message={t('game.firebaseMissingMessage')}
           variant="error"
@@ -39,7 +40,7 @@ export function RoomRouteFallback({ state, roomCode, onReload }: RoomRouteFallba
       );
     case 'sign_in_required':
       return (
-        <GameStatusCard
+        <StatusPanel
           title={t('game.signInRequired')}
           message={t('game.signInRequiredMessage')}
           action={<BackHomeButton intent="navigate" />}
@@ -48,16 +49,17 @@ export function RoomRouteFallback({ state, roomCode, onReload }: RoomRouteFallba
       );
     case 'invalid_code':
       return (
-        <GameStatusCard
+        <StatusPanel
           title={t('game.invalidLink')}
           message={t('game.invalidLinkMessage')}
+          variant="warn"
           action={<BackHomeButton intent="navigate" />}
           showBackHome={false}
         />
       );
     case 'leaving':
       return (
-        <GameStatusCard
+        <StatusPanel
           title={t('game.leaving')}
           message={t('game.leavingMessage')}
           showBackHome={false}
@@ -65,7 +67,7 @@ export function RoomRouteFallback({ state, roomCode, onReload }: RoomRouteFallba
       );
     case 'loading_room':
       return (
-        <GameStatusCard
+        <StatusPanel
           title={t('game.loadingRoom')}
           message={
             roomCode
@@ -76,7 +78,7 @@ export function RoomRouteFallback({ state, roomCode, onReload }: RoomRouteFallba
       );
     case 'room_not_found':
       return (
-        <GameStatusCard
+        <StatusPanel
           title={t('game.roomNotFound')}
           message={t('game.roomNotFoundMessage', { code: roomCode || '—' })}
           variant="warn"
@@ -85,18 +87,9 @@ export function RoomRouteFallback({ state, roomCode, onReload }: RoomRouteFallba
         />
       );
     case 'left_room':
-      return (
-        <GameStatusCard
-          title={t('game.notInRoom')}
-          message={t('game.notInRoomMessage')}
-          variant="warn"
-          action={<BackHomeButton intent="clearSession" />}
-          showBackHome={false}
-        />
-      );
     case 'not_member':
       return (
-        <GameStatusCard
+        <StatusPanel
           title={t('game.notInRoom')}
           message={t('game.notInRoomMessage')}
           variant="warn"
@@ -106,7 +99,7 @@ export function RoomRouteFallback({ state, roomCode, onReload }: RoomRouteFallba
       );
     case 'redirect_to_game':
       return (
-        <GameStatusCard
+        <StatusPanel
           title={t('lobby.redirectingToGame')}
           message={
             roomCode
@@ -117,7 +110,7 @@ export function RoomRouteFallback({ state, roomCode, onReload }: RoomRouteFallba
       );
     case 'game_not_started':
       return (
-        <GameStatusCard
+        <StatusPanel
           title={t('game.notStarted')}
           message={t('game.notStartedMessage')}
           action={<BackHomeButton intent="clearSession" />}
@@ -126,7 +119,7 @@ export function RoomRouteFallback({ state, roomCode, onReload }: RoomRouteFallba
       );
     case 'waiting_game_state':
       return (
-        <GameStatusCard
+        <StatusPanel
           title={t('game.waitingState')}
           message={t('game.waitingStateMessage')}
           action={
@@ -140,14 +133,14 @@ export function RoomRouteFallback({ state, roomCode, onReload }: RoomRouteFallba
       );
     case 'loading_hand':
       return (
-        <GameStatusCard
+        <StatusPanel
           title={t('game.loadingHand')}
           message={t('game.loadingHandMessage')}
         />
       );
     case 'hand_error':
       return (
-        <GameStatusCard
+        <StatusPanel
           title={t('game.handError')}
           message={state.message}
           variant="error"
@@ -162,7 +155,7 @@ export function RoomRouteFallback({ state, roomCode, onReload }: RoomRouteFallba
       );
     default:
       return (
-        <GameStatusCard
+        <StatusPanel
           title={t('game.waitingState')}
           message={t('game.waitingStateMessage')}
           action={<BackHomeButton intent="clearSession" />}

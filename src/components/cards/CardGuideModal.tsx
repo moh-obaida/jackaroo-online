@@ -38,14 +38,14 @@ export function CardGuideModal({ open, onClose }: CardGuideModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm"
+      className="modal-backdrop"
       role="dialog"
       aria-modal="true"
       aria-labelledby="card-guide-title"
       onClick={onClose}
     >
       <div
-        className="w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[85vh] bg-surface-panel border border-wood-700/60 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        className="modal-panel rounded-t-2xl sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
         dir={language === 'ar' ? 'rtl' : 'ltr'}
       >

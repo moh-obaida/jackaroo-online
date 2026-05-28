@@ -18,6 +18,7 @@ export type GameContextType = {
   isMyTurn: boolean;
   myPlayer: PlayerState | null;
   roomCode: string | null;
+  roomLoaded: boolean;
   setRoomCode: (code: string | null) => void;
   bindRoomFromRoute: (code: string) => void;
   submitAction: (action: GameAction) => Promise<void>;
@@ -47,6 +48,7 @@ function GameContextBridge({ children }: { children: React.ReactNode }) {
       isMyTurn: play.isMyTurn,
       myPlayer: session.myPlayer,
       roomCode: session.roomCode,
+      roomLoaded: session.roomLoaded,
       setRoomCode: session.setRoomCode,
       bindRoomFromRoute: session.bindRoomFromRoute,
       submitAction: play.submitAction,
