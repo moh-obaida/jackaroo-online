@@ -4,7 +4,15 @@ import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
 import { createRoom, getCustomTemplates } from '../lib/firebase/rooms';
 import { signInAsGuest } from '../lib/firebase/auth';
-import { GameMode, RulesetType, BotDifficulty, BotSettings, CustomRulesConfig, DEFAULT_CUSTOM_RULES } from '../types/game';
+import {
+  GameMode,
+  RulesetType,
+  BotDifficulty,
+  BotSettings,
+  CustomRulesConfig,
+  DEFAULT_CUSTOM_RULES,
+} from '../types/game';
+import { BackHomeButton } from '../components/common/BackHomeButton';
 
 export function CreateRoomPage() {
   const { t, user, language, theme, firebaseReady, isGuestUser } = useApp();
@@ -21,6 +29,9 @@ export function CreateRoomPage() {
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const modeHelpKey =
+    mode === '2p_solo' ? 'create.modeHelp.2p' : mode === '3p_solo' ? 'create.modeHelp.3p' : 'create.modeHelp.4p';
 
   React.useEffect(() => {
     if (rulesetType !== 'custom' || !user || isGuestUser) return;
@@ -73,7 +84,9 @@ export function CreateRoomPage() {
 
       const selectedTemplate =
         rulesetType === 'custom'
-          ? (selectedTemplateId ? customTemplates[selectedTemplateId] : DEFAULT_CUSTOM_RULES)
+          ? selectedTemplateId
+            ? customTemplates[selectedTemplateId]
+            : DEFAULT_CUSTOM_RULES
           : null;
 
       const code = await createRoom({
@@ -86,7 +99,7 @@ export function CreateRoomPage() {
         rulesetId:
           rulesetType === 'obaida_classic'
             ? 'obaida_classic_v1'
-            : (selectedTemplateId || 'custom_default'),
+            : selectedTemplateId || 'custom_default',
         customRulesSummary: selectedTemplate,
         botSettings,
         language,
@@ -103,24 +116,24 @@ export function CreateRoomPage() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center px-4 py-8">
+    <div className="page-shell flex flex-col items-center">
+      <div className="w-full max-w-lg mb-4">
+        <BackHomeButton />
+      </div>
+
       <div className="card-container w-full max-w-lg">
-        <h1 className="text-2xl font-bold text-gold-400 mb-6">{t('create.title')}</h1>
+        <h1 className="page-title">{t('create.title')}</h1>
+        <p className="page-subtitle">{t('create.passwordHelp')}</p>
 
         {!firebaseReady && (
-          <div className="mb-4 p-3 bg-yellow-900/50 border border-yellow-600 rounded-lg">
-            <p className="text-yellow-200 text-xs">
-              Firebase not configured. Room creation requires Firebase environment variables.
-            </p>
+          <div className="mb-4 p-3 bg-yellow-900/40 border border-yellow-600/60 rounded-lg">
+            <p className="text-yellow-200 text-xs">Firebase not configured.</p>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Display Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              {t('create.name')}
-            </label>
+            <label className="block text-sm font-medium text-cream-200/80 mb-1">{t('create.name')}</label>
             <input
               type="text"
               value={name}
@@ -131,11 +144,8 @@ export function CreateRoomPage() {
             />
           </div>
 
-          {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              {t('create.password')}
-            </label>
+            <label className="block text-sm font-medium text-cream-200/80 mb-1">{t('create.password')}</label>
             <input
               type="text"
               value={password}
@@ -144,13 +154,11 @@ export function CreateRoomPage() {
               className="input-field"
               maxLength={30}
             />
+            <p className="helper-text">{t('create.passwordHelp')}</p>
           </div>
 
-          {/* Mode */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              {t('create.mode')}
-            </label>
+            <label className="block text-sm font-medium text-cream-200/80 mb-1">{t('create.mode')}</label>
             <select
               value={mode}
               onChange={(e) => setMode(e.target.value as GameMode)}
@@ -160,13 +168,11 @@ export function CreateRoomPage() {
               <option value="3p_solo">{t('create.mode.3p')}</option>
               <option value="2p_solo">{t('create.mode.2p')}</option>
             </select>
+            <p className="helper-text">{t(modeHelpKey)}</p>
           </div>
 
-          {/* Ruleset */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              {t('create.ruleset')}
-            </label>
+            <label className="block text-sm font-medium text-cream-200/80 mb-1">{t('create.ruleset')}</label>
             <select
               value={rulesetType}
               onChange={(e) => setRulesetType(e.target.value as RulesetType)}
@@ -175,13 +181,22 @@ export function CreateRoomPage() {
               <option value="obaida_classic">{t('create.ruleset.classic')}</option>
               <option value="custom">{t('create.ruleset.custom')}</option>
             </select>
+            <p className="helper-text mt-1">
+              {rulesetType === 'obaida_classic'
+                ? t('create.rulesetHelp.classic')
+                : t('create.rulesetHelp.custom')}
+            </p>
             {rulesetType === 'custom' && (
               <>
-                <p className="mt-1 text-xs text-yellow-400">{t('create.customLabel')}</p>
-                {!isGuestUser && (
+                <p className="mt-2 text-xs text-amber-300/90 border border-amber-700/40 rounded-lg px-2 py-1.5">
+                  {t('custom.notice')}
+                </p>
+                {isGuestUser ? (
+                  <p className="helper-text text-amber-300/80">{t('custom.guestSave')}</p>
+                ) : (
                   <div className="mt-2">
-                    <label className="block text-xs font-medium text-gray-400 mb-1">
-                      Custom template
+                    <label className="block text-xs font-medium text-cream-200/50 mb-1">
+                      {t('create.template')}
                     </label>
                     <select
                       value={selectedTemplateId}
@@ -189,7 +204,7 @@ export function CreateRoomPage() {
                       className="select-field text-sm"
                     >
                       {Object.keys(customTemplates).length === 0 ? (
-                        <option value="">Default custom rules</option>
+                        <option value="">{t('create.templateDefault')}</option>
                       ) : (
                         Object.entries(customTemplates).map(([id, config]) => (
                           <option key={id} value={id}>
@@ -204,22 +219,21 @@ export function CreateRoomPage() {
             )}
           </div>
 
-          {/* Bots */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 pt-1">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={botsEnabled}
                 onChange={(e) => setBotsEnabled(e.target.checked)}
-                className="w-4 h-4 rounded border-wood-500 bg-board-dark text-gold-500 focus:ring-gold-500"
+                className="w-4 h-4 rounded border-wood-500 bg-surface-inset text-gold-500 focus:ring-gold-500/30"
               />
-              <span className="text-sm text-gray-300">{t('create.bots')}</span>
+              <span className="text-sm text-cream-200/80">{t('create.bots')}</span>
             </label>
           </div>
 
           {botsEnabled && (
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-cream-200/80 mb-1">
                 {t('create.botDifficulty')}
               </label>
               <select
@@ -236,15 +250,9 @@ export function CreateRoomPage() {
             </div>
           )}
 
-          {error && (
-            <p className="text-red-400 text-sm">{error}</p>
-          )}
+          {error && <p className="text-red-400 text-sm bg-red-950/30 rounded-lg px-3 py-2">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary w-full text-lg"
-          >
+          <button type="submit" disabled={loading} className="btn-primary w-full text-lg">
             {loading ? t('general.loading') : t('create.submit')}
           </button>
         </form>

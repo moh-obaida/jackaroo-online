@@ -7,6 +7,17 @@ import {
   deleteCustomTemplate,
 } from '../lib/firebase/rooms';
 import { CustomRulesConfig, DEFAULT_CUSTOM_RULES } from '../types/game';
+import { BackHomeButton } from '../components/common/BackHomeButton';
+
+const CUSTOM_TOGGLES: { key: keyof CustomRulesConfig; labelKey: string }[] = [
+  { key: 'jokerEnabled', labelKey: 'custom.joker' },
+  { key: 'queenBurnEnabled', labelKey: 'custom.queenBurn' },
+  { key: 'tenBurnEnabled', labelKey: 'custom.tenBurn' },
+  { key: 'kingPathEatingEnabled', labelKey: 'custom.kingEating' },
+  { key: 'fiveCanMoveAnyone', labelKey: 'custom.fiveAnyone' },
+  { key: 'longerTwoPlayerVariant', labelKey: 'custom.longerTwoPlayer' },
+  { key: 'timerEnabled', labelKey: 'custom.timer' },
+];
 
 export function ProfilePage() {
   const { t, user, isAuthenticated, isGuestUser } = useApp();
@@ -53,26 +64,33 @@ export function ProfilePage() {
 
   if (isGuestUser) {
     return (
-      <div className="flex-1 flex items-center justify-center px-4">
-        <div className="card-container text-center max-w-md">
-          <p className="text-gray-300 mb-4">{t('auth.guestNote')}</p>
-          <button onClick={() => navigate('/auth')} className="btn-primary">
-            {t('nav.login')}
-          </button>
+      <div className="page-shell flex flex-col items-center justify-center">
+        <div className="card-container text-center max-w-md w-full">
+          <p className="text-cream-200/70 mb-2">{t('custom.guestSave')}</p>
+          <p className="text-sm text-cream-200/50 mb-4">{t('auth.guestNote')}</p>
+          <div className="flex flex-col gap-2">
+            <button type="button" onClick={() => navigate('/auth')} className="btn-primary">
+              {t('nav.login')}
+            </button>
+            <BackHomeButton />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full">
-      <h1 className="text-2xl font-bold text-gold-400 mb-6">{t('profile.title')}</h1>
+    <div className="page-shell max-w-4xl">
+      <div className="mb-6">
+        <BackHomeButton />
+      </div>
+      <h1 className="page-title">{t('profile.title')}</h1>
 
-      {/* User Info */}
       <div className="card-container mb-6">
-        <p className="text-gray-300">
+        <p className="text-cream-200/80 font-medium">
           {user?.displayName || user?.email || 'User'}
         </p>
+        <p className="helper-text">{user?.email}</p>
       </div>
 
       {/* Custom Templates */}
@@ -119,7 +137,10 @@ export function ProfilePage() {
 
         {/* Template Editor */}
         {editingTemplate && (
-          <div className="mt-4 p-4 bg-board-dark rounded-lg border border-wood-700">
+          <div className="mt-4 p-4 bg-surface-inset/60 rounded-xl border border-wood-700/60">
+            <p className="text-xs text-amber-300/90 border border-amber-700/40 rounded-lg px-2 py-1.5 mb-3">
+              {t('custom.notice')}
+            </p>
             <h3 className="text-sm font-semibold text-gold-300 mb-3">{t('custom.title')}</h3>
             <div className="space-y-3">
               <div>
@@ -138,28 +159,20 @@ export function ProfilePage() {
               </div>
 
               {/* Toggle Options */}
-              {[
-                { key: 'jokerEnabled', label: t('custom.joker') },
-                { key: 'queenBurnEnabled', label: t('custom.queenBurn') },
-                { key: 'tenBurnEnabled', label: t('custom.tenBurn') },
-                { key: 'kingPathEatingEnabled', label: t('custom.kingEating') },
-                { key: 'fiveCanMoveAnyone', label: t('custom.fiveAnyone') },
-                { key: 'longerTwoPlayerVariant', label: t('custom.longerTwoPlayer') },
-                { key: 'timerEnabled', label: t('custom.timer') },
-              ].map(({ key, label }) => (
+              {CUSTOM_TOGGLES.map(({ key, labelKey }) => (
                 <label key={key} className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={(editingTemplate.config as any)[key]}
+                    checked={Boolean(editingTemplate.config[key])}
                     onChange={(e) =>
                       setEditingTemplate({
                         ...editingTemplate,
                         config: { ...editingTemplate.config, [key]: e.target.checked },
                       })
                     }
-                    className="w-4 h-4 rounded border-wood-500 bg-board-dark text-gold-500"
+                    className="w-4 h-4 rounded border-wood-500 bg-surface-inset text-gold-500"
                   />
-                  <span className="text-sm text-gray-300">{label}</span>
+                  <span className="text-sm text-cream-200/80">{t(labelKey)}</span>
                 </label>
               ))}
 
@@ -200,8 +213,8 @@ export function ProfilePage() {
 
       {/* Match History Placeholder */}
       <div className="card-container">
-        <h2 className="text-lg font-semibold text-gray-200 mb-2">{t('profile.history')}</h2>
-        <p className="text-gray-500 text-sm">{t('profile.noHistory')}</p>
+        <h2 className="text-lg font-semibold text-cream-200/90 mb-2">{t('profile.history')}</h2>
+        <p className="text-cream-200/45 text-sm">{t('profile.historyPlaceholder')}</p>
       </div>
     </div>
   );

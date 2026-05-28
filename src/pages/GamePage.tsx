@@ -207,19 +207,21 @@ function GamePageContent() {
   }
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 max-w-7xl mx-auto w-full min-h-[60vh]">
+    <div className="page-shell flex flex-col lg:flex-row gap-4 max-w-7xl min-h-[60vh]">
       {gameState.winner && <WinOverlay gameState={gameState} />}
 
       <div className="flex-1 flex flex-col items-center min-w-0">
-        <div className="mb-4 text-center w-full">
+        <div className="mb-3 text-center w-full">
           {isMyTurn ? (
-            <div className="text-lg font-bold text-gold-400">{t('game.yourTurn')}</div>
+            <div className="text-lg font-bold text-gold-400 badge-gold inline-block px-3 py-1">
+              {t('game.yourTurn')}
+            </div>
           ) : (
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-cream-200/70">
               {t('game.waiting')} {turnPlayer?.name || '…'}
             </div>
           )}
-          <div className="text-xs text-gray-500 mt-1">
+          <div className="text-xs text-cream-200/45 mt-2">
             {currentPlayer?.name} · {currentPlayer?.color} · {t('game.dealRound')}{' '}
             {gameState.dealState.dealRoundInBlock + 1}
           </div>
@@ -230,43 +232,49 @@ function GamePageContent() {
           )}
         </div>
 
-        <GameBoard
-          gameState={gameState}
-          selectedCardId={selectedCardId}
-          playerId={playerId}
-        />
+        <GameBoard gameState={gameState} selectedCardId={selectedCardId} playerId={playerId} />
       </div>
 
-      <div className="lg:w-80 w-full flex flex-col gap-4 shrink-0">
+      <div className="lg:w-80 w-full flex flex-col gap-3 shrink-0">
+        <div className="card-container-compact">
+          <h3 className="text-sm font-semibold text-cream-200/80 mb-2">{t('game.info')}</h3>
+          <ul className="space-y-1.5 text-xs">
+            {gameState.players.map((p) => (
+              <li
+                key={p.id}
+                className={`flex justify-between gap-2 ${
+                  p.id === gameState.currentTurnPlayerId ? 'text-gold-300' : 'text-cream-200/60'
+                }`}
+              >
+                <span className="truncate">{p.name}</span>
+                <span className="shrink-0 tabular-nums">
+                  {t('game.cardsCount', { count: String(gameState.handCounts[p.id] ?? 0) })}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
         <div className="card-container">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('game.hand')}</h3>
+          <h3 className="text-sm font-semibold text-cream-200/80 mb-2">{t('game.hand')}</h3>
           <PlayerHand
             cards={myHand}
             selectedCardId={selectedCardId}
             onSelectCard={setSelectedCardId}
             disabled={!isMyTurn}
           />
-          {myHand.length === 0 && (
-            <p className="text-xs text-gray-500 mt-2">No cards in hand this round.</p>
-          )}
         </div>
 
         {isMyTurn ? (
-          legalActions.length > 0 ? (
-            <ActionPanel
-              legalActions={legalActions}
-              selectedCardId={selectedCardId}
-              onSubmitAction={submitAction}
-              playerId={playerId}
-            />
-          ) : (
-            <div className="card-container">
-              <p className="text-sm text-gray-400">No legal moves available for your cards.</p>
-            </div>
-          )
+          <ActionPanel
+            legalActions={legalActions}
+            selectedCardId={selectedCardId}
+            onSubmitAction={submitAction}
+            playerId={playerId}
+          />
         ) : (
-          <div className="card-container">
-            <p className="text-sm text-gray-400">Wait for your turn to play a card.</p>
+          <div className="card-container-compact">
+            <p className="text-sm text-cream-200/60 text-center">{t('game.waitTurn')}</p>
           </div>
         )}
 
@@ -274,10 +282,10 @@ function GamePageContent() {
 
         <button
           type="button"
-          className="text-sm text-gray-500 hover:text-gray-300"
+          className="btn-ghost w-full text-center"
           onClick={() => navigate(`/lobby/${code}`)}
         >
-          ← Back to lobby info
+          {t('game.backToLobby')}
         </button>
       </div>
     </div>

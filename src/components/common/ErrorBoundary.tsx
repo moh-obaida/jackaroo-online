@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 
 interface Props {
   children: ReactNode;
@@ -24,17 +25,17 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.error) {
       return (
         <div className="flex-1 flex items-center justify-center p-6">
-          <div className="card-container max-w-lg w-full border border-red-800/60">
+          <div className="card-container max-w-lg w-full border border-red-800/50">
             <h2 className="text-lg font-semibold text-red-300 mb-2">
               {this.props.title || 'Something went wrong'}
             </h2>
-            <p className="text-sm text-gray-300 mb-4">
-              The game screen hit a runtime error. You can reload the page or return to the lobby.
+            <p className="text-sm text-cream-200/70 mb-4">
+              A runtime error occurred. You can reload or return home.
             </p>
-            <pre className="text-xs text-red-200/90 bg-black/40 rounded-lg p-3 overflow-auto max-h-40 mb-4 whitespace-pre-wrap">
+            <pre className="text-xs text-red-200/80 bg-black/40 rounded-lg p-3 overflow-auto max-h-40 mb-4 whitespace-pre-wrap">
               {this.state.error.message}
             </pre>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <button
                 type="button"
                 className="btn-primary flex-1"
@@ -42,16 +43,9 @@ export class ErrorBoundary extends Component<Props, State> {
               >
                 Reload
               </button>
-              <button
-                type="button"
-                className="btn-secondary flex-1"
-                onClick={() => {
-                  this.setState({ error: null });
-                  window.history.back();
-                }}
-              >
-                Go back
-              </button>
+              <Link to="/" className="btn-secondary flex-1 text-center">
+                Back Home
+              </Link>
             </div>
           </div>
         </div>

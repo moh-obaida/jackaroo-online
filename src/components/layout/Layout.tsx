@@ -5,7 +5,7 @@ import { ErrorBoundary } from '../common/ErrorBoundary';
 
 export function Layout() {
   return (
-    <div className="min-h-screen flex flex-col bg-board-dark text-white">
+    <div className="min-h-screen flex flex-col bg-surface-base text-cream-100">
       <Header />
       <main className="flex-1 flex flex-col">
         <ErrorBoundary title="Page crashed">

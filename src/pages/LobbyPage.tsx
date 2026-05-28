@@ -12,8 +12,9 @@ import {
 import { getMaxPlayersForMode } from '../lib/game/normalize';
 import { RoomData } from '../types/game';
 import { GameStatusCard } from '../components/game/GameStatusCard';
+import { ErrorBoundary } from '../components/common/ErrorBoundary';
 
-export function LobbyPage() {
+function LobbyPageContent() {
   const { t, user } = useApp();
   const { room, setRoomCode, startGame, loading, error: gameError } = useGame();
   const { code } = useParams<{ code: string }>();
@@ -180,21 +181,28 @@ export function LobbyPage() {
     );
   }
 
+  const rulesetLabel =
+    currentRoom.rulesetType === 'obaida_classic'
+      ? t('create.ruleset.classic')
+      : t('create.ruleset.custom');
+
   return (
-    <div className="flex-1 flex flex-col items-center px-4 py-6">
+    <div className="page-shell flex flex-col items-center">
       <div className="card-container w-full max-w-2xl">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-gold-400">{t('lobby.title')}</h1>
-          <button onClick={handleLeave} className="btn-danger text-sm px-4 py-2">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <h1 className="page-title mb-0">{t('lobby.title')}</h1>
+          <button type="button" onClick={handleLeave} className="btn-danger text-sm px-4 py-2 shrink-0">
             {t('lobby.leave')}
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 mb-4 p-3 bg-board-dark rounded-lg">
-          <span className="text-sm text-gray-400">{t('lobby.code')}:</span>
-          <span className="text-2xl font-mono font-bold text-gold-300 tracking-normal tabular-nums">
-            {code}
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 p-4 bg-surface-inset/80 rounded-xl border border-wood-700/50">
+          <div>
+            <span className="text-xs text-cream-200/50 uppercase tracking-wide">{t('lobby.code')}</span>
+            <p className="text-2xl font-mono font-bold text-gold-300 tracking-normal tabular-nums mt-0.5">
+              {code}
+            </p>
+          </div>
           <button
             onClick={handleCopyCode}
             className="text-sm text-gold-400 hover:text-gold-300 transition-colors"
@@ -203,27 +211,31 @@ export function LobbyPage() {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-          <div>
-            <span className="text-gray-400">{t('lobby.mode')}:</span>
-            <span className="ml-2 text-white">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 text-sm">
+          <div className="bg-surface-inset/50 rounded-lg px-3 py-2 border border-wood-800/50">
+            <span className="text-cream-200/50 text-xs">{t('lobby.mode')}</span>
+            <p className="text-cream-100 font-medium mt-0.5">
               {currentRoom.mode === '4p_teams'
                 ? t('create.mode.4p')
                 : currentRoom.mode === '3p_solo'
                   ? t('create.mode.3p')
                   : t('create.mode.2p')}
-            </span>
+            </p>
           </div>
-          <div>
-            <span className="text-gray-400">Seats:</span>
-            <span className="ml-2 text-white">
+          <div className="bg-surface-inset/50 rounded-lg px-3 py-2 border border-wood-800/50">
+            <span className="text-cream-200/50 text-xs">{t('lobby.ruleset')}</span>
+            <p className="text-cream-100 font-medium mt-0.5">{rulesetLabel}</p>
+          </div>
+          <div className="bg-surface-inset/50 rounded-lg px-3 py-2 border border-wood-800/50 col-span-2 sm:col-span-1">
+            <span className="text-cream-200/50 text-xs">Seats</span>
+            <p className="text-cream-100 font-medium mt-0.5">
               {seatedCount}/{maxPlayers}
-            </span>
+            </p>
           </div>
         </div>
 
         <div className="mb-4">
-          <h2 className="text-base font-semibold text-gray-200 mb-2">{t('lobby.players')}</h2>
+          <h2 className="text-base font-semibold text-cream-200/90 mb-2">{t('lobby.players')}</h2>
           <div className="space-y-2">
             {Array.from({ length: maxPlayers }, (_, i) => {
               const player = players.find((p) => p.seat === i);
@@ -233,7 +245,7 @@ export function LobbyPage() {
                   className={`flex items-center justify-between p-2.5 rounded-lg border ${
                     player
                       ? getColorClass(player.color)
-                      : 'bg-board-dark border-wood-700 border-dashed'
+                      : 'bg-surface-inset/40 border-wood-700/60 border-dashed'
                   }`}
                 >
                   <div className="flex items-center gap-2 min-w-0">
@@ -324,5 +336,13 @@ export function LobbyPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export function LobbyPage() {
+  return (
+    <ErrorBoundary title="Lobby crashed">
+      <LobbyPageContent />
+    </ErrorBoundary>
   );
 }

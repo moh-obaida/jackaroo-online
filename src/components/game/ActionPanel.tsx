@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { LegalAction, GameAction } from '../../types/game';
 import { useApp } from '../../context/AppContext';
 
@@ -9,14 +9,35 @@ interface ActionPanelProps {
   playerId: string;
 }
 
-export function ActionPanel({ legalActions, selectedCardId, onSubmitAction, playerId }: ActionPanelProps) {
+export function ActionPanel({
+  legalActions,
+  selectedCardId,
+  onSubmitAction,
+  playerId,
+}: ActionPanelProps) {
   const { t } = useApp();
   const [loading, setLoading] = useState(false);
 
-  // Filter actions for selected card
-  const filteredActions = selectedCardId
-    ? legalActions.filter((a) => a.cardId === selectedCardId || a.cardId === '')
-    : legalActions.filter((a) => a.cardId === ''); // burn_all, skip
+  const grouped = useMemo(() => {
+    const burnAll = legalActions.find((a) => a.type === 'burn_all_cards');
+    const skip = legalActions.find((a) => a.type === 'skip_no_cards');
+    const burnNext = legalActions.find((a) => a.type === 'burn_next_player');
+
+    const cardActions = selectedCardId
+      ? legalActions.filter(
+          (a) =>
+            a.cardId === selectedCardId &&
+            a.type !== 'burn_all_cards' &&
+            a.type !== 'skip_no_cards' &&
+            a.type !== 'burn_next_player'
+        )
+      : [];
+
+    const burnForCard =
+      selectedCardId && burnNext?.cardId === selectedCardId ? burnNext : null;
+
+    return { burnAll, skip, burnForCard, cardActions };
+  }, [legalActions, selectedCardId]);
 
   const handleAction = async (action: LegalAction) => {
     setLoading(true);
@@ -38,71 +59,59 @@ export function ActionPanel({ legalActions, selectedCardId, onSubmitAction, play
     }
   };
 
-  const getActionIcon = (type: string): string => {
-    switch (type) {
-      case 'bring_out': return '🎯';
-      case 'move': return '➡️';
-      case 'move_backward': return '⬅️';
-      case 'split_seven': return '7️⃣';
-      case 'swap': return '🔄';
-      case 'burn_next_player': return '🔥';
-      case 'burn_all_cards': return '💀';
-      case 'skip_no_cards': return '⏭️';
-      default: return '▶️';
-    }
-  };
+  const renderButton = (action: LegalAction, label?: string, variant: 'primary' | 'secondary' = 'secondary') => (
+    <button
+      key={`${action.type}_${action.cardId}_${action.description}`}
+      type="button"
+      onClick={() => handleAction(action)}
+      disabled={loading}
+      className={variant === 'primary' ? 'btn-primary w-full text-sm' : 'btn-secondary w-full text-sm text-start'}
+    >
+      {label || action.description}
+    </button>
+  );
 
-  if (filteredActions.length === 0 && !selectedCardId) {
+  if (grouped.skip) {
     return (
-      <div className="card-container">
-        <p className="text-sm text-gray-400 text-center">{t('game.selectCard')}</p>
+      <div className="card-container space-y-2">
+        <h3 className="text-sm font-semibold text-cream-200/80">{t('game.selectAction')}</h3>
+        {renderButton(grouped.skip, t('game.noCards'), 'primary')}
       </div>
     );
   }
 
-  if (filteredActions.length === 0 && selectedCardId) {
+  if (grouped.burnAll) {
+    return (
+      <div className="card-container space-y-2">
+        <h3 className="text-sm font-semibold text-cream-200/80">{t('game.selectAction')}</h3>
+        <p className="text-xs text-cream-200/50">{t('game.noLegalMoves')}</p>
+        {renderButton(grouped.burnAll, t('game.burnAll'), 'primary')}
+      </div>
+    );
+  }
+
+  if (!selectedCardId) {
     return (
       <div className="card-container">
-        <p className="text-sm text-gray-400 text-center">{t('game.selectAction')}</p>
-        {/* Show all actions for this card from unfiltered list */}
-        <div className="mt-2 space-y-1">
-          {legalActions
-            .filter((a) => a.cardId === selectedCardId)
-            .slice(0, 10)
-            .map((action, i) => (
-              <button
-                key={i}
-                onClick={() => handleAction(action)}
-                disabled={loading}
-                className="w-full text-left px-3 py-2 text-sm bg-board-dark hover:bg-wood-800 rounded-lg border border-wood-700 transition-colors disabled:opacity-50"
-              >
-                <span className="mr-2">{getActionIcon(action.type)}</span>
-                {action.description}
-              </button>
-            ))}
-        </div>
+        <p className="text-sm text-cream-200/60 text-center">{t('game.selectCard')}</p>
       </div>
     );
   }
 
   return (
     <div className="card-container">
-      <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('game.selectAction')}</h3>
-      <div className="space-y-1 max-h-60 overflow-y-auto">
-        {filteredActions.slice(0, 15).map((action, i) => (
-          <button
-            key={i}
-            onClick={() => handleAction(action)}
-            disabled={loading}
-            className="w-full text-left px-3 py-2 text-sm bg-board-dark hover:bg-wood-800 rounded-lg border border-wood-700 transition-colors disabled:opacity-50"
-          >
-            <span className="mr-2">{getActionIcon(action.type)}</span>
-            {action.description}
-          </button>
-        ))}
-        {filteredActions.length > 15 && (
-          <p className="text-xs text-gray-500 text-center pt-1">
-            +{filteredActions.length - 15} more actions
+      <h3 className="text-sm font-semibold text-cream-200/80 mb-2">{t('game.selectAction')}</h3>
+      <div className="space-y-2 max-h-64 overflow-y-auto">
+        {grouped.burnForCard &&
+          renderButton(grouped.burnForCard, t('game.burn'), 'primary')}
+        {grouped.cardActions.length > 0 ? (
+          grouped.cardActions.slice(0, 12).map((action) => renderButton(action))
+        ) : !grouped.burnForCard ? (
+          <p className="text-sm text-cream-200/50 text-center py-2">{t('game.noLegalForCard')}</p>
+        ) : null}
+        {grouped.cardActions.length > 12 && (
+          <p className="text-xs text-cream-200/40 text-center">
+            +{grouped.cardActions.length - 12} more
           </p>
         )}
       </div>

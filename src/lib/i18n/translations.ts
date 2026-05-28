@@ -11,7 +11,7 @@ export interface Translations {
 export const en: Translations = {
   // App
   'app.name': 'Jakaroo Online',
-  'app.tagline': 'Create a room. Invite friends. Play Jackaroo online.',
+  'app.tagline': 'Create a private room, invite friends, and play Obaida Classic Jakaroo online.',
 
   // Navigation
   'nav.home': 'Home',
@@ -28,6 +28,8 @@ export const en: Translations = {
   'home.joinRoom': 'Join Room',
   'home.login': 'Login / Register',
   'home.guest': 'Continue as Guest',
+  'home.signedIn': 'Signed in as {name}',
+  'home.profile': 'Profile',
   'home.feature.rooms': 'Private Rooms',
   'home.feature.rooms.desc': 'Create password-protected rooms with numeric codes',
   'home.feature.rules': 'Obaida Classic Rules',
@@ -63,6 +65,14 @@ export const en: Translations = {
   'create.botDifficulty.hard': 'Hard',
   'create.botDifficulty.veryHard': 'Very Hard',
   'create.submit': 'Create Room',
+  'create.passwordHelp': 'Players need the room code and password to join.',
+  'create.modeHelp.2p': 'Two players compete solo — each controls one color.',
+  'create.modeHelp.3p': 'Three players solo — standard 3-player deal rotation.',
+  'create.modeHelp.4p': 'Four players in teams — partners sit across.',
+  'create.rulesetHelp.classic': 'Obaida Classic: fixed family rules, no jokers, full automation.',
+  'create.rulesetHelp.custom': 'Custom Rules: use saved templates (signed-in users).',
+  'create.template': 'Custom template',
+  'create.templateDefault': 'Default custom rules',
 
   // Join Room
   'join.title': 'Join Room',
@@ -126,6 +136,11 @@ export const en: Translations = {
   'game.playerWins': '{player} Wins!',
   'game.playAgain': 'Play Again',
   'game.backToLobby': 'Back to Lobby',
+  'game.waitTurn': 'Wait for your turn to play a card.',
+  'game.noLegalForCard': 'No legal move with this card.',
+  'game.opponents': 'Players',
+  'game.cardsCount': '{count} cards',
+  'game.info': 'Game info',
 
   // Auth
   'auth.login': 'Login',
@@ -149,18 +164,23 @@ export const en: Translations = {
   'profile.noTemplates': 'No custom templates yet',
   'profile.history': 'Match History',
   'profile.noHistory': 'No match history yet',
+  'profile.backHome': 'Back Home',
+  'profile.saveProfile': 'Save profile',
+  'profile.historyPlaceholder': 'Match history will appear here after you play ranked games.',
 
   // Custom Rules
   'custom.title': 'Custom Rules Template',
   'custom.name': 'Template Name',
-  'custom.joker': 'Joker Enabled',
+  'custom.notice': 'Custom Rules — Not Obaida Classic',
+  'custom.guestSave': 'Sign in to save custom rule templates.',
+  'custom.joker': 'Enable Joker',
   'custom.jokerCopies': 'Joker Copies Card',
-  'custom.queenBurn': 'Queen Burn',
-  'custom.tenBurn': '10 Burn',
-  'custom.kingEating': 'King Path Eating',
-  'custom.fiveAnyone': '5 Can Move Anyone',
-  'custom.longerTwoPlayer': 'Longer 2-Player Variant',
-  'custom.timer': 'Timer Enabled',
+  'custom.queenBurn': 'Queen can burn next player',
+  'custom.tenBurn': '10 can burn next player',
+  'custom.kingEating': 'King eats marbles in path',
+  'custom.fiveAnyone': '5 can move any eligible marble',
+  'custom.longerTwoPlayer': 'Longer 2-player custom variant',
+  'custom.timer': 'Enable turn timer',
   'custom.timerSeconds': 'Timer (seconds)',
   'custom.save': 'Save Template',
   'custom.cancel': 'Cancel',
@@ -184,6 +204,7 @@ export const en: Translations = {
   'general.error': 'Error',
   'general.close': 'Close',
   'general.back': 'Back',
+  'general.backHome': 'Back Home',
   'general.yes': 'Yes',
   'general.no': 'No',
 };
@@ -191,7 +212,7 @@ export const en: Translations = {
 export const ar: Translations = {
   // App
   'app.name': 'جاكارو أونلاين',
-  'app.tagline': 'أنشئ غرفة. ادعُ أصدقاءك. العب جاكارو أونلاين.',
+  'app.tagline': 'أنشئ غرفة خاصة، ادعُ أصدقاءك، والعب جاكارو أوبيدا كلاسيك أونلاين.',
 
   // Navigation
   'nav.home': 'الرئيسية',
@@ -208,6 +229,8 @@ export const ar: Translations = {
   'home.joinRoom': 'انضمام لغرفة',
   'home.login': 'تسجيل الدخول / إنشاء حساب',
   'home.guest': 'المتابعة كضيف',
+  'home.signedIn': 'مسجّل الدخول كـ {name}',
+  'home.profile': 'الملف الشخصي',
   'home.feature.rooms': 'غرف خاصة',
   'home.feature.rooms.desc': 'أنشئ غرفًا محمية بكلمة مرور ورمز رقمي',
   'home.feature.rules': 'قواعد أوبيدا كلاسيك',
@@ -243,6 +266,14 @@ export const ar: Translations = {
   'create.botDifficulty.hard': 'صعب',
   'create.botDifficulty.veryHard': 'صعب جدًا',
   'create.submit': 'إنشاء الغرفة',
+  'create.passwordHelp': 'يحتاج اللاعبون رمز الغرفة وكلمة المرور للانضمام.',
+  'create.modeHelp.2p': 'لاعبان فرديان — كل لاعب يتحكم بلون واحد.',
+  'create.modeHelp.3p': 'ثلاثة لاعبين فردي — توزيع قياسي لثلاثة لاعبين.',
+  'create.modeHelp.4p': 'أربعة لاعبين في فرق — الشريك مقابل بعضه.',
+  'create.rulesetHelp.classic': 'أوبيدا كلاسيك: قواعد عائلية ثابتة، بدون جوكر، أتمتة كاملة.',
+  'create.rulesetHelp.custom': 'قواعد مخصصة: قوالب محفوظة (للمستخدمين المسجّلين).',
+  'create.template': 'قالب مخصص',
+  'create.templateDefault': 'قواعد مخصصة افتراضية',
 
   // Join Room
   'join.title': 'انضمام لغرفة',
@@ -306,6 +337,11 @@ export const ar: Translations = {
   'game.playerWins': '{player} يفوز!',
   'game.playAgain': 'لعب مرة أخرى',
   'game.backToLobby': 'العودة للوبي',
+  'game.waitTurn': 'انتظر دورك للعب ورقة.',
+  'game.noLegalForCard': 'لا حركة قانونية بهذه الورقة.',
+  'game.opponents': 'اللاعبون',
+  'game.cardsCount': '{count} ورقة',
+  'game.info': 'معلومات اللعبة',
 
   // Auth
   'auth.login': 'تسجيل الدخول',
@@ -329,18 +365,23 @@ export const ar: Translations = {
   'profile.noTemplates': 'لا توجد قوالب مخصصة بعد',
   'profile.history': 'تاريخ المباريات',
   'profile.noHistory': 'لا يوجد تاريخ مباريات بعد',
+  'profile.backHome': 'العودة للرئيسية',
+  'profile.saveProfile': 'حفظ الملف',
+  'profile.historyPlaceholder': 'سيظهر تاريخ المباريات هنا بعد اللعب.',
 
   // Custom Rules
   'custom.title': 'قالب قواعد مخصصة',
   'custom.name': 'اسم القالب',
-  'custom.joker': 'الجوكر مفعّل',
+  'custom.notice': 'قواعد مخصصة — ليست أوبيدا كلاسيك',
+  'custom.guestSave': 'سجّل الدخول لحفظ قوالب القواعد المخصصة.',
+  'custom.joker': 'تفعيل الجوكر',
   'custom.jokerCopies': 'الجوكر ينسخ ورقة',
-  'custom.queenBurn': 'حرق الملكة',
-  'custom.tenBurn': 'حرق العشرة',
-  'custom.kingEating': 'أكل الملك في المسار',
-  'custom.fiveAnyone': 'الخمسة تحرك أي لاعب',
-  'custom.longerTwoPlayer': 'نسخة لاعبين أطول',
-  'custom.timer': 'المؤقت مفعّل',
+  'custom.queenBurn': 'الملكة تحرق ورقة اللاعب التالي',
+  'custom.tenBurn': 'العشرة تحرق ورقة اللاعب التالي',
+  'custom.kingEating': 'الملك يأكل الرخام في المسار',
+  'custom.fiveAnyone': 'الخمسة تحرك أي رخام مؤهل',
+  'custom.longerTwoPlayer': 'نسخة لاعبين مخصصة أطول',
+  'custom.timer': 'تفعيل مؤقت الدور',
   'custom.timerSeconds': 'المؤقت (ثوانٍ)',
   'custom.save': 'حفظ القالب',
   'custom.cancel': 'إلغاء',
@@ -364,6 +405,7 @@ export const ar: Translations = {
   'general.error': 'خطأ',
   'general.close': 'إغلاق',
   'general.back': 'رجوع',
+  'general.backHome': 'العودة للرئيسية',
   'general.yes': 'نعم',
   'general.no': 'لا',
 };

@@ -29,21 +29,38 @@ export default {
           800: '#4d3d00',
           900: '#1a1400',
         },
+        cream: {
+          50: '#faf7f2',
+          100: '#f5f0e8',
+          200: '#e8dcc8',
+        },
         board: {
           dark: '#1a1208',
           medium: '#2d2010',
           light: '#4a3520',
         },
+        surface: {
+          base: '#14100c',
+          panel: '#221a12',
+          inset: '#0f0c09',
+        },
+        spot: {
+          track: '#c9b896',
+          home: '#b8a078',
+        },
         player: {
-          black: '#1a1a1a',
+          black: '#2a2a2a',
           green: '#2d8a4e',
           blue: '#2563eb',
-          white: '#f5f0e8',
+          white: '#f0ebe0',
         },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         arabic: ['Noto Sans Arabic', 'system-ui', 'sans-serif'],
+      },
+      boxShadow: {
+        board: '0 8px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
       },
     },
   },
