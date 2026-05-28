@@ -12,10 +12,14 @@ import {
   CustomRulesConfig,
   DEFAULT_CUSTOM_RULES,
 } from '../types/game';
+<<<<<<< HEAD
 import { FormPage } from '../components/ui/FormPage';
 import { FormField, TextInput, SelectInput } from '../components/ui/FormField';
 import { Alert } from '../components/ui/Alert';
 import { Button } from '../components/ui/Button';
+=======
+import { BackHomeButton } from '../components/common/BackHomeButton';
+>>>>>>> origin/main
 
 export function CreateRoomPage() {
   const { t, user, language, theme, firebaseReady, isGuestUser } = useApp();
@@ -119,6 +123,7 @@ export function CreateRoomPage() {
   };
 
   return (
+<<<<<<< HEAD
     <FormPage title={t('create.title')} subtitle={t('create.passwordHelp')}>
       {!firebaseReady && (
         <Alert variant="warn" className="mb-4 rounded-xl text-left text-xs">
@@ -237,5 +242,149 @@ export function CreateRoomPage() {
         </Button>
       </form>
     </FormPage>
+=======
+    <div className="page-shell flex flex-col items-center">
+      <div className="w-full max-w-lg mb-4">
+        <BackHomeButton />
+      </div>
+
+      <div className="card-container w-full max-w-lg">
+        <h1 className="page-title">{t('create.title')}</h1>
+        <p className="page-subtitle">{t('create.passwordHelp')}</p>
+
+        {!firebaseReady && (
+          <div className="mb-4 p-3 bg-yellow-900/40 border border-yellow-600/60 rounded-lg">
+            <p className="text-yellow-200 text-xs">Firebase not configured.</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-cream-200/80 mb-1">{t('create.name')}</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={t('create.namePlaceholder')}
+              className="input-field"
+              maxLength={20}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-cream-200/80 mb-1">{t('create.password')}</label>
+            <input
+              type="text"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t('create.passwordPlaceholder')}
+              className="input-field"
+              maxLength={30}
+            />
+            <p className="helper-text">{t('create.passwordHelp')}</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-cream-200/80 mb-1">{t('create.mode')}</label>
+            <select
+              value={mode}
+              onChange={(e) => setMode(e.target.value as GameMode)}
+              className="select-field"
+            >
+              <option value="4p_teams">{t('create.mode.4p')}</option>
+              <option value="3p_solo">{t('create.mode.3p')}</option>
+              <option value="2p_solo">{t('create.mode.2p')}</option>
+            </select>
+            <p className="helper-text">{t(modeHelpKey)}</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-cream-200/80 mb-1">{t('create.ruleset')}</label>
+            <select
+              value={rulesetType}
+              onChange={(e) => setRulesetType(e.target.value as RulesetType)}
+              className="select-field"
+            >
+              <option value="obaida_classic">{t('create.ruleset.classic')}</option>
+              <option value="custom">{t('create.ruleset.custom')}</option>
+            </select>
+            <p className="helper-text mt-1">
+              {rulesetType === 'obaida_classic'
+                ? t('create.rulesetHelp.classic')
+                : t('create.rulesetHelp.custom')}
+            </p>
+            {rulesetType === 'custom' && (
+              <>
+                <p className="mt-2 text-xs text-amber-300/90 border border-amber-700/40 rounded-lg px-2 py-1.5">
+                  {t('custom.notice')}
+                </p>
+                {isGuestUser ? (
+                  <p className="helper-text text-amber-300/80">{t('custom.guestSave')}</p>
+                ) : (
+                  <div className="mt-2">
+                    <label className="block text-xs font-medium text-cream-200/50 mb-1">
+                      {t('create.template')}
+                    </label>
+                    <select
+                      value={selectedTemplateId}
+                      onChange={(e) => setSelectedTemplateId(e.target.value)}
+                      className="select-field text-sm"
+                    >
+                      {Object.keys(customTemplates).length === 0 ? (
+                        <option value="">{t('create.templateDefault')}</option>
+                      ) : (
+                        Object.entries(customTemplates).map(([id, config]) => (
+                          <option key={id} value={id}>
+                            {config.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 pt-1">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={botsEnabled}
+                onChange={(e) => setBotsEnabled(e.target.checked)}
+                className="w-4 h-4 rounded border-wood-500 bg-surface-inset text-gold-500 focus:ring-gold-500/30"
+              />
+              <span className="text-sm text-cream-200/80">{t('create.bots')}</span>
+            </label>
+          </div>
+
+          {botsEnabled && (
+            <div>
+              <label className="block text-sm font-medium text-cream-200/80 mb-1">
+                {t('create.botDifficulty')}
+              </label>
+              <select
+                value={botDifficulty}
+                onChange={(e) => setBotDifficulty(e.target.value as BotDifficulty)}
+                className="select-field"
+              >
+                <option value="very_easy">{t('create.botDifficulty.veryEasy')}</option>
+                <option value="easy">{t('create.botDifficulty.easy')}</option>
+                <option value="normal">{t('create.botDifficulty.normal')}</option>
+                <option value="hard">{t('create.botDifficulty.hard')}</option>
+                <option value="very_hard">{t('create.botDifficulty.veryHard')}</option>
+              </select>
+            </div>
+          )}
+
+          {error && <p className="text-red-400 text-sm bg-red-950/30 rounded-lg px-3 py-2">{error}</p>}
+
+          <button type="submit" disabled={loading} className="btn-primary w-full text-lg">
+            {loading ? t('general.loading') : t('create.submit')}
+          </button>
+        </form>
+      </div>
+    </div>
+>>>>>>> origin/main
   );
 }

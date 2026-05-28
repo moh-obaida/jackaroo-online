@@ -3,13 +3,19 @@ import {
   GameState,
   Marble,
   PlayerColor,
+<<<<<<< HEAD
   BoardPosition,
+=======
+>>>>>>> origin/main
   COLORS_ORDER,
   TRACK_LENGTH,
   HOME_LENGTH,
   TOTAL_OUTER_SPOTS,
 } from '../../types/game';
+<<<<<<< HEAD
 import { positionKey } from '../../lib/play/boardHighlights';
+=======
+>>>>>>> origin/main
 
 interface GameBoardProps {
   gameState: GameState;
@@ -40,6 +46,7 @@ const colorGlow: Record<PlayerColor, string> = {
   white: '#fef3c7',
 };
 
+<<<<<<< HEAD
 function drilledHole(
   key: string,
   cx: number,
@@ -69,6 +76,8 @@ function drilledHole(
   );
 }
 
+=======
+>>>>>>> origin/main
 function octagonPoints(cx: number, cy: number, r: number): string {
   const pts: string[] = [];
   for (let i = 0; i < 8; i++) {
@@ -81,7 +90,10 @@ function octagonPoints(cx: number, cy: number, r: number): string {
 export function GameBoard({
   gameState,
   selectedCardId: _selectedCardId,
+<<<<<<< HEAD
   highlightPositions = [],
+=======
+>>>>>>> origin/main
   playerId,
   isMyTurn = false,
 }: GameBoardProps) {
@@ -178,7 +190,22 @@ export function GameBoard({
           />
           {[0, 1, 2, 3].map((bi) => {
             const bp = geometry.getBasePosition(ci, bi);
+<<<<<<< HEAD
             return drilledHole(`nest_hole_${color}_${bi}`, bp.x, bp.y, 5);
+=======
+            return (
+              <circle
+                key={`nest_hole_${color}_${bi}`}
+                cx={bp.x}
+                cy={bp.y}
+                r={5}
+                fill="#1a1208"
+                stroke="#5c3c18"
+                strokeWidth={0.8}
+                opacity={0.7}
+              />
+            );
+>>>>>>> origin/main
           })}
         </g>
       );
@@ -188,6 +215,7 @@ export function GameBoard({
     const spots: JSX.Element[] = [];
     for (let ci = 0; ci < 4; ci++) {
       const color = COLORS_ORDER[ci];
+<<<<<<< HEAD
 
       const sgPos = geometry.getStartGatePosition(ci);
       if (activePlayerColors.has(color)) {
@@ -204,6 +232,32 @@ export function GameBoard({
         spots.push(drilledHole(`track_${color}_${si}`, pos.x, pos.y, 6.5));
       }
 
+=======
+
+      const sgPos = geometry.getStartGatePosition(ci);
+      spots.push(
+        <g key={`sg_${color}`}>
+          <circle cx={sgPos.x} cy={sgPos.y} r={10} fill="#c9b896" stroke={colorStroke[color]} strokeWidth={2.5} />
+          <circle cx={sgPos.x} cy={sgPos.y} r={12} fill="none" stroke={colorGlow[color]} strokeWidth={1} opacity={0.5} />
+        </g>
+      );
+
+      for (let si = 0; si < TRACK_LENGTH; si++) {
+        const pos = geometry.getTrackPosition(ci, si);
+        spots.push(
+          <circle
+            key={`track_${color}_${si}`}
+            cx={pos.x}
+            cy={pos.y}
+            r={7}
+            fill="#c9b896"
+            stroke="#8b7355"
+            strokeWidth={1}
+          />
+        );
+      }
+
+>>>>>>> origin/main
       const homeLine: { x: number; y: number }[] = [];
       for (let hi = 0; hi < HOME_LENGTH; hi++) {
         homeLine.push(geometry.getHomePosition(ci, hi));
@@ -221,16 +275,31 @@ export function GameBoard({
       );
       for (let hi = 0; hi < HOME_LENGTH; hi++) {
         const pos = homeLine[hi];
+<<<<<<< HEAD
         if (activePlayerColors.has(color)) {
           spots.push(
             drilledHole(`home_${color}_${hi}`, pos.x, pos.y, 7, { accent: colorStroke[color] })
           );
         }
+=======
+        spots.push(
+          <circle
+            key={`home_${color}_${hi}`}
+            cx={pos.x}
+            cy={pos.y}
+            r={8}
+            fill="#b8a078"
+            stroke={colorStroke[color]}
+            strokeWidth={1.5}
+          />
+        );
+>>>>>>> origin/main
       }
     }
     return spots;
   };
 
+<<<<<<< HEAD
   const highlightKeys = new Set(highlightPositions.map(positionKey));
 
   const renderLegalHighlights = () =>
@@ -269,6 +338,8 @@ export function GameBoard({
       );
     });
 
+=======
+>>>>>>> origin/main
   const renderMarbles = () =>
     marbles.map((marble) => {
       const pos = getMarblePosition(marble);
@@ -294,7 +365,11 @@ export function GameBoard({
               opacity={0.85}
             />
           )}
+<<<<<<< HEAD
           <ellipse cx={pos.x + 1.5} cy={pos.y + 2.5} rx={r} ry={r * 0.9} fill="#000" opacity={0.4} />
+=======
+          <circle cx={pos.x} cy={pos.y} r={r + 2} fill="black" opacity={0.25} />
+>>>>>>> origin/main
           <circle
             cx={pos.x}
             cy={pos.y}
@@ -302,7 +377,10 @@ export function GameBoard({
             fill={colorMap[marble.color]}
             stroke={isLocked ? '#ffd633' : colorStroke[marble.color]}
             strokeWidth={isLocked ? 3 : isOwn ? 2.5 : 1.5}
+<<<<<<< HEAD
             filter="url(#marbleShadow)"
+=======
+>>>>>>> origin/main
           />
           <circle cx={pos.x - r * 0.3} cy={pos.y - r * 0.3} r={r * 0.25} fill="#fff" opacity={0.35} />
           {marble.isFinished && (
@@ -363,14 +441,20 @@ export function GameBoard({
       >
         <defs>
           <linearGradient id="woodBase" x1="0%" y1="0%" x2="100%" y2="100%">
+<<<<<<< HEAD
             <stop offset="0%" stopColor="#6b4a28" />
             <stop offset="40%" stopColor="#3d2810" />
+=======
+            <stop offset="0%" stopColor="#4a3520" />
+            <stop offset="45%" stopColor="#2d2010" />
+>>>>>>> origin/main
             <stop offset="100%" stopColor="#1a1208" />
           </linearGradient>
           <linearGradient id="woodInner" x1="50%" y1="0%" x2="50%" y2="100%">
             <stop offset="0%" stopColor="#5c3c18" stopOpacity="0.6" />
             <stop offset="100%" stopColor="#1a1208" stopOpacity="0.9" />
           </linearGradient>
+<<<<<<< HEAD
           <linearGradient id="woodBevel" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#a67c42" stopOpacity="0.35" />
             <stop offset="100%" stopColor="#000" stopOpacity="0.2" />
@@ -393,11 +477,23 @@ export function GameBoard({
         <polygon points={boardOct} fill="url(#woodBase)" stroke="#a67c42" strokeWidth={3} />
         <polygon points={boardOct} fill="url(#woodBevel)" stroke="none" opacity={0.5} />
         <polygon points={innerOct} fill="url(#woodInner)" stroke="#5c3c18" strokeWidth={1} opacity={0.92} />
+=======
+          <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#3d2810" />
+            <stop offset="100%" stopColor="#14100c" />
+          </radialGradient>
+        </defs>
+
+        <polygon points={outerOct} fill="#0a0806" stroke="#4a3018" strokeWidth={5} />
+        <polygon points={boardOct} fill="url(#woodBase)" stroke="#8b5a28" strokeWidth={2.5} />
+        <polygon points={innerOct} fill="url(#woodInner)" stroke="#5c3c18" strokeWidth={1} opacity={0.9} />
+>>>>>>> origin/main
 
         {renderColorWedges()}
         {renderNestAreas()}
         {renderTrackSpots()}
 
+<<<<<<< HEAD
         <circle cx={center} cy={center} r={48} fill="url(#centerGlow)" stroke="#6b4420" strokeWidth={1.2} />
         <path
           d={`M ${center} ${center - 14} L ${center + 4} ${center - 4} L ${center + 14} ${center} L ${center + 4} ${center + 4} L ${center} ${center + 14} L ${center - 4} ${center + 4} L ${center - 14} ${center} L ${center - 4} ${center - 4} Z`}
@@ -408,6 +504,11 @@ export function GameBoard({
         />
 
         {isMyTurn && highlightKeys.size > 0 && renderLegalHighlights()}
+=======
+        <circle cx={center} cy={center} r={52} fill="url(#centerGlow)" stroke="#6b4420" strokeWidth={1.5} />
+        <circle cx={center} cy={center} r={38} fill="none" stroke="#e6b800" strokeWidth={0.75} opacity={0.35} />
+
+>>>>>>> origin/main
         {renderMarbles()}
       </svg>
     </div>
