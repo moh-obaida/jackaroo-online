@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { LegalAction, GameAction } from '../../types/game';
+import { GameAction, LegalAction } from '../../types/game';
+import { legalActionToGameAction } from '../../lib/game/persistAction';
 import { useApp } from '../../context/AppContext';
 
 interface ActionPanelProps {
@@ -45,18 +46,7 @@ export function ActionPanel({
   const handleAction = async (action: LegalAction) => {
     setLoading(true);
     try {
-      const gameAction: GameAction = {
-        type: action.type,
-        playerId,
-        cardId: action.cardId || undefined,
-        marbleId: action.marbleId,
-        targetPosition: action.targetPosition,
-        swapMarbleId1: action.swapMarbleId1,
-        swapMarbleId2: action.swapMarbleId2,
-        splitMoves: action.splitMoves,
-        burnTargetPlayerId: action.burnTargetPlayerId,
-      };
-      await onSubmitAction(gameAction);
+      await onSubmitAction(legalActionToGameAction(action, playerId));
     } finally {
       setLoading(false);
     }
