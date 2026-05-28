@@ -1,65 +1,43 @@
 import React from 'react';
 import { Card } from '../../types/game';
+import { useApp } from '../../context/AppContext';
+import { PlayingCard } from './PlayingCard';
 
 interface PlayerHandProps {
   cards: Card[];
   selectedCardId: string | null;
   onSelectCard: (cardId: string | null) => void;
   disabled: boolean;
+  docked?: boolean;
 }
 
-export function PlayerHand({ cards, selectedCardId, onSelectCard, disabled }: PlayerHandProps) {
+export function PlayerHand({ cards, selectedCardId, onSelectCard, disabled, docked = false }: PlayerHandProps) {
+  const { t } = useApp();
+
   if (cards.length === 0) {
-    return (
-      <div className="text-center text-gray-500 text-sm py-4">
-        No cards
-      </div>
-    );
+    return <div className="text-center text-cream-200/45 text-sm py-4">{t('game.noCards')}</div>;
   }
 
-  const getSuitSymbol = (suit: string): string => {
-    switch (suit) {
-      case 'hearts': return '♥';
-      case 'diamonds': return '♦';
-      case 'clubs': return '♣';
-      case 'spades': return '♠';
-      default: return '';
-    }
-  };
-
-  const getSuitColor = (suit: string): string => {
-    return suit === 'hearts' || suit === 'diamonds' ? 'text-red-500' : 'text-gray-800';
-  };
+  const layoutClass = docked
+    ? 'flex gap-2 sm:gap-2.5 overflow-x-auto pb-2 px-1 snap-x snap-mandatory justify-start sm:justify-center scrollbar-thin'
+    : 'flex flex-wrap gap-2 sm:gap-2.5 justify-center py-1 px-0.5';
 
   return (
-    <div className="flex flex-wrap gap-2 justify-center">
+    <div className={layoutClass}>
       {cards.map((card) => {
         const isSelected = selectedCardId === card.id;
         return (
-          <button
+          <PlayingCard
             key={card.id}
+            card={card}
+            selected={isSelected}
+            disabled={disabled}
+            showHint
             onClick={() => {
               if (disabled) return;
               onSelectCard(isSelected ? null : card.id);
             }}
-            disabled={disabled}
-            className={`
-              relative w-14 h-20 rounded-lg border-2 transition-all duration-200
-              flex flex-col items-center justify-center
-              ${isSelected
-                ? 'border-gold-400 bg-white shadow-lg shadow-gold-400/30 -translate-y-2 scale-105'
-                : 'border-gray-300 bg-white hover:border-gold-300 hover:-translate-y-1'
-              }
-              ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
-            `}
-          >
-            <span className={`text-xs font-bold ${getSuitColor(card.suit)}`}>
-              {card.rank}
-            </span>
-            <span className={`text-lg ${getSuitColor(card.suit)}`}>
-              {getSuitSymbol(card.suit)}
-            </span>
-          </button>
+          />
         );
       })}
     </div>

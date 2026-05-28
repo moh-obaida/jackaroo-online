@@ -1,16 +1,24 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
 import { GameBoard } from '../components/board/GameBoard';
 import { PlayerHand } from '../components/cards/PlayerHand';
+import { CardGuideModal } from '../components/cards/CardGuideModal';
 import { ActionPanel } from '../components/game/ActionPanel';
-import { EventLog } from '../components/game/EventLog';
+import { GameSidePanel } from '../components/game/GameSidePanel';
+import { OpponentStrip } from '../components/game/OpponentStrip';
 import { WinOverlay } from '../components/game/WinOverlay';
 import { GameStatusCard } from '../components/game/GameStatusCard';
+import { BackHomeButton } from '../components/common/BackHomeButton';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { subscribeToRoom } from '../lib/firebase/rooms';
 import { RoomData } from '../types/game';
+
+function normalizeRoomCode(raw: string | undefined): string | null {
+  const code = raw?.trim();
+  return code && code.length > 0 ? code : null;
+}
 
 function GamePageContent() {
   const { t, user, authLoading, firebaseReady } = useApp();
@@ -22,34 +30,41 @@ function GamePageContent() {
     setRoomCode,
     submitAction,
     error: gameError,
+    isLeaving,
+    leaveWarning,
+    safeLeaveRoom,
   } = useGame();
-  const { code } = useParams<{ code: string }>();
-  const navigate = useNavigate();
+
+  const { code: rawCode } = useParams<{ code: string }>();
+  const roomCode = normalizeRoomCode(rawCode);
+
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [localRoom, setLocalRoom] = useState<RoomData | null>(null);
   const [roomLoaded, setRoomLoaded] = useState(false);
   const [handLoaded, setHandLoaded] = useState(false);
   const [handError, setHandError] = useState<string | null>(null);
+  const [deckGuideOpen, setDeckGuideOpen] = useState(false);
+  const [leaveBusy, setLeaveBusy] = useState(false);
 
-  const playerId = user?.uid || null;
-
-  // Always bind room code from URL (direct /game/:code navigation).
-  // Bind room code from URL (direct /game/:code navigation and lobby redirect).
-  useEffect(() => {
-    if (code) setRoomCode(code);
-  }, [code, setRoomCode]);
+  const playerId = user?.uid?.trim() || null;
 
   useEffect(() => {
-    if (!code || !firebaseReady) {
-      setRoomLoaded(true);
+    if (isLeaving || !roomCode) return;
+    setRoomCode(roomCode);
+  }, [roomCode, isLeaving, setRoomCode]);
+
+  useEffect(() => {
+    if (isLeaving || !roomCode || !firebaseReady) {
+      if (!roomCode) setRoomLoaded(true);
       return;
     }
-    const unsub = subscribeToRoom(code, (roomData) => {
+    setRoomLoaded(false);
+    const unsub = subscribeToRoom(roomCode, (roomData) => {
       setLocalRoom(roomData);
       setRoomLoaded(true);
     });
     return unsub;
-  }, [code, firebaseReady]);
+  }, [roomCode, firebaseReady, isLeaving]);
 
   useEffect(() => {
     if (myHand.length > 0 || gameState) {
@@ -61,7 +76,7 @@ function GamePageContent() {
   useEffect(() => {
     if (!gameState || !playerId) return;
     const timer = window.setTimeout(() => {
-      if (myHand.length === 0 && gameState.handCounts[playerId] > 0) {
+      if (myHand.length === 0 && (gameState.handCounts[playerId] ?? 0) > 0) {
         setHandError('Failed to load your private hand. Check Firebase rules for privateHands.');
       }
       setHandLoaded(true);
@@ -69,8 +84,19 @@ function GamePageContent() {
     return () => window.clearTimeout(timer);
   }, [gameState, playerId, myHand.length]);
 
+  const handleLeaveGame = useCallback(async () => {
+    if (!roomCode || leaveBusy || isLeaving) return;
+    setLeaveBusy(true);
+    try {
+      await safeLeaveRoom(roomCode);
+    } finally {
+      setLeaveBusy(false);
+    }
+  }, [roomCode, leaveBusy, isLeaving, safeLeaveRoom]);
+
   const currentRoom = room || localRoom;
-  const isMember = playerId && currentRoom?.players[playerId];
+  const isMember = Boolean(playerId && currentRoom?.players?.[playerId]);
+
   const isMyTurn = Boolean(gameState && playerId && gameState.currentTurnPlayerId === playerId);
 
   const currentPlayer = useMemo(() => {
@@ -83,16 +109,26 @@ function GamePageContent() {
     return gameState.players.find((p) => p.id === gameState.currentTurnPlayerId) ?? null;
   }, [gameState]);
 
+  if (isLeaving || leaveBusy) {
+    return (
+      <GameStatusCard
+        title={t('game.leaving')}
+        message={t('game.leavingMessage')}
+      />
+    );
+  }
+
   if (authLoading) {
-    return <GameStatusCard title="Loading session…" message="Restoring your player identity." />;
+    return <GameStatusCard title={t('game.loadingSession')} message={t('game.loadingSessionMessage')} />;
   }
 
   if (!firebaseReady) {
     return (
       <GameStatusCard
-        title="Firebase not configured"
-        message="Add VITE_FIREBASE_* environment variables to run multiplayer."
+        title={t('game.firebaseMissing')}
+        message={t('game.firebaseMissingMessage')}
         variant="error"
+        action={<BackHomeButton />}
       />
     );
   }
@@ -100,46 +136,39 @@ function GamePageContent() {
   if (!user || !playerId) {
     return (
       <GameStatusCard
-        title="Sign in required"
-        message="You need a guest or account session to play."
-        action={
-          <Link to="/auth" className="btn-primary inline-block">
-            Continue as guest
-          </Link>
-        }
+        title={t('game.signInRequired')}
+        message={t('game.signInRequiredMessage')}
+        action={<BackHomeButton />}
       />
     );
   }
 
-  if (!code) {
+  if (!roomCode) {
     return (
       <GameStatusCard
-        title="Invalid game link"
-        message="No room code was found in the URL."
-        action={
-          <Link to="/" className="btn-primary inline-block">
-            Back home
-          </Link>
-        }
+        title={t('game.invalidLink')}
+        message={t('game.invalidLinkMessage')}
+        action={<BackHomeButton />}
       />
     );
   }
 
   if (!roomLoaded) {
-    return <GameStatusCard title="Loading room…" message={`Connecting to room ${code}.`} />;
+    return (
+      <GameStatusCard
+        title={t('game.loadingRoom')}
+        message={t('game.loadingRoomMessage', { code: roomCode })}
+      />
+    );
   }
 
   if (!currentRoom) {
     return (
       <GameStatusCard
-        title="Room not found"
-        message={`No room exists for code ${code}, or it has expired.`}
+        title={t('game.roomNotFound')}
+        message={t('game.roomNotFoundMessage', { code: roomCode })}
         variant="warn"
-        action={
-          <Link to="/" className="btn-primary inline-block">
-            Back home
-          </Link>
-        }
+        action={<BackHomeButton />}
       />
     );
   }
@@ -147,14 +176,10 @@ function GamePageContent() {
   if (!isMember) {
     return (
       <GameStatusCard
-        title="You are not in this room"
-        message="This account is not seated in the room. Join from the lobby with the room password."
+        title={t('game.notInRoom')}
+        message={t('game.notInRoomMessage')}
         variant="warn"
-        action={
-          <Link to={`/join`} className="btn-primary inline-block">
-            Join a room
-          </Link>
-        }
+        action={<BackHomeButton />}
       />
     );
   }
@@ -162,13 +187,9 @@ function GamePageContent() {
   if (currentRoom.status === 'lobby') {
     return (
       <GameStatusCard
-        title="Game not started"
-        message="The room is still in the lobby. Return to ready up and start the match."
-        action={
-          <Link to={`/lobby/${code}`} className="btn-primary inline-block">
-            Go to lobby
-          </Link>
-        }
+        title={t('game.notStarted')}
+        message={t('game.notStartedMessage')}
+        action={<BackHomeButton />}
       />
     );
   }
@@ -176,12 +197,19 @@ function GamePageContent() {
   if (!gameState) {
     return (
       <GameStatusCard
-        title="Waiting for game state…"
-        message="The match is marked as playing but board data has not arrived yet."
+        title={t('game.waitingState')}
+        message={t('game.waitingStateMessage')}
         action={
-          <button type="button" className="btn-secondary" onClick={() => window.location.reload()}>
-            Reload
-          </button>
+          <div className="flex flex-col gap-2 w-full">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => window.location.reload()}
+            >
+              {t('game.reload')}
+            </button>
+            <BackHomeButton className="w-full" />
+          </div>
         }
       />
     );
@@ -190,96 +218,115 @@ function GamePageContent() {
   if (handError) {
     return (
       <GameStatusCard
-        title="Private hand error"
+        title={t('game.handError')}
         message={handError}
         variant="error"
         action={
-          <button type="button" className="btn-primary" onClick={() => window.location.reload()}>
-            Retry
-          </button>
+          <div className="flex flex-col gap-2 w-full">
+            <button type="button" className="btn-primary" onClick={() => window.location.reload()}>
+              {t('game.reload')}
+            </button>
+            <BackHomeButton className="w-full" />
+          </div>
         }
       />
     );
   }
 
-  if (!handLoaded && (gameState.handCounts[playerId] || 0) > 0) {
-    return <GameStatusCard title="Loading your cards…" message="Fetching your private hand securely." />;
+  if (!handLoaded && (gameState.handCounts[playerId] ?? 0) > 0) {
+    return <GameStatusCard title={t('game.loadingHand')} message={t('game.loadingHandMessage')} />;
   }
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 max-w-7xl mx-auto w-full min-h-[60vh]">
+    <div className="game-table-root flex flex-col min-h-[calc(100dvh-3rem)] lg:min-h-[calc(100dvh-3.5rem)]">
       {gameState.winner && <WinOverlay gameState={gameState} />}
 
-      <div className="flex-1 flex flex-col items-center min-w-0">
-        <div className="mb-4 text-center w-full">
+      <header className="game-table-bar flex items-center justify-between gap-2 px-3 py-2 border-b border-wood-800/80 bg-black/50 backdrop-blur-md shrink-0">
+        <div className="min-w-0 flex-1">
           {isMyTurn ? (
-            <div className="text-lg font-bold text-gold-400">{t('game.yourTurn')}</div>
+            <p className="text-sm font-bold text-gold-300 turn-pulse inline-block">{t('game.yourTurn')}</p>
           ) : (
-            <div className="text-sm text-gray-400">
-              {t('game.waiting')} {turnPlayer?.name || '…'}
-            </div>
-          )}
-          <div className="text-xs text-gray-500 mt-1">
-            {currentPlayer?.name} · {currentPlayer?.color} · {t('game.dealRound')}{' '}
-            {gameState.dealState.dealRoundInBlock + 1}
-          </div>
-          {gameError && (
-            <p className="text-xs text-red-300 mt-2 bg-red-950/50 rounded px-2 py-1 inline-block">
-              {gameError}
+            <p className="text-xs text-cream-200/70 truncate">
+              {t('game.waiting')} <span className="text-cream-100">{turnPlayer?.name || '…'}</span>
             </p>
           )}
+          <p className="text-[10px] text-cream-200/40 tabular-nums mt-0.5">
+            {roomCode} · {t('game.dealRound')} {gameState.dealState.dealRoundInBlock + 1}
+          </p>
         </div>
-
-        <GameBoard
-          gameState={gameState}
-          selectedCardId={selectedCardId}
-          playerId={playerId}
-        />
-      </div>
-
-      <div className="lg:w-80 w-full flex flex-col gap-4 shrink-0">
-        <div className="card-container">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('game.hand')}</h3>
-          <PlayerHand
-            cards={myHand}
-            selectedCardId={selectedCardId}
-            onSelectCard={setSelectedCardId}
-            disabled={!isMyTurn}
-          />
-          {myHand.length === 0 && (
-            <p className="text-xs text-gray-500 mt-2">No cards in hand this round.</p>
-          )}
-        </div>
-
-        {isMyTurn ? (
-          legalActions.length > 0 ? (
-            <ActionPanel
-              legalActions={legalActions}
-              selectedCardId={selectedCardId}
-              onSubmitAction={submitAction}
-              playerId={playerId}
-            />
-          ) : (
-            <div className="card-container">
-              <p className="text-sm text-gray-400">No legal moves available for your cards.</p>
-            </div>
-          )
-        ) : (
-          <div className="card-container">
-            <p className="text-sm text-gray-400">Wait for your turn to play a card.</p>
-          </div>
-        )}
-
-        <EventLog events={gameState.eventLog || []} />
-
         <button
           type="button"
-          className="text-sm text-gray-500 hover:text-gray-300"
-          onClick={() => navigate(`/lobby/${code}`)}
+          className="btn-danger text-xs px-3 py-1.5 shrink-0"
+          onClick={handleLeaveGame}
+          disabled={leaveBusy}
         >
-          ← Back to lobby info
+          {t('game.leaveGame')}
         </button>
+      </header>
+
+      {(gameError || leaveWarning) && (
+        <p className="text-xs text-amber-200/90 bg-amber-950/40 px-3 py-1.5 text-center shrink-0">
+          {gameError || leaveWarning}
+        </p>
+      )}
+
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+        <div className="flex-1 flex flex-col min-h-0 min-w-0 p-2 sm:p-3">
+          <div className="shrink-0 min-h-[2.5rem] flex items-center justify-center mb-1">
+            {playerId && <OpponentStrip gameState={gameState} myPlayerId={playerId} slot="top" />}
+          </div>
+
+          <div className="flex-1 grid grid-cols-[minmax(0,3rem)_1fr_minmax(0,3rem)] sm:grid-cols-[4.5rem_1fr_4.5rem] gap-1 min-h-0 items-center">
+            <div className="hidden sm:flex justify-center">
+              {playerId && <OpponentStrip gameState={gameState} myPlayerId={playerId} slot="left" />}
+            </div>
+
+            <div className="board-stage flex items-center justify-center min-h-0 min-w-0">
+              <GameBoard
+                gameState={gameState}
+                selectedCardId={selectedCardId}
+                playerId={playerId}
+                isMyTurn={isMyTurn}
+              />
+            </div>
+
+            <div className="hidden sm:flex justify-center">
+              {playerId && <OpponentStrip gameState={gameState} myPlayerId={playerId} slot="right" />}
+            </div>
+          </div>
+
+          <div className="hand-dock shrink-0 mt-2 pt-2 border-t border-wood-800/60 bg-gradient-to-t from-black/60 to-transparent">
+            <p className="text-[10px] uppercase tracking-wider text-cream-200/45 mb-1.5 text-center sm:text-start px-1">
+              {currentPlayer?.name} · {t('game.hand')}
+            </p>
+            <PlayerHand
+              cards={myHand}
+              selectedCardId={selectedCardId}
+              onSelectCard={setSelectedCardId}
+              disabled={!isMyTurn}
+              docked
+            />
+            <div className="mt-2 max-h-[40vh] overflow-y-auto">
+              {isMyTurn ? (
+                <ActionPanel
+                  legalActions={legalActions}
+                  selectedCardId={selectedCardId}
+                  onSubmitAction={submitAction}
+                  playerId={playerId}
+                />
+              ) : (
+                <p className="text-xs text-cream-200/50 text-center py-2">{t('game.waitTurn')}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <aside className="lg:border-s border-wood-800/50 p-2 lg:p-3 lg:overflow-y-auto shrink-0">
+          <GameSidePanel gameState={gameState} onShowDeckGuide={() => setDeckGuideOpen(true)} />
+        </aside>
       </div>
+
+      <CardGuideModal open={deckGuideOpen} onClose={() => setDeckGuideOpen(false)} />
     </div>
   );
 }

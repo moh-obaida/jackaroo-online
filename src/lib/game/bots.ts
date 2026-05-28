@@ -3,19 +3,19 @@
 // Bot decisions are generated ONCE and saved to Firebase.
 // ============================================================================
 
-import { GameState, LegalAction, BotDifficulty } from '../../types/game';
+import { Card, GameState, LegalAction, BotDifficulty } from '../../types/game';
 import { generateLegalActions } from './legalMoves';
 
 /**
  * Generate a bot's action choice.
  * Called ONCE by the authoritative client and saved to Firebase.
- * Returns the index of the chosen legal action.
  */
 export function generateBotAction(
   state: GameState,
+  botHand: Card[],
   difficulty: BotDifficulty
 ): LegalAction | null {
-  const legalActions = generateLegalActions(state, []);
+  const legalActions = generateLegalActions(state, botHand);
   if (legalActions.length === 0) return null;
 
   switch (difficulty) {

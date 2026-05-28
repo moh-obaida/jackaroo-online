@@ -2,7 +2,8 @@
 // GAME CONTEXT — Game state management with Firebase sync
 // ============================================================================
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   GameState,
   GameAction,
@@ -22,13 +23,16 @@ import {
 } from '../lib/firebase/rooms';
 import { isFirebaseConfigured } from '../lib/firebase/config';
 import { generateLegalActions } from '../lib/game/legalMoves';
-import { applyAction } from '../lib/game/applyAction';
-import { validateAction } from '../lib/game/validators';
-import { initializeDealBlock, dealRound, isDealBlockExhausted, getNextStartingSeat } from '../lib/game/dealing';
+import { generateBotAction } from '../lib/game/bots';
+import { legalActionToGameAction, persistGameAction } from '../lib/game/persistAction';
+import { initializeDealBlock, dealRound } from '../lib/game/dealing';
 import { getCardsPerPlayerForRound } from '../lib/game/cards';
 import { createInitialMarbles } from '../lib/game/board';
-import { pickRandomCardIndex } from '../lib/game/cards';
+
+import { removePlayerFromRoom, leaveWarningMessage } from '../lib/leave/safeLeave';
 import { useApp } from './AppContext';
+
+const BOT_TURN_DELAY_MS = 900;
 
 interface GameContextType {
   room: RoomData | null;
@@ -43,20 +47,68 @@ interface GameContextType {
   startGame: () => Promise<void>;
   loading: boolean;
   error: string | null;
+  isLeaving: boolean;
+  leaveWarning: string | null;
+  clearGameSession: () => void;
+  safeLeaveRoom: (code: string) => Promise<void>;
 }
 
 const GameContext = createContext<GameContextType | null>(null);
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const { user } = useApp();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [room, setRoom] = useState<RoomData | null>(null);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [myHand, setMyHand] = useState<Card[]>([]);
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLeaving, setIsLeaving] = useState(false);
+  const [leaveWarning, setLeaveWarning] = useState<string | null>(null);
 
   const playerId = user?.uid || null;
+  const gameStateRef = useRef(gameState);
+  gameStateRef.current = gameState;
+  const scheduledBotTurnRef = useRef<string | null>(null);
+  const botTurnInFlightRef = useRef(false);
+
+  const clearGameSession = useCallback(() => {
+    setRoomCode(null);
+    setRoom(null);
+    setGameState(null);
+    setMyHand([]);
+    setError(null);
+    scheduledBotTurnRef.current = null;
+    botTurnInFlightRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    if (location.pathname === '/') {
+      setIsLeaving(false);
+    }
+  }, [location.pathname]);
+
+  const safeLeaveRoom = useCallback(
+    async (code: string) => {
+      const trimmed = code?.trim();
+      setIsLeaving(true);
+      clearGameSession();
+
+      if (trimmed && playerId) {
+        try {
+          await removePlayerFromRoom({ roomCode: trimmed, playerUid: playerId });
+        } catch (err) {
+          console.warn('safeLeaveRoom: Firebase remove failed', err);
+          setLeaveWarning(leaveWarningMessage(err));
+        }
+      }
+
+      navigate('/', { replace: true });
+    },
+    [playerId, clearGameSession, navigate]
+  );
 
   // Subscribe to room
   useEffect(() => {
@@ -125,6 +177,79 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     return room.players[playerId] || null;
   }, [room, playerId]);
 
+  // Room maker runs bot turns (authoritative client).
+  useEffect(() => {
+    if (isLeaving) return;
+    if (!roomCode || !room || !playerId || !gameState) return;
+    if (room.status !== 'playing' || gameState.winner) return;
+    if (room.roomMakerUid !== playerId) return;
+
+    const turnPlayer = gameState.players.find((p) => p.id === gameState.currentTurnPlayerId);
+    if (!turnPlayer?.isBot) {
+      scheduledBotTurnRef.current = null;
+      return;
+    }
+
+    const turnKey = `${gameState.turnNumber}:${gameState.currentTurnPlayerId}`;
+    if (scheduledBotTurnRef.current === turnKey || botTurnInFlightRef.current) return;
+    scheduledBotTurnRef.current = turnKey;
+
+    const timer = setTimeout(async () => {
+      const state = gameStateRef.current;
+      if (!state || state.winner) return;
+      if (state.currentTurnPlayerId !== turnPlayer.id) return;
+      if (botTurnInFlightRef.current) return;
+
+      botTurnInFlightRef.current = true;
+      try {
+        const botHand = await getPrivateHand(roomCode, turnPlayer.id);
+        const difficulty =
+          turnPlayer.botDifficulty || room.botSettings?.difficulty || 'very_easy';
+
+        let choice = generateBotAction(state, botHand, difficulty);
+        if (!choice) {
+          const fallback = generateLegalActions(state, botHand);
+          choice =
+            fallback.find((a) => a.type === 'skip_no_cards') ||
+            fallback.find((a) => a.type === 'burn_all_cards') ||
+            fallback[0] ||
+            null;
+        }
+        if (!choice) {
+          scheduledBotTurnRef.current = null;
+          setError('Bot has no legal move');
+          return;
+        }
+
+        const result = await persistGameAction(
+          roomCode,
+          state,
+          legalActionToGameAction(choice, turnPlayer.id),
+          botHand
+        );
+        if (!result.ok) {
+          scheduledBotTurnRef.current = null;
+          setError(result.error);
+        }
+      } catch (err: unknown) {
+        scheduledBotTurnRef.current = null;
+        setError(err instanceof Error ? err.message : 'Bot turn failed');
+      } finally {
+        botTurnInFlightRef.current = false;
+      }
+    }, BOT_TURN_DELAY_MS);
+
+    return () => clearTimeout(timer);
+  }, [
+    roomCode,
+    room,
+    playerId,
+    gameState?.currentTurnPlayerId,
+    gameState?.turnNumber,
+    gameState?.winner,
+    isLeaving,
+  ]);
+
   // Start game
   const startGame = useCallback(async () => {
     if (!roomCode || !room || !playerId) return;
@@ -167,7 +292,22 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         handCounts: Object.fromEntries(Object.entries(hands).map(([pid,cards]) => [pid, cards.length])),
         deck: remainingDeck,
         discardPile: [],
-        eventLog: [],
+        eventLog: [
+          {
+            id: `event_start_${Date.now()}`,
+            timestamp: Date.now(),
+            type: 'deal',
+            playerId,
+            description: `Game started in ${room.mode}.`,
+          },
+          {
+            id: `event_deal_${Date.now() + 1}`,
+            timestamp: Date.now() + 1,
+            type: 'deal',
+            playerId,
+            description: `Cards dealt for round 1.`,
+          },
+        ],
         winner: null,
         turnNumber: 0,
       };
@@ -189,85 +329,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     }
   }, [roomCode, room, playerId]);
 
-  // Submit action
+  // Submit action (human player on their turn)
   const submitAction = useCallback(
     async (action: GameAction) => {
       if (!gameState || !roomCode) return;
 
-      // Validate
-      const validation = validateAction(gameState, action, myHand);
-      if (!validation.valid) {
-        setError(validation.error || 'Invalid action');
-        return;
-      }
-
-      // For burn, the authoritative updater picks the random card exactly once.
-      // Non-burn actions only need the acting player's private hand.
-      let normalizedAction = { ...action };
-      let burnTargetHand: Card[] = [];
-      if (action.type === 'burn_next_player' && action.burnTargetPlayerId) {
-        burnTargetHand = await getPrivateHand(roomCode, action.burnTargetPlayerId);
-        if (burnTargetHand.length === 0) {
-          setError('Target player has no cards to burn');
-          return;
-        }
-        const burnIndex = pickRandomCardIndex(burnTargetHand.length);
-        normalizedAction = {
-          ...action,
-          burnCardIndex: burnIndex,
-          burnCardId: burnTargetHand[burnIndex]?.id,
-        };
-      }
-
-      const applied = applyAction(gameState, normalizedAction, myHand, burnTargetHand);
-      let newState = applied.state;
-      const newPrivateHands: Record<string, Card[]> = { [action.playerId]: applied.currentPlayerHand };
-      if (normalizedAction.type === 'burn_next_player' && normalizedAction.burnTargetPlayerId) {
-        newPrivateHands[normalizedAction.burnTargetPlayerId] = applied.burnTargetHand;
-      }
-
-      if (Object.values(newState.handCounts).every((count) => count === 0)) {
-        const nextRound = gameState.dealState.dealRoundInBlock + 1;
-        let activeDeck = [...newState.deck];
-        let dealPattern = gameState.dealState.dealPattern;
-        let roundIndex = nextRound;
-        let startingSeat = gameState.dealState.startingSeat;
-        let dealBlockNum = gameState.dealState.dealBlock;
-        if (isDealBlockExhausted(gameState.mode, nextRound)) {
-          dealBlockNum += 1;
-          startingSeat = getNextStartingSeat(gameState.dealState.startingSeat, gameState.players.length);
-          const nextBlock = initializeDealBlock(gameState.mode, startingSeat);
-          activeDeck = nextBlock.deck;
-          dealPattern = nextBlock.dealPattern;
-          roundIndex = 0;
-        }
-        const dealt = dealRound(activeDeck, gameState.players, gameState.mode, dealPattern, roundIndex);
-        Object.assign(newPrivateHands, dealt.hands);
-        newState = {
-          ...newState,
-          deck: dealt.remainingDeck,
-          dealState: {
-            ...newState.dealState,
-            dealBlock: dealBlockNum,
-            dealRoundInBlock: roundIndex,
-            startingSeat,
-            dealPattern,
-          },
-        };
-        newState.handCounts = Object.fromEntries(Object.entries(newPrivateHands).map(([pid, cards]) => [pid, cards.length]));
-      }
-
-      // Save to Firebase (authoritative update)
-      await saveGameState(roomCode, newState);
-
-      // Update private hands
-      for (const [pid, cards] of Object.entries(newPrivateHands)) {
-        await savePrivateHand(roomCode, pid, cards);
-      }
-
-      // Check if game is won
-      if (newState.winner) {
-        await updateRoomStatus(roomCode, 'finished');
+      const result = await persistGameAction(roomCode, gameState, action, myHand);
+      if (!result.ok) {
+        setError(result.error);
       }
     },
     [gameState, roomCode, myHand]
@@ -286,6 +355,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     startGame,
     loading,
     error,
+    isLeaving,
+    leaveWarning,
+    clearGameSession,
+    safeLeaveRoom,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

@@ -4,9 +4,10 @@ import { useApp } from '../../context/AppContext';
 
 interface EventLogProps {
   events: GameEvent[];
+  compact?: boolean;
 }
 
-export function EventLog({ events }: EventLogProps) {
+export function EventLog({ events, compact = false }: EventLogProps) {
   const { t } = useApp();
 
   const getEventIcon = (type: string): string => {
@@ -26,17 +27,20 @@ export function EventLog({ events }: EventLogProps) {
     }
   };
 
+  const wrapperClass = compact ? 'game-panel-compact' : 'card-container';
+  const maxH = compact ? 'max-h-24' : 'max-h-40';
+
   return (
-    <div className="card-container">
-      <h3 className="text-sm font-semibold text-gray-300 mb-2">{t('game.eventLog')}</h3>
-      <div className="space-y-1 max-h-40 overflow-y-auto">
+    <div className={wrapperClass}>
+      <h3 className="text-xs font-semibold text-cream-200/70 mb-1.5">{t('game.eventLog')}</h3>
+      <div className={`space-y-1 ${maxH} overflow-y-auto`}>
         {events.length === 0 ? (
-          <p className="text-xs text-gray-500">No events yet</p>
+          <p className="text-[10px] text-cream-200/40">—</p>
         ) : (
-          [...events].reverse().slice(0, 20).map((event) => (
-            <div key={event.id} className="flex items-start gap-2 text-xs">
-              <span>{getEventIcon(event.type)}</span>
-              <span className="text-gray-400">{event.description}</span>
+          [...events].reverse().slice(0, compact ? 8 : 20).map((event) => (
+            <div key={event.id} className="flex items-start gap-1.5 text-[10px] sm:text-xs">
+              <span className="shrink-0">{getEventIcon(event.type)}</span>
+              <span className="text-cream-200/55 leading-snug">{event.description}</span>
             </div>
           ))
         )}

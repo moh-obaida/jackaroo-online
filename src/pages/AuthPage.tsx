@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { signInWithEmail, registerWithEmail, signInAsGuest } from '../lib/firebase/auth';
+import { BackHomeButton } from '../components/common/BackHomeButton';
 
 export function AuthPage() {
   const { t } = useApp();
@@ -45,11 +46,12 @@ export function AuthPage() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center px-4 py-8">
+    <div className="page-shell flex flex-col items-center">
+      <div className="w-full max-w-md mb-4">
+        <BackHomeButton />
+      </div>
       <div className="card-container w-full max-w-md">
-        <h1 className="text-2xl font-bold text-gold-400 mb-6">
-          {isLogin ? t('auth.login') : t('auth.register')}
-        </h1>
+        <h1 className="page-title">{isLogin ? t('auth.login') : t('auth.register')}</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
