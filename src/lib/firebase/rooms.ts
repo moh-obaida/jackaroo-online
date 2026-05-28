@@ -11,7 +11,6 @@ import {
   update,
   remove,
   onValue,
-  runTransaction,
   DataSnapshot,
 } from 'firebase/database';
 import { database, isFirebaseConfigured } from './config';
@@ -236,15 +235,15 @@ export async function joinRoom(params: {
     guest: params.playerGuest,
   };
 
-  const txnResult = await runTransaction(playerRef, (current) => {
-    if (current) {
-      return { ...current, connected: true };
+  try {
+    await set(playerRef, newPlayer);
+  } catch {
+    const afterFail = await get(playerRef);
+    if (afterFail.exists() && (afterFail.val() as PlayerState).uid === params.playerUid) {
+      await set(ref(database, `rooms/${params.code}/players/${params.playerUid}/connected`), true);
+    } else {
+      return { success: false, error: 'Room is full or join denied' };
     }
-    return newPlayer;
-  });
-
-  if (!txnResult.committed) {
-    return { success: false, error: 'Room is full or join denied' };
   }
 
   const updateRef = ref(database, `rooms/${params.code}`);
