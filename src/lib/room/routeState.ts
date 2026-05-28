@@ -1,5 +1,6 @@
 import { GameState, RoomData } from '../../types/game';
 import { hasLeft } from './sessionMarks';
+import { isRoomExpired } from './roomExpiry';
 
 export type RoomRoutePage = 'lobby' | 'game';
 
@@ -11,6 +12,7 @@ export type RoomRouteState =
   | { kind: 'leaving' }
   | { kind: 'loading_room' }
   | { kind: 'room_not_found' }
+  | { kind: 'room_expired' }
   | { kind: 'left_room' }
   | { kind: 'not_member' }
   | { kind: 'redirect_to_game' }
@@ -60,6 +62,7 @@ export function resolveRoomRouteState(input: ResolveRoomRouteInput): RoomRouteSt
   if (roomCode && hasLeft(roomCode)) return { kind: 'left_room' };
   if (!roomLoaded) return { kind: 'loading_room' };
   if (!room) return { kind: 'room_not_found' };
+  if (isRoomExpired(room)) return { kind: 'room_expired' };
 
   const isMember = Boolean(playerId && room.players?.[playerId]);
   if (!isMember) return { kind: 'not_member' };

@@ -22,6 +22,33 @@ export function getNextTurnPlayer(state: GameState): PlayerState | null {
 }
 
 /**
+ * Next turn holder when the current player leaves mid-game.
+ * Walks seat order clockwise from the leaver's seat among players still active.
+ */
+export function getNextTurnPlayerAfterLeave(
+  state: GameState,
+  leavingPlayerId: string
+): PlayerState | null {
+  const leaver = state.players.find((p) => p.id === leavingPlayerId);
+  if (!leaver) return null;
+
+  const willRemainActive = (p: PlayerState) =>
+    p.id !== leavingPlayerId && (p.connected || p.isBot);
+
+  const sortedBySeat = [...state.players].sort((a, b) => a.seat - b.seat);
+  const leaverIdx = sortedBySeat.findIndex((p) => p.id === leavingPlayerId);
+  if (leaverIdx === -1) return null;
+
+  const n = sortedBySeat.length;
+  for (let i = 1; i < n; i++) {
+    const candidate = sortedBySeat[(leaverIdx + i) % n];
+    if (willRemainActive(candidate)) return candidate;
+  }
+
+  return null;
+}
+
+/**
  * Get the player whose turn it is based on seat number.
  */
 export function getPlayerBySeat(state: GameState, seat: number): PlayerState | undefined {

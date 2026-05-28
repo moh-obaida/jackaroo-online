@@ -7,13 +7,19 @@ type LobbyRulesSummaryProps = {
   rulesetType: 'obaida_classic' | 'custom';
   customLabel?: string;
   compact?: boolean;
+  showDeckLink?: boolean;
 };
 
 /**
  * Manus §13 — players see rules summary before readying up.
  * Obaida Classic: locked family rules + link to static deck reference (not live deck).
  */
-export function LobbyRulesSummary({ rulesetType, customLabel, compact = false }: LobbyRulesSummaryProps) {
+export function LobbyRulesSummary({
+  rulesetType,
+  customLabel,
+  compact = false,
+  showDeckLink = true,
+}: LobbyRulesSummaryProps) {
   const { t } = useApp();
   const [guideOpen, setGuideOpen] = useState(false);
 
@@ -36,11 +42,13 @@ export function LobbyRulesSummary({ rulesetType, customLabel, compact = false }:
             {customLabel || t('create.ruleset.custom')}
           </p>
         )}
-        <Button variant="ghost" size="sm" onClick={() => setGuideOpen(true)} className="mt-2">
-          {t('game.showDeck')}
-        </Button>
+        {showDeckLink && (
+          <Button variant="ghost" size="sm" onClick={() => setGuideOpen(true)} className="mt-2">
+            {t('game.showDeck')}
+          </Button>
+        )}
       </div>
-      <CardGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
+      {showDeckLink && <CardGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />}
     </>
   );
 }

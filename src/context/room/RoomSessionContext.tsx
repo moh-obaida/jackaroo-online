@@ -141,9 +141,7 @@ export function RoomSessionProvider({ children }: { children: React.ReactNode })
           await removePlayerFromRoom({ roomCode: trimmed, playerUid: uid });
         } catch (err) {
           console.warn('safeLeaveRoom: Firebase remove failed', err);
-          if (acceptSessionUpdate(sessionEpochRef.current, null)) {
-            setLeaveWarning(leaveWarningMessage(err));
-          }
+          setLeaveWarning(leaveWarningMessage(err));
         }
       }
 

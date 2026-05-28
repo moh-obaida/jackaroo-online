@@ -6,7 +6,6 @@ import { PageFrame } from '../components/ui/PageFrame';
 import { Alert } from '../components/ui/Alert';
 import { Button } from '../components/ui/Button';
 import { JakarooIcon } from '../components/brand/JakarooIcon';
-import { JakarooWordmark } from '../components/brand/JakarooWordmark';
 import { JackarooBoardPreview } from '../components/home/JackarooBoardPreview';
 import { HomeFeatureIcon, HomeFeatureKey } from '../components/home/HomeFeatureIcon';
 
@@ -37,30 +36,31 @@ export function HomePage() {
       <section className="landing-hero landing-hero--jackaroo" aria-labelledby="home-hero-heading">
         <JackarooBoardPreview variant="watermark" className="landing-hero__watermark" />
         <div className="landing-hero__felt-pattern" aria-hidden />
+        <span className="landing-hero__corner landing-hero__corner--tl" aria-hidden />
+        <span className="landing-hero__corner landing-hero__corner--br" aria-hidden />
 
         <div className="landing-hero__grid">
           <div className="landing-hero__copy">
             <p className="landing-hero__eyebrow">{t('home.eyebrow')}</p>
 
-            <div className="landing-hero__brand hidden md:block">
-              <JakarooWordmark className="landing-hero__wordmark mx-auto md:mx-0" />
-            </div>
-
-            <div className="landing-hero__brand-mobile md:hidden flex items-center gap-3 justify-center mb-2">
+            <div className="landing-hero__brand-mobile md:hidden flex items-center gap-3 justify-center mb-1">
               <JakarooIcon size="lg" />
+              <h1 id="home-hero-heading" className="landing-hero__title landing-hero__title--mobile">
+                {t('app.name')}
+              </h1>
             </div>
 
-            <h1 id="home-hero-heading" className="sr-only">
+            <h1 id="home-hero-heading" className="landing-hero__title hidden md:block">
               {t('app.name')}
             </h1>
 
             <p className="landing-hero__tagline">{t('app.tagline')}</p>
 
             <div className="landing-hero__ctas">
-              <Link to="/create" className="btn-primary flex-1 text-center py-2.5">
+              <Link to="/create" className="btn-game-primary landing-hero__cta-primary">
                 {t('home.createTable')}
               </Link>
-              <Link to="/join" className="btn-secondary flex-1 text-center py-2.5">
+              <Link to="/join" className="btn-game-secondary landing-hero__cta-secondary">
                 {t('home.joinTable')}
               </Link>
             </div>
@@ -78,11 +78,14 @@ export function HomePage() {
                 )}
               </p>
             ) : (
-              <div className="landing-hero__auth flex flex-wrap items-center justify-center md:justify-start gap-2 text-sm">
-                <Link to="/auth" className="btn-secondary py-1.5 px-4 text-sm">
+              <div className="landing-hero__auth">
+                <Link to="/auth" className="landing-hero__auth-link">
                   {t('home.login')}
                 </Link>
-                <Button variant="ghost" size="sm" onClick={handleGuest}>
+                <span className="landing-hero__auth-sep" aria-hidden>
+                  ·
+                </span>
+                <Button variant="ghost" size="sm" className="landing-hero__auth-guest" onClick={handleGuest}>
                   {t('home.guest')}
                 </Button>
               </div>

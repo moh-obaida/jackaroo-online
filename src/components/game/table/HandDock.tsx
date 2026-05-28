@@ -5,13 +5,12 @@ import { PlayActionSheet } from '../play/PlayActionSheet';
 
 type HandDockProps = {
   playerName: string;
-  cards: Card[];
+  hand: Card[];
   selectedCardId: string | null;
   playableCardIds?: string[];
   onSelectCard: (id: string | null) => void;
   disabled: boolean;
   legalActions: LegalAction[];
-  hand: Card[];
   showAllActions: boolean;
   onToggleShowAll: (open: boolean) => void;
   onSubmitAction: (action: GameAction) => Promise<void>;
@@ -22,13 +21,12 @@ type HandDockProps = {
 /** Uno-style bottom hand rail — cards + step-guided actions, not a form panel. */
 export function HandDock({
   playerName,
-  cards,
+  hand,
   selectedCardId,
   playableCardIds,
   onSelectCard,
   disabled,
   legalActions,
-  hand,
   showAllActions,
   onToggleShowAll,
   onSubmitAction,
@@ -39,7 +37,7 @@ export function HandDock({
     <div className={`hand-dock-panel ${selectedCardId ? 'hand-dock-panel--card-selected' : ''}`}>
       <div className="hand-dock-panel__cards">
         <PlayerHand
-          cards={cards}
+          cards={hand}
           selectedCardId={selectedCardId}
           playableCardIds={playableCardIds}
           onSelectCard={onSelectCard}

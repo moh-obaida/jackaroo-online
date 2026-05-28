@@ -28,7 +28,8 @@ import {
   Card,
 } from '../../types/game';
 import { normalizeCards, normalizeGameState } from '../game/normalize';
-import { getNextTurnPlayer } from '../game/turns';
+import { getNextTurnPlayerAfterLeave } from '../game/turns';
+import { isRoomExpired } from '../room/roomExpiry';
 
 // ============================================================================
 // ROOM CODE GENERATION — Numeric only, saved to Firebase
@@ -166,6 +167,10 @@ export async function joinRoom(params: {
 
   const room = snapshot.val() as RoomData;
 
+  if (isRoomExpired(room)) {
+    return { success: false, error: 'Room expired' };
+  }
+
   // Verify password
   const passwordValid = await verifyPassword(params.password, room.passwordHash);
   if (!passwordValid) {
@@ -263,7 +268,6 @@ export async function leaveRoom(code: string, playerUid: string): Promise<void> 
 
     const updates: Record<string, unknown> = {
       [`rooms/${code}/players/${playerUid}/connected`]: false,
-      [`rooms/${code}/updatedAt`]: now,
     };
 
     if (idx >= 0) {
@@ -274,7 +278,7 @@ export async function leaveRoom(code: string, playerUid: string): Promise<void> 
           i === idx ? { ...p, connected: false } : p
         );
         const stateAfterLeave: GameState = { ...gameState, players: playersAfterLeave };
-        const next = getNextTurnPlayer(stateAfterLeave);
+        const next = getNextTurnPlayerAfterLeave(stateAfterLeave, playerUid);
         if (next) {
           updates[`rooms/${code}/gameState/currentTurnPlayerId`] = next.id;
           updates[`rooms/${code}/gameState/currentSeat`] = next.seat;
@@ -284,6 +288,9 @@ export async function leaveRoom(code: string, playerUid: string): Promise<void> 
     }
 
     await update(ref(database), updates);
+    void update(roomRef, { updatedAt: now }).catch((err) => {
+      console.warn('leaveRoom: updatedAt touch skipped', err);
+    });
     return;
   }
 

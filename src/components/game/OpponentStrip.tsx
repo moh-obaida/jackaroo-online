@@ -1,6 +1,7 @@
 import React from 'react';
 import { GameState, PlayerState } from '../../types/game';
 import { TableSeat } from './table/TableSeat';
+import { VoiceParticipantStatus } from '../../lib/voice/types';
 
 function opponentForSlot(
   players: PlayerState[],
@@ -24,14 +25,24 @@ type OpponentStripProps = {
   gameState: GameState;
   myPlayerId: string;
   slot: 'top' | 'left' | 'right';
+  getVoiceStatus?: (playerId: string) => VoiceParticipantStatus;
 };
 
-export function OpponentStrip({ gameState, myPlayerId, slot }: OpponentStripProps) {
+export function OpponentStrip({ gameState, myPlayerId, slot, getVoiceStatus }: OpponentStripProps) {
   const myPlayer = gameState.players.find((p) => p.id === myPlayerId);
   if (!myPlayer) return null;
 
   const opponent = opponentForSlot(gameState.players, myPlayer.seat, slot);
   if (!opponent || opponent.id === myPlayerId) return null;
 
-  return <TableSeat player={opponent} gameState={gameState} compact={slot !== 'top'} />;
+  const voiceStatus = getVoiceStatus?.(opponent.id);
+
+  return (
+    <TableSeat
+      player={opponent}
+      gameState={gameState}
+      compact={slot !== 'top'}
+      voiceStatus={voiceStatus}
+    />
+  );
 }

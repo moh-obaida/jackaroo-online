@@ -12,6 +12,7 @@ import { Button } from '../components/ui/Button';
 function mapJoinError(message: string, t: (key: string) => string): string {
   const lower = message.toLowerCase();
   if (lower.includes('not found')) return t('join.error.notFound');
+  if (lower.includes('expired')) return t('join.error.expired');
   if (lower.includes('password') || lower.includes('incorrect')) return t('join.error.wrongPassword');
   if (lower.includes('full')) return t('join.error.full');
   if (lower.includes('progress') || lower.includes('started')) return t('join.error.inProgress');
@@ -102,7 +103,8 @@ export function JoinRoomPage() {
 
         <FormField label={t('join.password')}>
           <TextInput
-            type="text"
+            type="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder={t('join.passwordPlaceholder')}

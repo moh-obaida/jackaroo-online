@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GameState } from '../../types/game';
 import { useApp } from '../../context/AppContext';
@@ -12,6 +12,7 @@ interface WinOverlayProps {
 export function WinOverlay({ gameState }: WinOverlayProps) {
   const { t } = useApp();
   const navigate = useNavigate();
+  const titleId = useId();
 
   if (!gameState.winner) return null;
 
@@ -20,12 +21,14 @@ export function WinOverlay({ gameState }: WinOverlayProps) {
     .join(', ');
 
   return (
-    <div className="win-overlay-v2" role="dialog" aria-modal="true">
+    <div className="win-overlay-v2" role="dialog" aria-modal="true" aria-labelledby={titleId}>
       <Panel glow className="text-center max-w-md mx-4">
         <div className="text-4xl mb-4" aria-hidden>
           🏆
         </div>
-        <h2 className="text-2xl font-bold text-gold-400 mb-2">{t('game.winner')}</h2>
+        <h2 id={titleId} className="text-2xl font-bold text-gold-400 mb-2">
+          {t('game.winner')}
+        </h2>
         <p className="text-lg text-cream-100 mb-1">
           {gameState.winner.winnerTeam
             ? t('game.teamWins', { team: gameState.winner.winnerTeam })

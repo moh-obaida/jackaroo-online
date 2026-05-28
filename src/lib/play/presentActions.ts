@@ -85,7 +85,10 @@ export function presentLegalActions(
 
   const burnForCard =
     legalActions.find((a) => a.type === 'burn_next_player' && a.cardId === selectedCardId) ?? null;
-  const cardMoves = actionsForCard(legalActions, selectedCardId);
+  let cardMoves = actionsForCard(legalActions, selectedCardId);
+  if (burnForCard) {
+    cardMoves = cardMoves.filter((a) => a.type !== 'burn_next_player');
+  }
   const ordered = burnForCard ? [burnForCard, ...cardMoves] : cardMoves;
   const primary = ordered[0] ?? null;
   const others = ordered.slice(1);

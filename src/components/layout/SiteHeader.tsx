@@ -25,7 +25,6 @@ export function SiteHeader() {
           <JakarooIcon size="md" className="site-header__icon" />
           <span className="site-header__name">{t('app.name')}</span>
         </Link>
-
         <div className="site-header__end">
           {onRoomRoute && <ConnectionBar />}
 

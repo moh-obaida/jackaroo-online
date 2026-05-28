@@ -18,8 +18,7 @@ export function ConnectionBar() {
   if (!firebaseReady) status = 'offline';
   else if (isLeaving) status = 'leaving';
   else if (roomCode && !roomLoaded) status = 'connecting';
-  else if (roomCode && room) status = 'live';
-  else if (firebaseReady) status = 'live';
+  else if (roomCode && roomLoaded && room) status = 'live';
 
   const label =
     status === 'offline'

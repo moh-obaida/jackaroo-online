@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { GameState, GameAction, LegalAction, Card } from '../../../types/game';
 import { usePlayTurn } from '../../../hooks/usePlayTurn';
+import { useVoiceChat } from '../../../hooks/useVoiceChat';
 import { getHighlightPositionsForCard } from '../../../lib/play/boardHighlights';
 import { getPlayableCardIds } from '../../../lib/play/presentActions';
 import { CardGuideModal } from '../../cards/CardGuideModal';
@@ -40,6 +41,7 @@ export function FullScreenGameTable({
   leaveWarning,
 }: FullScreenGameTableProps) {
   const [deckGuideOpen, setDeckGuideOpen] = useState(false);
+  const voice = useVoiceChat(roomCode, playerId);
 
   const turnKey = `${gameState.currentTurnPlayerId}:${gameState.dealState.dealRoundInBlock}:${legalActions.length}`;
   const { selectedCardId, setSelectedCardId, showAllActions, setShowAllActions } = usePlayTurn(
@@ -80,6 +82,13 @@ export function FullScreenGameTable({
         turnPlayerName={turnPlayer?.name || ''}
         onLeave={onLeave}
         leaveBusy={leaveBusy}
+        voiceConnectionState={voice.connectionState}
+        voiceSupported={voice.isSupported}
+        onVoiceJoin={voice.joinVoice}
+        onVoiceLeave={voice.leaveVoice}
+        onVoiceMute={voice.mute}
+        onVoiceUnmute={voice.unmute}
+        onVoiceRetry={voice.retryJoin}
       />
 
       {(gameError || leaveWarning) && (
@@ -96,6 +105,7 @@ export function FullScreenGameTable({
           highlightPositions={highlightPositions}
           isMyTurn={isMyTurn}
           onShowDeckGuide={() => setDeckGuideOpen(true)}
+          getVoiceStatus={voice.getParticipantStatus}
         />
       </div>
 
@@ -105,13 +115,12 @@ export function FullScreenGameTable({
         </div>
         <HandDock
           playerName={currentPlayer?.name || ''}
-          cards={myHand}
+          hand={myHand}
           selectedCardId={selectedCardId}
           playableCardIds={playableCardIds}
           onSelectCard={setSelectedCardId}
           disabled={!isMyTurn}
           legalActions={legalActions}
-          hand={myHand}
           showAllActions={showAllActions}
           onToggleShowAll={setShowAllActions}
           onSubmitAction={onSubmitAction}

@@ -1,10 +1,13 @@
 import React from 'react';
-import { PlayerState } from '../../types/game';
+import { PlayerState, GameMode } from '../../types/game';
 import { useApp } from '../../context/AppContext';
+import { BoardPreviewVisual } from '../board/boardVisual';
+import { VoiceStatusBadge } from '../voice/VoiceStatusBadge';
+import { VoiceParticipantStatus } from '../../lib/voice/types';
 
 type LobbySeatRingProps = {
-  roomCode: string;
   maxPlayers: number;
+  mode: GameMode;
   players: PlayerState[];
   roomMakerUid: string;
   myPlayerId: string | null;
@@ -12,13 +15,23 @@ type LobbySeatRingProps = {
   onKick: (uid: string) => void;
   onAddBot: () => void;
   botsEnabled: boolean;
-  getColorClass: (color: string) => string;
+  getVoiceStatus?: (playerId: string) => VoiceParticipantStatus;
 };
 
-/** Seats arranged around a felt circle — table-first lobby, not a list. */
+function seatColorClass(color: string, filled: boolean): string {
+  const base: Record<string, string> = {
+    black: 'lobby-seat--black',
+    green: 'lobby-seat--green',
+    blue: 'lobby-seat--blue',
+    white: 'lobby-seat--white',
+  };
+  return filled ? base[color] ?? 'lobby-seat--neutral' : 'lobby-seat--empty';
+}
+
+/** Seats around a mini board — table-first lobby. */
 export function LobbySeatRing({
-  roomCode,
   maxPlayers,
+  mode,
   players,
   roomMakerUid,
   myPlayerId,
@@ -26,44 +39,44 @@ export function LobbySeatRing({
   onKick,
   onAddBot,
   botsEnabled,
-  getColorClass,
+  getVoiceStatus,
 }: LobbySeatRingProps) {
   const { t } = useApp();
 
   const seatPositions: { top: string; left: string }[] =
     maxPlayers === 2
       ? [
-          { top: '8%', left: '50%' },
-          { top: '88%', left: '50%' },
+          { top: '6%', left: '50%' },
+          { top: '90%', left: '50%' },
         ]
       : maxPlayers === 3
         ? [
-            { top: '10%', left: '50%' },
-            { top: '78%', left: '18%' },
-            { top: '78%', left: '82%' },
+            { top: '8%', left: '50%' },
+            { top: '82%', left: '16%' },
+            { top: '82%', left: '84%' },
           ]
         : [
-            { top: '8%', left: '50%' },
-            { top: '50%', left: '92%' },
-            { top: '88%', left: '50%' },
-            { top: '50%', left: '8%' },
+            { top: '5%', left: '50%' },
+            { top: '50%', left: '94%' },
+            { top: '90%', left: '50%' },
+            { top: '50%', left: '6%' },
           ];
+
+  const showTeams = mode === '4p_teams';
 
   return (
     <div className="lobby-table">
       <div className="lobby-table__felt" aria-hidden />
-      <div className="lobby-table__code">
-        <span className="text-[10px] uppercase tracking-widest text-cream-200/40">
-          {t('lobby.code')}
-        </span>
-        <span className="text-3xl font-mono font-bold text-gold-300 tabular-nums mt-1">
-          {roomCode}
-        </span>
+      <div className="lobby-table__board jkr-layer-board">
+        <BoardPreviewVisual size={maxPlayers >= 4 ? 240 : 220} />
       </div>
 
       {Array.from({ length: maxPlayers }, (_, seatIndex) => {
         const pos = seatPositions[seatIndex] || seatPositions[0];
         const player = players.find((p) => p.seat === seatIndex);
+        const isReady = Boolean(player?.ready || player?.isBot);
+        const colorClass = seatColorClass(player?.color ?? '', Boolean(player));
+        const voiceStatus = player && getVoiceStatus ? getVoiceStatus(player.id) : 'not_joined';
 
         return (
           <div
@@ -72,37 +85,44 @@ export function LobbySeatRing({
             style={{ top: pos.top, left: pos.left }}
           >
             <div
-              className={`rounded-xl border p-2.5 text-xs shadow-lg ${
-                player
-                  ? getColorClass(player.color)
-                  : 'bg-black/40 border-wood-700/60 border-dashed text-cream-200/40'
+              className={`lobby-seat ${colorClass} ${isReady ? 'lobby-seat--ready' : ''} ${
+                player ? '' : 'lobby-seat--vacant'
               }`}
             >
-              <p className="text-[9px] uppercase opacity-60 mb-0.5">
+              <p className="lobby-seat__label">
                 {t('lobby.seat')} {seatIndex + 1}
               </p>
               {player ? (
                 <>
-                  <p className="font-semibold truncate">{player.name}</p>
-                  <div className="flex items-center justify-between gap-1 mt-1">
+                  <p className="lobby-seat__name">{player.name}</p>
+                  <div className="lobby-seat__badges">
+                    {getVoiceStatus && (
+                      <VoiceStatusBadge status={voiceStatus} className="lobby-seat__voice-badge" />
+                    )}
+                    {player.isBot && (
+                      <span className="lobby-seat__badge lobby-seat__badge--bot">BOT</span>
+                    )}
+                    {showTeams && player.team && (
+                      <span className="lobby-seat__badge lobby-seat__badge--team">
+                        {t('lobby.team')} {player.team}
+                      </span>
+                    )}
                     <span
-                      className={`text-[9px] px-1.5 py-0.5 rounded ${
-                        player.ready || player.isBot
-                          ? 'bg-emerald-900/80 text-emerald-300'
-                          : 'bg-red-950/80 text-red-300'
+                      className={`lobby-seat__badge ${
+                        isReady ? 'lobby-seat__badge--ready' : 'lobby-seat__badge--waiting'
                       }`}
                     >
-                      {player.ready || player.isBot ? t('lobby.ready') : t('lobby.notReady')}
+                      {isReady ? t('lobby.ready') : t('lobby.notReady')}
                     </span>
-                    {player.id === roomMakerUid && (
-                      <span className="text-[9px] text-gold-400">{t('lobby.roomMaker')}</span>
-                    )}
                   </div>
-                  {isRoomMaker && player.id !== myPlayerId && (
+                  {player.id === roomMakerUid && (
+                    <span className="lobby-seat__host">{t('lobby.roomMaker')}</span>
+                  )}
+                  {isRoomMaker && myPlayerId != null && player.id !== myPlayerId && !player.isBot && (
                     <button
                       type="button"
                       onClick={() => onKick(player.id)}
-                      className="text-[9px] text-red-400 mt-1 hover:text-red-300"
+                      className="lobby-seat__kick"
                     >
                       {t('lobby.kick')}
                     </button>
@@ -110,14 +130,10 @@ export function LobbySeatRing({
                 </>
               ) : (
                 <>
-                  <p className="italic opacity-70">{t('lobby.waiting')}</p>
+                  <p className="lobby-seat__vacant">{t('lobby.waiting')}</p>
                   {isRoomMaker && botsEnabled && (
-                    <button
-                      type="button"
-                      onClick={onAddBot}
-                      className="text-[9px] text-gold-400 mt-1 hover:text-gold-300"
-                    >
-                      {t('lobby.addBot')}
+                    <button type="button" onClick={onAddBot} className="lobby-seat__add-bot">
+                      + {t('lobby.addBot')}
                     </button>
                   )}
                 </>

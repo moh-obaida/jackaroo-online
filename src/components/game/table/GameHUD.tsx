@@ -3,6 +3,8 @@ import { GameState } from '../../../types/game';
 import { useApp } from '../../../context/AppContext';
 import { Button } from '../../ui/Button';
 import { JakarooIcon } from '../../brand/JakarooIcon';
+import { VoiceControls } from '../../voice/VoiceControls';
+import { VoiceConnectionState } from '../../../lib/voice/types';
 
 type GameHUDProps = {
   roomCode: string;
@@ -11,6 +13,13 @@ type GameHUDProps = {
   turnPlayerName: string;
   onLeave: () => void;
   leaveBusy: boolean;
+  voiceConnectionState: VoiceConnectionState;
+  voiceSupported: boolean;
+  onVoiceJoin: () => void;
+  onVoiceLeave: () => void;
+  onVoiceMute: () => void;
+  onVoiceUnmute: () => void;
+  onVoiceRetry: () => void;
 };
 
 export function GameHUD({
@@ -20,6 +29,13 @@ export function GameHUD({
   turnPlayerName,
   onLeave,
   leaveBusy,
+  voiceConnectionState,
+  voiceSupported,
+  onVoiceJoin,
+  onVoiceLeave,
+  onVoiceMute,
+  onVoiceUnmute,
+  onVoiceRetry,
 }: GameHUDProps) {
   const { t } = useApp();
 
@@ -47,9 +63,21 @@ export function GameHUD({
           </p>
         )}
       </div>
-      <Button variant="danger" size="sm" onClick={onLeave} disabled={leaveBusy} className="shrink-0">
-        {t('game.leaveGame')}
-      </Button>
+      <div className="game-table-hud__actions">
+        <VoiceControls
+          compact
+          connectionState={voiceConnectionState}
+          isSupported={voiceSupported}
+          onJoin={onVoiceJoin}
+          onLeave={onVoiceLeave}
+          onMute={onVoiceMute}
+          onUnmute={onVoiceUnmute}
+          onRetry={onVoiceRetry}
+        />
+        <Button variant="danger" size="sm" onClick={onLeave} disabled={leaveBusy} className="shrink-0">
+          {t('game.leaveGame')}
+        </Button>
+      </div>
     </header>
   );
 }

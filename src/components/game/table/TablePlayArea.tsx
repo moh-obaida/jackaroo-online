@@ -3,6 +3,7 @@ import { GameState, BoardPosition } from '../../../types/game';
 import { GameBoard } from '../../board/GameBoard';
 import { OpponentSeats } from './OpponentSeats';
 import { DeckDiscardPiles } from './DeckDiscardPiles';
+import { VoiceParticipantStatus } from '../../../lib/voice/types';
 
 type TablePlayAreaProps = {
   gameState: GameState;
@@ -11,6 +12,7 @@ type TablePlayAreaProps = {
   highlightPositions: BoardPosition[];
   isMyTurn: boolean;
   onShowDeckGuide: () => void;
+  getVoiceStatus?: (playerId: string) => VoiceParticipantStatus;
 };
 
 /** Single felt surface — Ludo board in the middle, seats on the rim. */
@@ -21,12 +23,17 @@ export function TablePlayArea({
   highlightPositions,
   isMyTurn,
   onShowDeckGuide,
+  getVoiceStatus,
 }: TablePlayAreaProps) {
   return (
     <div className="table-play-area">
       <div className="table-play-area__felt" aria-hidden />
       <div className="table-play-area__seats pointer-events-none">
-        <OpponentSeats gameState={gameState} myPlayerId={playerId} />
+        <OpponentSeats
+          gameState={gameState}
+          myPlayerId={playerId}
+          getVoiceStatus={getVoiceStatus}
+        />
       </div>
       <div className="table-play-area__board">
         <div className="board-wood-rim board-wood-rim--hero">

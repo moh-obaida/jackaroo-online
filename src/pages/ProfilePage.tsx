@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import {
   getCustomTemplates,
@@ -85,8 +85,7 @@ export function ProfilePage() {
   }
 
   if (!isAuthenticated) {
-    navigate('/auth');
-    return null;
+    return <Navigate to="/auth" replace />;
   }
 
   return (

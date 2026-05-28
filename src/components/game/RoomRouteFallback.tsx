@@ -86,6 +86,16 @@ export function RoomRouteFallback({ state, roomCode, onReload }: RoomRouteFallba
           showBackHome={false}
         />
       );
+    case 'room_expired':
+      return (
+        <StatusPanel
+          title={t('game.roomExpired')}
+          message={t('game.roomExpiredMessage', { code: roomCode || '—' })}
+          variant="warn"
+          action={<BackHomeButton intent="clearSession" />}
+          showBackHome={false}
+        />
+      );
     case 'left_room':
     case 'not_member':
       return (

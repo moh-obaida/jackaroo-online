@@ -275,7 +275,12 @@ export function GamePlayProvider({ children }: { children: React.ReactNode }) {
       }
     }, BOT_TURN_DELAY_MS);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      if (scheduledBotTurnRef.current === turnKey) {
+        scheduledBotTurnRef.current = null;
+      }
+    };
   }, [
     roomCode,
     room,

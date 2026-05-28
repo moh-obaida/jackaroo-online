@@ -2,6 +2,8 @@ import React from 'react';
 import { GameState, PlayerState } from '../../../types/game';
 import { CardBack } from '../../cards/PlayingCard';
 import { useApp } from '../../../context/AppContext';
+import { VoiceStatusBadge } from '../../voice/VoiceStatusBadge';
+import { VoiceParticipantStatus } from '../../../lib/voice/types';
 
 const colorStyles: Record<string, { rim: string; glow: string; badge: string }> = {
   black: { rim: 'border-gray-500/80', glow: 'shadow-[0_0_12px_rgba(120,120,120,0.5)]', badge: 'bg-gray-700' },
@@ -14,10 +16,11 @@ type TableSeatProps = {
   player: PlayerState;
   gameState: GameState;
   compact?: boolean;
+  voiceStatus?: VoiceParticipantStatus;
 };
 
 /** Ludo-style corner seat + Uno-style stacked card backs. */
-export function TableSeat({ player, gameState, compact = false }: TableSeatProps) {
+export function TableSeat({ player, gameState, compact = false, voiceStatus }: TableSeatProps) {
   const { t } = useApp();
   const isTurn = gameState.currentTurnPlayerId === player.id;
   const count = gameState.handCounts[player.id] ?? 0;
@@ -45,6 +48,9 @@ export function TableSeat({ player, gameState, compact = false }: TableSeatProps
           <span className="table-seat__team">{player.team}</span>
         )}
         {isTurn && <span className="table-seat__turn-badge">{t('game.turnNow')}</span>}
+        {voiceStatus && voiceStatus !== 'not_joined' && (
+          <VoiceStatusBadge status={voiceStatus} className="table-seat__voice-badge" />
+        )}
       </div>
       <div className="table-seat__cards" aria-hidden>
         {Array.from({ length: Math.min(count, 5) }).map((_, i) => (
