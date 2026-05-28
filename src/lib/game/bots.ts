@@ -15,7 +15,7 @@ export function generateBotAction(
   state: GameState,
   difficulty: BotDifficulty
 ): LegalAction | null {
-  const legalActions = generateLegalActions(state);
+  const legalActions = generateLegalActions(state, []);
   if (legalActions.length === 0) return null;
 
   switch (difficulty) {
