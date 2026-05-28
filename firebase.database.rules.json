@@ -12,7 +12,40 @@
         },
         "gameState": {
           ".read": true,
-          ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val() || (!data.exists() && auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val()))",
+          ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val() || (!data.exists() && auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val()) || (root.child('rooms/' + $roomCode + '/status').val() === 'playing' && root.child('rooms/' + $roomCode + '/players/' + auth.uid).exists()))",
+          "mode": {
+            ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val())"
+          },
+          "rulesetType": {
+            ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val())"
+          },
+          "rulesetId": {
+            ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val())"
+          },
+          "marbles": {
+            ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val())"
+          },
+          "deck": {
+            ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val())"
+          },
+          "dealState": {
+            ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val())"
+          },
+          "eventLog": {
+            ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val())"
+          },
+          "winner": {
+            ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val())"
+          },
+          "currentTurnPlayerId": {
+            ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val())"
+          },
+          "currentSeat": {
+            ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val())"
+          },
+          "turnNumber": {
+            ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val())"
+          },
           "players": {
             "$playerIndex": {
               "connected": {
