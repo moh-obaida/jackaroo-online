@@ -180,10 +180,23 @@ export async function joinRoom(params: {
   const maxPlayers = getMaxPlayers(room.mode);
   const playerRef = ref(database, `rooms/${params.code}/players/${params.playerUid}`);
 
-  // Reconnect during an active game — only flip connected (rules allow this path).
+  // Reconnect during an active game — restore lobby + gameState connected flags.
   if (room.status !== 'lobby') {
     if (room.players[params.playerUid]) {
-      await set(ref(database, `rooms/${params.code}/players/${params.playerUid}/connected`), true);
+      const updates: Record<string, unknown> = {
+        [`rooms/${params.code}/players/${params.playerUid}/connected`]: true,
+      };
+      const gsSnap = await get(ref(database, `rooms/${params.code}/gameState`));
+      if (gsSnap.exists()) {
+        const gameState = normalizeGameState(gsSnap.val());
+        if (gameState) {
+          const idx = gameStatePlayerIndex(gameState.players, params.playerUid);
+          if (idx >= 0) {
+            updates[`rooms/${params.code}/gameState/players/${idx}/connected`] = true;
+          }
+        }
+      }
+      await update(ref(database), updates);
       return { success: true };
     }
     return { success: false, error: 'Game already in progress' };
@@ -235,7 +248,9 @@ export async function joinRoom(params: {
   }
 
   const updateRef = ref(database, `rooms/${params.code}`);
-  await update(updateRef, { updatedAt: Date.now() });
+  void update(updateRef, { updatedAt: Date.now() }).catch((err) => {
+    console.warn('joinRoom: updatedAt touch skipped', err);
+  });
 
   return { success: true };
 }
@@ -265,10 +280,23 @@ export async function leaveRoom(code: string, playerUid: string): Promise<void> 
       return;
     }
     const idx = gameStatePlayerIndex(gameState.players, playerUid);
+    const leaverHand = await getPrivateHand(code, playerUid);
+    const leaverCount = gameState.handCounts[playerUid] ?? leaverHand.length;
 
     const updates: Record<string, unknown> = {
       [`rooms/${code}/players/${playerUid}/connected`]: false,
     };
+
+    if (leaverCount > 0 || leaverHand.length > 0) {
+      updates[`rooms/${code}/gameState/handCounts/${playerUid}`] = 0;
+      if (leaverHand.length > 0) {
+        updates[`rooms/${code}/gameState/discardPile`] = [
+          ...gameState.discardPile,
+          ...leaverHand,
+        ];
+      }
+      updates[`privateHands/${code}/${playerUid}/cards`] = [];
+    }
 
     if (idx >= 0) {
       updates[`rooms/${code}/gameState/players/${idx}/connected`] = false;

@@ -83,24 +83,23 @@ export function PlayActionSheet({
             <p className="play-sheet__hint">{t('game.noLegalForCard')}</p>
           )}
           {(showAllActions ? view.others : view.others.slice(0, 1)).map((a) => renderActionBtn(a))}
-          {(showAllActions ? view.hiddenCount : view.hiddenCount + Math.max(0, view.others.length - 1)) >
-            0 && (
-            <button
-              type="button"
-              className="btn-ghost text-xs w-full py-1"
-              onClick={() => onToggleShowAll(!showAllActions)}
-            >
-              {showAllActions
-                ? t('game.fewerActions')
-                : t('game.moreActions', {
-                    count: String(
-                      showAllActions
-                        ? view.hiddenCount
-                        : view.hiddenCount + Math.max(0, view.others.length - 1)
-                    ),
-                  })}
-            </button>
-          )}
+          {(() => {
+            const hiddenCountToShow = showAllActions
+              ? view.hiddenCount
+              : view.hiddenCount + Math.max(0, view.others.length - 1);
+            if (hiddenCountToShow <= 0) return null;
+            return (
+              <button
+                type="button"
+                className="btn-ghost text-xs w-full py-1"
+                onClick={() => onToggleShowAll(!showAllActions)}
+              >
+                {showAllActions
+                  ? t('game.fewerActions')
+                  : t('game.moreActions', { count: String(hiddenCountToShow) })}
+              </button>
+            );
+          })()}
         </>
       )}
     </div>

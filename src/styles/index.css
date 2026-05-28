@@ -1470,7 +1470,11 @@
   }
 
   .lobby-rules-summary__custom {
-    @apply text-sm;
+    @apply text-sm text-cream-200/70;
+  }
+
+  .lobby-rules-summary__deck-link {
+    @apply mt-2;
   }
 
   .marble-glow {

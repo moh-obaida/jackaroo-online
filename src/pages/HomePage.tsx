@@ -45,7 +45,7 @@ export function HomePage() {
 
             <div className="landing-hero__brand-mobile md:hidden flex items-center gap-3 justify-center mb-1">
               <JakarooIcon size="lg" />
-              <h1 id="home-hero-heading" className="landing-hero__title landing-hero__title--mobile">
+              <h1 className="landing-hero__title landing-hero__title--mobile">
                 {t('app.name')}
               </h1>
             </div>

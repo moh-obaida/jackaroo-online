@@ -71,7 +71,7 @@ export function LobbySeatRing({
         <BoardPreviewVisual size={maxPlayers >= 4 ? 240 : 220} />
       </div>
 
-      {Array.from({ length: maxPlayers }, (_, seatIndex) => {
+      {Array.from({ length: Math.min(maxPlayers, seatPositions.length) }, (_, seatIndex) => {
         const pos = seatPositions[seatIndex] || seatPositions[0];
         const player = players.find((p) => p.seat === seatIndex);
         const isReady = Boolean(player?.ready || player?.isBot);

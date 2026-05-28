@@ -38,12 +38,12 @@ export function LobbyRulesSummary({
             <li>{t('lobby.rulesSummary.2')}</li>
           </ul>
         ) : (
-          <p className="lobby-rules-summary__custom text-sm text-cream-200/70">
+          <p className="lobby-rules-summary__custom">
             {customLabel || t('create.ruleset.custom')}
           </p>
         )}
         {showDeckLink && (
-          <Button variant="ghost" size="sm" onClick={() => setGuideOpen(true)} className="mt-2">
+          <Button variant="ghost" size="sm" onClick={() => setGuideOpen(true)} className="lobby-rules-summary__deck-link">
             {t('game.showDeck')}
           </Button>
         )}

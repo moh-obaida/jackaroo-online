@@ -16,9 +16,17 @@
           "players": {
             "$playerIndex": {
               "connected": {
-                ".write": "auth != null && root.child('rooms/' + $roomCode + '/players/' + auth.uid).exists() && (auth.uid === data.parent().child('id').val() || (root.child('rooms/' + $roomCode + '/roomMakerUid').val() === auth.uid && root.child('rooms/' + $roomCode + '/status').val() === 'playing'))"
+                ".write": "auth != null && newData.isBoolean() && root.child('rooms/' + $roomCode + '/players/' + auth.uid).exists() && (auth.uid === data.parent().child('id').val() || (root.child('rooms/' + $roomCode + '/roomMakerUid').val() === auth.uid && root.child('rooms/' + $roomCode + '/status').val() === 'playing' && newData.val() === false))"
               }
             }
+          },
+          "handCounts": {
+            "$playerId": {
+              ".write": "auth != null && auth.uid === $playerId && root.child('rooms/' + $roomCode + '/status').val() === 'playing' && root.child('rooms/' + $roomCode + '/players/' + auth.uid).exists() && newData.val() === 0"
+            }
+          },
+          "discardPile": {
+            ".write": "auth != null && root.child('rooms/' + $roomCode + '/players/' + auth.uid).exists() && root.child('rooms/' + $roomCode + '/status').val() === 'playing' && (!data.exists() || newData.numChildren() >= data.numChildren())"
           }
         },
         "players": {
@@ -29,7 +37,7 @@
               ".write": "auth != null && auth.uid === $playerId && root.child('rooms/' + $roomCode + '/status').val() === 'lobby' && root.child('rooms/' + $roomCode + '/players/' + auth.uid).exists()"
             },
             "connected": {
-              ".write": "auth != null && root.child('rooms/' + $roomCode + '/players/' + auth.uid).exists() && (auth.uid === $playerId || (root.child('rooms/' + $roomCode + '/roomMakerUid').val() === auth.uid && root.child('rooms/' + $roomCode + '/status').val() === 'playing'))"
+              ".write": "auth != null && newData.isBoolean() && root.child('rooms/' + $roomCode + '/players/' + auth.uid).exists() && (auth.uid === $playerId || (root.child('rooms/' + $roomCode + '/roomMakerUid').val() === auth.uid && root.child('rooms/' + $roomCode + '/status').val() === 'playing' && newData.val() === false))"
             }
           }
         }

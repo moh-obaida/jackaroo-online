@@ -83,14 +83,17 @@ function LobbyPageContent() {
     let reason: string | null = null;
     if (seatedCount < maxPlayers) {
       const need = maxPlayers - seatedCount;
-      reason = `Need ${need} more player${need === 1 ? '' : 's'} (${seatedCount}/${maxPlayers} seats).`;
+      reason = t('lobby.startNeedPlayers', {
+        need: String(need),
+        seats: `${seatedCount}/${maxPlayers}`,
+      });
     } else if (!allHumansReady) {
       const waiting = humans.filter((p) => !p.ready).map((p) => p.name);
-      reason = `Waiting for: ${waiting.join(', ')}`;
+      reason = t('lobby.startWaitingFor', { players: waiting.join(', ') });
     }
 
     return { canStart, reason };
-  }, [currentRoom, players, seatedCount, maxPlayers]);
+  }, [currentRoom, players, seatedCount, maxPlayers, t]);
 
   const myPlayer = useMemo(
     () => (playerId ? players.find((p) => p.id === playerId) : undefined),

@@ -8,9 +8,14 @@ type FormFieldProps = {
 
 export function FormField({ label, hint, children }: FormFieldProps) {
   const fieldId = useId();
+  const hintId = hint ? `${fieldId}-hint` : undefined;
+  const existingDesc = children.props['aria-describedby'];
+  const describedBy =
+    hintId && existingDesc ? `${existingDesc} ${hintId}` : hintId ?? existingDesc;
+
   const control = React.cloneElement(children, {
     id: children.props.id ?? fieldId,
-    'aria-describedby': hint ? `${fieldId}-hint` : children.props['aria-describedby'],
+    ...(describedBy ? { 'aria-describedby': describedBy } : {}),
   });
 
   return (

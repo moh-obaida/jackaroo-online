@@ -81,8 +81,10 @@ export function getTurnOrder(state: GameState): PlayerState[] {
 }
 
 /**
- * Check if all players in the current round have empty hands.
+ * Check if all active (connected or bot) players have empty hands.
+ * Disconnected leavers may retain stale counts until cleared on leave.
  */
 export function allPlayersHandsEmpty(state: GameState): boolean {
-  return state.players.every((p) => (state.handCounts[p.id] || 0) === 0);
+  const active = state.players.filter((p) => p.connected || p.isBot);
+  return active.every((p) => (state.handCounts[p.id] || 0) === 0);
 }

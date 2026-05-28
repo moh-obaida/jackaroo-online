@@ -2,7 +2,7 @@
 
 This doc ties together:
 
-- [`jakaroo_online_manus_prompt.txt`](/home/m_obaida2021/Desktop/jakaroo_online_manus_prompt.txt) (source of truth for rules)
+- [`jakaroo_online_manus_prompt.txt`](../jakaroo_online_manus_prompt.txt) (source of truth for rules)
 - [`ARCHITECTURE_REFERENCES.md`](./ARCHITECTURE_REFERENCES.md) (Manus + **Knowledge Connect** patterns + z-index stack)
 - Physical Jackaroo deck photos (red back **جاكارو / JACKAROO**, white face with **large rank number** + Arabic action text)
 - Code in this repo (engine vs UI)
@@ -87,7 +87,7 @@ Overlays (modals, win screen, toasts) use **z-index 10000+**. Table/hand use 0�
 
 ## Files checklist
 
-```
+```text
 src/lib/game/legalMoves.ts    ← what you CAN do
 src/lib/game/applyAction.ts   ← what happens when you do it
 src/lib/game/cardGuide.ts     ← labels & center values only

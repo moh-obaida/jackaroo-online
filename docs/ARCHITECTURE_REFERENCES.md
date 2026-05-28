@@ -4,7 +4,7 @@
 
 | Reference | Path | Role |
 |-----------|------|------|
-| **Manus spec** | `/home/m_obaida2021/Desktop/jakaroo_online_manus_prompt.txt` | Product, rules §8, board §6, UI §16, Firebase §14 |
+| **Manus spec** | [`../jakaroo_online_manus_prompt.txt`](../jakaroo_online_manus_prompt.txt) | Product, rules §8, board §6, UI §16, Firebase §14 |
 | **Physical deck/board** | Photos (red جاكارو back, white face K=13, wooden octagonal board) | Visual target for `PlayingCard`, `GameBoard` |
 | **Knowledge Connect** | `/home/m_obaida2021/Desktop/knowledge-connect-original-main` | **Session/sync patterns only** — not game rules or visuals |
 | **This repo** | `docs/CARDS_AND_RULES_REFERENCE.md` | Engine vs UI boundary |
@@ -42,7 +42,7 @@
 
 ## Session / leave (rescue architecture)
 
-```
+```text
 safeLeaveRoom → isLeaving + epoch++ → markLeft → clear session → navigate /
               → removePlayerFromRoom (background)
 ```
