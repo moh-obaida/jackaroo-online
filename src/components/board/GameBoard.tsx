@@ -13,6 +13,7 @@ interface GameBoardProps {
   gameState: GameState;
   selectedCardId: string | null;
   playerId: string;
+  isMyTurn?: boolean;
 }
 
 const colorMap: Record<PlayerColor, string> = {
@@ -45,7 +46,12 @@ function octagonPoints(cx: number, cy: number, r: number): string {
   return pts.join(' ');
 }
 
-export function GameBoard({ gameState, selectedCardId: _selectedCardId, playerId }: GameBoardProps) {
+export function GameBoard({
+  gameState,
+  selectedCardId: _selectedCardId,
+  playerId,
+  isMyTurn = false,
+}: GameBoardProps) {
   const { marbles, players } = gameState;
 
   const size = 640;
@@ -226,9 +232,22 @@ export function GameBoard({ gameState, selectedCardId: _selectedCardId, playerId
       const isLocked =
         marble.position.type === 'start_gate' && marble.position.color === marble.color;
       const r = marble.position.type === 'base' ? 8 : 10;
+      const glow = isOwn && isMyTurn;
 
       return (
         <g key={marble.id}>
+          {glow && (
+            <circle
+              cx={pos.x}
+              cy={pos.y}
+              r={r + 5}
+              fill="none"
+              stroke={colorGlow[marble.color]}
+              strokeWidth={2}
+              className="marble-glow"
+              opacity={0.85}
+            />
+          )}
           <circle cx={pos.x} cy={pos.y} r={r + 2} fill="black" opacity={0.25} />
           <circle
             cx={pos.x}
@@ -255,34 +274,30 @@ export function GameBoard({ gameState, selectedCardId: _selectedCardId, playerId
       );
     });
 
-  const renderPlayerLabels = () =>
-    players.map((player) => {
-      const colorIndex = COLORS_ORDER.indexOf(player.color);
-      const angle =
-        ((colorIndex * (TRACK_LENGTH + 1)) / TOTAL_OUTER_SPOTS) * Math.PI * 2 - Math.PI / 2;
-      const labelRadius = outerRadius + 88;
-      const x = center + labelRadius * Math.cos(angle);
-      const y = center + labelRadius * Math.sin(angle);
-      const isCurrentTurn = gameState.currentTurnPlayerId === player.id;
-      const cardCount = gameState.handCounts[player.id] ?? 0;
-
+  const renderColorWedges = () =>
+    COLORS_ORDER.map((color, ci) => {
+      const startAngle = ((ci * (TRACK_LENGTH + 1)) / TOTAL_OUTER_SPOTS) * Math.PI * 2 - Math.PI / 2;
+      const sweep = ((TRACK_LENGTH + 1) / TOTAL_OUTER_SPOTS) * Math.PI * 2;
+      const endAngle = startAngle + sweep;
+      const r0 = outerRadius - 12;
+      const r1 = outerRadius + 36;
+      const x1 = center + r0 * Math.cos(startAngle);
+      const y1 = center + r0 * Math.sin(startAngle);
+      const x2 = center + r1 * Math.cos(startAngle);
+      const y2 = center + r1 * Math.sin(startAngle);
+      const x3 = center + r1 * Math.cos(endAngle);
+      const y3 = center + r1 * Math.sin(endAngle);
+      const x4 = center + r0 * Math.cos(endAngle);
+      const y4 = center + r0 * Math.sin(endAngle);
+      const active = activePlayerColors.has(color);
       return (
-        <g key={player.id}>
-          <text
-            x={x}
-            y={y - 6}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontSize="12"
-            fill={isCurrentTurn ? '#ffd633' : '#c9b896'}
-            fontWeight={isCurrentTurn ? 'bold' : 'normal'}
-          >
-            {player.name}
-          </text>
-          <text x={x} y={y + 8} textAnchor="middle" fontSize="10" fill="#8a7a68">
-            {cardCount} cards
-          </text>
-        </g>
+        <path
+          key={`wedge_${color}`}
+          d={`M ${x1} ${y1} L ${x2} ${y2} A ${r1} ${r1} 0 0 1 ${x3} ${y3} L ${x4} ${y4} A ${r0} ${r0} 0 0 0 ${x1} ${y1}`}
+          fill={colorMap[color]}
+          fillOpacity={active ? 0.12 : 0.04}
+          stroke="none"
+        />
       );
     });
 
@@ -291,10 +306,10 @@ export function GameBoard({ gameState, selectedCardId: _selectedCardId, playerId
   const innerOct = octagonPoints(center, center, outerRadius - 8);
 
   return (
-    <div className="w-full max-w-[min(100%,640px)] aspect-square mx-auto">
+    <div className="w-full max-w-[min(100vw-1.5rem,42rem)] aspect-square mx-auto board-frame">
       <svg
         viewBox={`0 0 ${size} ${size}`}
-        className="w-full h-full drop-shadow-board"
+        className="w-full h-full drop-shadow-board board-svg"
         role="img"
         aria-label="Jackaroo game board"
       >
@@ -314,32 +329,18 @@ export function GameBoard({ gameState, selectedCardId: _selectedCardId, playerId
           </radialGradient>
         </defs>
 
-        <polygon points={outerOct} fill="#0f0c09" stroke="#5c3c18" strokeWidth={4} />
-        <polygon points={boardOct} fill="url(#woodBase)" stroke="#7d5220" strokeWidth={2} />
-        <polygon points={innerOct} fill="url(#woodInner)" stroke="#5c3c18" strokeWidth={1} opacity={0.85} />
+        <polygon points={outerOct} fill="#0a0806" stroke="#4a3018" strokeWidth={5} />
+        <polygon points={boardOct} fill="url(#woodBase)" stroke="#8b5a28" strokeWidth={2.5} />
+        <polygon points={innerOct} fill="url(#woodInner)" stroke="#5c3c18" strokeWidth={1} opacity={0.9} />
 
+        {renderColorWedges()}
         {renderNestAreas()}
         {renderTrackSpots()}
 
-        <circle cx={center} cy={center} r={58} fill="url(#centerGlow)" stroke="#5c3c18" strokeWidth={1.5} />
-        <text
-          x={center}
-          y={center - 4}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize="15"
-          fill="#e6b800"
-          fontWeight="bold"
-          letterSpacing="3"
-        >
-          JAKAROO
-        </text>
-        <text x={center} y={center + 14} textAnchor="middle" fontSize="9" fill="#8a7a68">
-          ONLINE
-        </text>
+        <circle cx={center} cy={center} r={52} fill="url(#centerGlow)" stroke="#6b4420" strokeWidth={1.5} />
+        <circle cx={center} cy={center} r={38} fill="none" stroke="#e6b800" strokeWidth={0.75} opacity={0.35} />
 
         {renderMarbles()}
-        {renderPlayerLabels()}
       </svg>
     </div>
   );

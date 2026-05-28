@@ -1,51 +1,65 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
 import {
   setPlayerReady,
   kickPlayer,
-  leaveRoom,
   addBots,
   subscribeToRoom,
 } from '../lib/firebase/rooms';
 import { getMaxPlayersForMode } from '../lib/game/normalize';
 import { RoomData } from '../types/game';
 import { GameStatusCard } from '../components/game/GameStatusCard';
+import { BackHomeButton } from '../components/common/BackHomeButton';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
+
+function normalizeRoomCode(raw: string | undefined): string | null {
+  const code = raw?.trim();
+  return code && code.length > 0 ? code : null;
+}
 
 function LobbyPageContent() {
   const { t, user } = useApp();
-  const { room, setRoomCode, startGame, loading, error: gameError } = useGame();
-  const { code } = useParams<{ code: string }>();
+  const { room, setRoomCode, startGame, loading, error: gameError, isLeaving, leaveWarning, safeLeaveRoom } =
+    useGame();
   const navigate = useNavigate();
+  const { code: rawCode } = useParams<{ code: string }>();
+  const roomCode = normalizeRoomCode(rawCode);
+
   const [copied, setCopied] = useState(false);
   const [localRoom, setLocalRoom] = useState<RoomData | null>(null);
   const [roomLoaded, setRoomLoaded] = useState(false);
-  const [leftRoom, setLeftRoom] = useState(false);
-  const [leaveError, setLeaveError] = useState<string | null>(null);
+  const [leaveBusy, setLeaveBusy] = useState(false);
 
   useEffect(() => {
-    if (code) {
-      setRoomCode(code);
+    if (isLeaving || !roomCode) return;
+    setRoomCode(roomCode);
+  }, [roomCode, isLeaving, setRoomCode]);
+
+  useEffect(() => {
+    if (isLeaving || !roomCode) {
+      if (!roomCode) setRoomLoaded(true);
+      return;
     }
-  }, [code, setRoomCode]);
-
-  useEffect(() => {
-    if (!code) return;
     setRoomLoaded(false);
-    const unsub = subscribeToRoom(code, (roomData) => {
+    const unsub = subscribeToRoom(roomCode, (roomData) => {
       setLocalRoom(roomData);
       setRoomLoaded(true);
-      if (roomData?.status === 'playing') {
-        navigate(`/game/${code}`);
-      }
     });
     return unsub;
-  }, [code, navigate]);
+  }, [roomCode, isLeaving]);
+
+  useEffect(() => {
+    if (isLeaving || !roomCode) return;
+    const active = room || localRoom;
+    if (active?.status === 'playing') {
+      navigate(`/game/${roomCode}`, { replace: true });
+    }
+  }, [room, localRoom, roomCode, isLeaving, navigate]);
 
   const currentRoom = room || localRoom;
-  const playerId = user?.uid;
+  const playerId = user?.uid?.trim() || null;
   const isRoomMaker = currentRoom?.roomMakerUid === playerId;
   const players = currentRoom ? Object.values(currentRoom.players) : [];
   const maxPlayers = getMaxPlayersForMode(currentRoom?.mode);
@@ -70,41 +84,37 @@ function LobbyPageContent() {
   }, [players, seatedCount, maxPlayers]);
 
   const handleCopyCode = () => {
-    if (code) {
-      navigator.clipboard.writeText(code);
+    if (roomCode) {
+      navigator.clipboard.writeText(roomCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
   const handleReady = async () => {
-    if (!code || !playerId) return;
+    if (!roomCode || !playerId) return;
     const myPlayer = players.find((p) => p.id === playerId);
-    await setPlayerReady(code, playerId, !myPlayer?.ready);
+    await setPlayerReady(roomCode, playerId, !myPlayer?.ready);
   };
 
   const handleKick = async (playerUid: string) => {
-    if (!code) return;
-    await kickPlayer(code, playerUid);
+    if (!roomCode) return;
+    await kickPlayer(roomCode, playerUid);
   };
 
-  const handleLeave = async () => {
-    if (!code || !playerId) return;
-    setLeaveError(null);
+  const handleLeave = useCallback(async () => {
+    if (!roomCode || !playerId || leaveBusy || isLeaving) return;
+    setLeaveBusy(true);
     try {
-      await leaveRoom(code, playerId);
-      setLeftRoom(true);
-      setRoomCode(null);
-      navigate('/', { replace: true });
-    } catch (err: any) {
-      console.error('leaveRoom failed:', err);
-      setLeaveError(err?.message || 'Failed to leave room safely.');
+      await safeLeaveRoom(roomCode);
+    } finally {
+      setLeaveBusy(false);
     }
-  };
+  }, [roomCode, playerId, leaveBusy, isLeaving, safeLeaveRoom]);
 
   const handleAddBot = async () => {
-    if (!code || !currentRoom) return;
-    await addBots(code, 1, currentRoom.botSettings.difficulty, currentRoom.mode);
+    if (!roomCode || !currentRoom) return;
+    await addBots(roomCode, 1, currentRoom.botSettings.difficulty, currentRoom.mode);
   };
 
   const handleStart = async () => {
@@ -127,22 +137,27 @@ function LobbyPageContent() {
     }
   };
 
-  if (!roomLoaded) {
+  if (isLeaving || leaveBusy) {
     return (
-      <GameStatusCard title="Loading room…" message={`Connecting to room ${code || ''}.`} />
+      <GameStatusCard title={t('lobby.leaving')} message={t('lobby.leavingMessage')} />
     );
   }
 
-  if (leftRoom) {
+  if (!roomLoaded) {
     return (
       <GameStatusCard
-        title="You left the room"
-        message="You have exited the lobby safely."
-        action={
-          <Link to="/" className="btn-primary inline-block">
-            Back home
-          </Link>
-        }
+        title={t('game.loadingRoom')}
+        message={roomCode ? t('game.loadingRoomMessage', { code: roomCode }) : t('general.loading')}
+      />
+    );
+  }
+
+  if (!roomCode) {
+    return (
+      <GameStatusCard
+        title={t('game.invalidLink')}
+        message={t('game.invalidLinkMessage')}
+        action={<BackHomeButton />}
       />
     );
   }
@@ -150,14 +165,10 @@ function LobbyPageContent() {
   if (!currentRoom) {
     return (
       <GameStatusCard
-        title="Room not found"
-        message="This room no longer exists or has already been closed."
+        title={t('game.roomNotFound')}
+        message={t('game.roomNotFoundMessage', { code: roomCode })}
         variant="warn"
-        action={
-          <Link to="/" className="btn-primary inline-block">
-            Back home
-          </Link>
-        }
+        action={<BackHomeButton />}
       />
     );
   }
@@ -166,14 +177,19 @@ function LobbyPageContent() {
   if (!isStillInRoom) {
     return (
       <GameStatusCard
-        title="You are no longer in this room"
-        message="Leave/join state changed. Return home and join again if needed."
+        title={t('game.notInRoom')}
+        message={t('game.notInRoomMessage')}
         variant="warn"
-        action={
-          <Link to="/" className="btn-primary inline-block">
-            Back home
-          </Link>
-        }
+        action={<BackHomeButton />}
+      />
+    );
+  }
+
+  if (currentRoom.status === 'playing') {
+    return (
+      <GameStatusCard
+        title={t('lobby.redirectingToGame')}
+        message={t('game.loadingRoomMessage', { code: roomCode })}
       />
     );
   }
@@ -185,22 +201,34 @@ function LobbyPageContent() {
 
   return (
     <div className="page-shell flex flex-col items-center">
-      <div className="card-container w-full max-w-2xl">
+      <div className="card-container w-full max-w-2xl lobby-card">
         <div className="flex items-center justify-between gap-3 mb-4">
           <h1 className="page-title mb-0">{t('lobby.title')}</h1>
-          <button type="button" onClick={handleLeave} className="btn-danger text-sm px-4 py-2 shrink-0">
+          <button
+            type="button"
+            onClick={handleLeave}
+            disabled={leaveBusy}
+            className="btn-danger text-sm px-4 py-2 shrink-0"
+          >
             {t('lobby.leave')}
           </button>
         </div>
+
+        {leaveWarning && (
+          <p className="text-sm text-amber-200/90 mb-3 bg-amber-950/40 rounded-lg px-3 py-2">
+            {leaveWarning}
+          </p>
+        )}
 
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4 p-4 bg-surface-inset/80 rounded-xl border border-wood-700/50">
           <div>
             <span className="text-xs text-cream-200/50 uppercase tracking-wide">{t('lobby.code')}</span>
             <p className="text-2xl font-mono font-bold text-gold-300 tracking-normal tabular-nums mt-0.5">
-              {code}
+              {roomCode}
             </p>
           </div>
           <button
+            type="button"
             onClick={handleCopyCode}
             className="text-sm text-gold-400 hover:text-gold-300 transition-colors"
           >
@@ -277,6 +305,7 @@ function LobbyPageContent() {
                         </span>
                         {isRoomMaker && player.id !== playerId && (
                           <button
+                            type="button"
                             onClick={() => handleKick(player.id)}
                             className="text-xs text-red-400 hover:text-red-300"
                           >
@@ -287,6 +316,7 @@ function LobbyPageContent() {
                     )}
                     {!player && isRoomMaker && currentRoom.botSettings.enabled && (
                       <button
+                        type="button"
                         onClick={handleAddBot}
                         className="text-xs text-gold-400 hover:text-gold-300"
                       >
@@ -303,13 +333,10 @@ function LobbyPageContent() {
         {gameError && (
           <p className="text-sm text-red-300 mb-3 bg-red-950/40 rounded-lg px-3 py-2">{gameError}</p>
         )}
-        {leaveError && (
-          <p className="text-sm text-red-300 mb-3 bg-red-950/40 rounded-lg px-3 py-2">{leaveError}</p>
-        )}
 
         <div className="flex flex-col gap-2">
           {playerId && !isRoomMaker && (
-            <button onClick={handleReady} className="btn-primary w-full">
+            <button type="button" onClick={handleReady} className="btn-primary w-full">
               {players.find((p) => p.id === playerId)?.ready
                 ? t('lobby.unready')
                 : t('lobby.setReady')}
@@ -319,6 +346,7 @@ function LobbyPageContent() {
           {isRoomMaker && (
             <>
               <button
+                type="button"
                 onClick={handleStart}
                 disabled={!startReadiness.canStart || loading}
                 className="btn-primary w-full disabled:opacity-50"

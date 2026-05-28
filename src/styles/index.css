@@ -96,8 +96,72 @@
     @apply card-container-compact flex gap-3 items-start hover:border-gold-500/25 transition-colors;
   }
 
+  .home-hero {
+    @apply relative overflow-hidden rounded-2xl border border-wood-700/50 bg-surface-panel/80 p-6 md:p-8 mb-8 w-full max-w-3xl;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212, 165, 99, 0.12), transparent),
+      linear-gradient(180deg, rgba(45, 32, 16, 0.5), transparent);
+  }
+
+  .lobby-card {
+    @apply shadow-2xl shadow-black/40 border-gold-500/10;
+  }
+
+  .game-table-root {
+    background:
+      radial-gradient(ellipse 90% 70% at 50% 40%, rgba(92, 60, 24, 0.25), transparent),
+      radial-gradient(ellipse 50% 40% at 50% 100%, rgba(0, 0, 0, 0.5), transparent),
+      #080604;
+  }
+
+  .game-table-bar {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  .game-panel-compact {
+    @apply rounded-lg border border-wood-800/70 bg-black/35 p-2.5 backdrop-blur-sm;
+  }
+
+  .board-frame {
+    filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.65));
+  }
+
+  .board-stage {
+    perspective: 800px;
+  }
+
+  .turn-pulse {
+    animation: turn-pulse 1.6s ease-in-out infinite;
+  }
+
+  .marble-glow {
+    animation: marble-glow 1.8s ease-in-out infinite;
+  }
+
   .rtl-flip {
     @apply rtl:scale-x-[-1];
+  }
+}
+
+@keyframes turn-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 rgba(230, 184, 0, 0);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 12px rgba(230, 184, 0, 0.35);
+  }
+}
+
+@keyframes marble-glow {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
   }
 }
 

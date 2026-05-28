@@ -3,6 +3,7 @@
 // ============================================================================
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   GameState,
   GameAction,
@@ -28,8 +29,10 @@ import { initializeDealBlock, dealRound } from '../lib/game/dealing';
 import { getCardsPerPlayerForRound } from '../lib/game/cards';
 import { createInitialMarbles } from '../lib/game/board';
 
-const BOT_TURN_DELAY_MS = 900;
+import { removePlayerFromRoom, leaveWarningMessage } from '../lib/leave/safeLeave';
 import { useApp } from './AppContext';
+
+const BOT_TURN_DELAY_MS = 900;
 
 interface GameContextType {
   room: RoomData | null;
@@ -44,24 +47,68 @@ interface GameContextType {
   startGame: () => Promise<void>;
   loading: boolean;
   error: string | null;
+  isLeaving: boolean;
+  leaveWarning: string | null;
+  clearGameSession: () => void;
+  safeLeaveRoom: (code: string) => Promise<void>;
 }
 
 const GameContext = createContext<GameContextType | null>(null);
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const { user } = useApp();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [room, setRoom] = useState<RoomData | null>(null);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [myHand, setMyHand] = useState<Card[]>([]);
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLeaving, setIsLeaving] = useState(false);
+  const [leaveWarning, setLeaveWarning] = useState<string | null>(null);
 
   const playerId = user?.uid || null;
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
   const scheduledBotTurnRef = useRef<string | null>(null);
   const botTurnInFlightRef = useRef(false);
+
+  const clearGameSession = useCallback(() => {
+    setRoomCode(null);
+    setRoom(null);
+    setGameState(null);
+    setMyHand([]);
+    setError(null);
+    scheduledBotTurnRef.current = null;
+    botTurnInFlightRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    if (location.pathname === '/') {
+      setIsLeaving(false);
+    }
+  }, [location.pathname]);
+
+  const safeLeaveRoom = useCallback(
+    async (code: string) => {
+      const trimmed = code?.trim();
+      setIsLeaving(true);
+      clearGameSession();
+
+      if (trimmed && playerId) {
+        try {
+          await removePlayerFromRoom({ roomCode: trimmed, playerUid: playerId });
+        } catch (err) {
+          console.warn('safeLeaveRoom: Firebase remove failed', err);
+          setLeaveWarning(leaveWarningMessage(err));
+        }
+      }
+
+      navigate('/', { replace: true });
+    },
+    [playerId, clearGameSession, navigate]
+  );
 
   // Subscribe to room
   useEffect(() => {
@@ -132,6 +179,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   // Room maker runs bot turns (authoritative client).
   useEffect(() => {
+    if (isLeaving) return;
     if (!roomCode || !room || !playerId || !gameState) return;
     if (room.status !== 'playing' || gameState.winner) return;
     if (room.roomMakerUid !== playerId) return;
@@ -199,6 +247,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     gameState?.currentTurnPlayerId,
     gameState?.turnNumber,
     gameState?.winner,
+    isLeaving,
   ]);
 
   // Start game
@@ -306,6 +355,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     startGame,
     loading,
     error,
+    isLeaving,
+    leaveWarning,
+    clearGameSession,
+    safeLeaveRoom,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

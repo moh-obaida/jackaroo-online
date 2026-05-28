@@ -38,12 +38,12 @@ export function HomePage() {
         </div>
       )}
 
-      <section className="text-center mb-8 max-w-2xl">
+      <section className="home-hero text-center">
         <p className="text-xs uppercase tracking-widest text-gold-500/80 mb-2 font-medium">
           {t('app.name')}
         </p>
-        <h1 className="mb-4">{t('app.name')}</h1>
-        <p className="page-subtitle mx-auto">{t('app.tagline')}</p>
+        <h1 className="mb-3">{t('app.name')}</h1>
+        <p className="page-subtitle mx-auto mb-0">{t('app.tagline')}</p>
       </section>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6 w-full max-w-md">

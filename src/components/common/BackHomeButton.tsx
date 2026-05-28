@@ -1,12 +1,21 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
+import { useGame } from '../../context/GameContext';
 
 export function BackHomeButton({ className = '' }: { className?: string }) {
   const { t } = useApp();
+  const navigate = useNavigate();
+  const { clearGameSession } = useGame();
+
+  const handleClick = () => {
+    clearGameSession();
+    navigate('/', { replace: true });
+  };
+
   return (
-    <Link to="/" className={`btn-secondary inline-block text-center ${className}`}>
+    <button type="button" onClick={handleClick} className={`btn-secondary ${className}`}>
       {t('general.backHome')}
-    </Link>
+    </button>
   );
 }
