@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
-import { joinRoom } from '../lib/firebase/rooms';
-import { signInAsGuest } from '../lib/firebase/auth';
+import { getLobbySeatInfo, joinRoom } from '../lib/firebase/rooms';
+import { getAuthUserOrCurrent, logOut, signInAsGuest } from '../lib/firebase/auth';
 import { FormPage } from '../components/ui/FormPage';
 import { FormField, TextInput } from '../components/ui/FormField';
 import { Alert } from '../components/ui/Alert';
@@ -46,23 +46,48 @@ export function JoinRoomPage() {
     setError('');
 
     try {
-      let currentUser = user;
+      let currentUser = user ?? getAuthUserOrCurrent();
       if (!currentUser) {
         currentUser = await signInAsGuest();
       }
+      currentUser = currentUser ?? getAuthUserOrCurrent();
 
       if (!currentUser) {
-        setError('Failed to authenticate');
-        setLoading(false);
+        setError('Failed to authenticate. Try again or disable strict storage blocking.');
         return;
+      }
+
+      let joinUid = currentUser.uid;
+      let joinGuest = currentUser.isAnonymous;
+
+      const seatInfo = await getLobbySeatInfo(code.trim(), joinUid);
+      const trimmedName = name.trim();
+      const sameGuestRejoin =
+        seatInfo.inRoom && seatInfo.existingPlayerName?.trim() === trimmedName;
+      const needsFreshGuest =
+        joinGuest &&
+        !sameGuestRejoin &&
+        seatInfo.seatCount > 0 &&
+        seatInfo.seatCount < seatInfo.maxPlayers;
+
+      if (needsFreshGuest) {
+        await logOut();
+        const fresh = await signInAsGuest();
+        if (!fresh) {
+          setError('Failed to start a new guest session for this join.');
+          return;
+        }
+        joinUid = fresh.uid;
+        joinGuest = true;
+        currentUser = fresh;
       }
 
       const result = await joinRoom({
         code: code.trim(),
         password: password.trim(),
-        playerUid: currentUser.uid,
+        playerUid: joinUid,
         playerName: name.trim(),
-        playerGuest: currentUser.isAnonymous,
+        playerGuest: joinGuest,
       });
 
       if (!result.success) {

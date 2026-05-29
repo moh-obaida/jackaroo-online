@@ -688,12 +688,20 @@
   }
 
   .lobby-invite-plaque {
-    @apply flex flex-wrap items-center justify-center gap-3 px-4 py-3 rounded-xl text-center;
+    @apply flex flex-col items-stretch gap-2 px-4 py-3 rounded-xl;
     background: linear-gradient(165deg, rgba(42, 32, 18, 0.95) 0%, rgba(12, 9, 6, 0.98) 100%);
     border: 2px solid rgba(201, 162, 39, 0.55);
     box-shadow:
       inset 0 1px 0 rgba(255, 220, 160, 0.12),
       0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+
+  .lobby-invite-plaque__row {
+    @apply flex flex-wrap items-center justify-center gap-3 text-center;
+  }
+
+  .lobby-invite-plaque__row--password {
+    @apply pt-2 border-t border-gold-500/25;
   }
 
   .lobby-invite-plaque__label {
@@ -704,7 +712,16 @@
     @apply font-mono text-2xl sm:text-3xl font-bold text-gold-300 tabular-nums tracking-wider;
   }
 
-  .lobby-invite-plaque__copy {
+  .lobby-invite-plaque__secret {
+    @apply font-mono text-lg sm:text-xl font-semibold text-gold-200/95 tabular-nums tracking-wide min-w-[5rem];
+  }
+
+  .lobby-invite-plaque__password-hint {
+    @apply text-xs text-gold-500/70 text-center w-full max-w-md leading-snug;
+  }
+
+  .lobby-invite-plaque__copy,
+  .lobby-invite-plaque__toggle {
     @apply shrink-0;
   }
 

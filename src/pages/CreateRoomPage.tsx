@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
 import { createRoom, getCustomTemplates } from '../lib/firebase/rooms';
-import { signInAsGuest } from '../lib/firebase/auth';
+import { saveHostRoomPassword } from '../lib/room/hostRoomPassword';
+import { getAuthUserOrCurrent, signInAsGuest } from '../lib/firebase/auth';
 import {
   GameMode,
   RulesetType,
@@ -107,10 +108,11 @@ export function CreateRoomPage() {
     setError('');
 
     try {
-      let currentUser = user;
+      let currentUser = user ?? getAuthUserOrCurrent();
       if (!currentUser) {
         currentUser = await signInAsGuest();
       }
+      currentUser = currentUser ?? getAuthUserOrCurrent();
 
       if (!currentUser) {
         setError('Failed to authenticate');
@@ -131,11 +133,12 @@ export function CreateRoomPage() {
             : DEFAULT_CUSTOM_RULES
           : null;
 
+      const trimmedPassword = password.trim();
       const code = await createRoom({
         roomMakerUid: currentUser.uid,
         roomMakerName: name.trim(),
         roomMakerGuest: currentUser.isAnonymous,
-        password: password.trim(),
+        password: trimmedPassword,
         mode,
         rulesetType,
         rulesetId:
@@ -148,6 +151,7 @@ export function CreateRoomPage() {
         theme,
       });
 
+      saveHostRoomPassword(code, trimmedPassword);
       bindRoomFromRoute(code, { allowRejoin: true });
       navigate(`/lobby/${code}`);
     } catch (err: unknown) {

@@ -11,6 +11,7 @@ import {
   update,
   remove,
   onValue,
+  runTransaction,
   DataSnapshot,
 } from 'firebase/database';
 import { database, isFirebaseConfigured } from './config';
@@ -145,6 +146,41 @@ export async function createRoom(params: {
   return code;
 }
 
+/** Lobby membership check before join (e.g. fresh guest when same browser profile). */
+export async function getLobbySeatInfo(
+  code: string,
+  playerUid: string
+): Promise<{
+  inRoom: boolean;
+  seatCount: number;
+  maxPlayers: number;
+  existingPlayerName: string | null;
+}> {
+  const empty = { inRoom: false, seatCount: 0, maxPlayers: 0, existingPlayerName: null };
+  if (!database) return empty;
+  const snap = await get(ref(database, `rooms/${code}`));
+  if (!snap.exists()) return empty;
+  const room = snap.val() as RoomData;
+  const maxPlayers = getMaxPlayers(room.mode);
+  if (room.status !== 'lobby') {
+    const me = room.players?.[playerUid];
+    return {
+      inRoom: Boolean(me),
+      seatCount: 0,
+      maxPlayers,
+      existingPlayerName: me?.name ?? null,
+    };
+  }
+  const players = room.players || {};
+  const me = players[playerUid];
+  return {
+    inRoom: Boolean(me),
+    seatCount: Object.keys(players).length,
+    maxPlayers,
+    existingPlayerName: me?.name ?? null,
+  };
+}
+
 /**
  * Join an existing room.
  */
@@ -201,48 +237,55 @@ export async function joinRoom(params: {
     return { success: false, error: 'Game already in progress' };
   }
 
-  // New join: claim a seat via per-player transaction (rules enforce lobby + capacity).
-  const playersSnap = await get(ref(database, `rooms/${params.code}/players`));
-  const currentPlayers = (playersSnap.val() || {}) as Record<string, PlayerState>;
+  // New join: read players, claim seat, write own player node (rules allow self-create in lobby).
+  const playersRef = ref(database, `rooms/${params.code}/players`);
 
-  if (currentPlayers[params.playerUid]) {
-    await set(ref(database, `rooms/${params.code}/players/${params.playerUid}/connected`), true);
-    return { success: true };
-  }
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const playersSnap = await get(playersRef);
+    const currentPlayers = (playersSnap.val() || {}) as Record<string, PlayerState>;
 
-  if (Object.keys(currentPlayers).length >= maxPlayers) {
-    return { success: false, error: 'Room is full' };
-  }
-
-  const usedSeats = Object.values(currentPlayers).map((p) => p.seat);
-  let nextSeat = 0;
-  while (usedSeats.includes(nextSeat)) nextSeat++;
-
-  const color = COLORS_ORDER[nextSeat];
-  const team = room.mode === '4p_teams' ? TEAM_ASSIGNMENTS[nextSeat] : null;
-
-  const newPlayer: PlayerState = {
-    id: params.playerUid,
-    uid: params.playerUid,
-    name: params.playerName,
-    color,
-    seat: nextSeat,
-    team,
-    isBot: false,
-    botDifficulty: null,
-    connected: true,
-    ready: false,
-    guest: params.playerGuest,
-  };
-
-  try {
-    await set(playerRef, newPlayer);
-  } catch {
-    const afterFail = await get(playerRef);
-    if (afterFail.exists() && (afterFail.val() as PlayerState).uid === params.playerUid) {
+    if (currentPlayers[params.playerUid]) {
       await set(ref(database, `rooms/${params.code}/players/${params.playerUid}/connected`), true);
-    } else {
-      return { success: false, error: 'Room is full or join denied' };
+      break;
+    }
+
+    if (Object.keys(currentPlayers).length >= maxPlayers) {
+      return { success: false, error: 'Room is full' };
+    }
+
+    const usedSeats = Object.values(currentPlayers).map((p) => p.seat);
+    let nextSeat = 0;
+    while (usedSeats.includes(nextSeat)) nextSeat++;
+
+    const color = COLORS_ORDER[nextSeat];
+    const team = room.mode === '4p_teams' ? TEAM_ASSIGNMENTS[nextSeat] : null;
+
+    const newPlayer: PlayerState = {
+      id: params.playerUid,
+      uid: params.playerUid,
+      name: params.playerName,
+      color,
+      seat: nextSeat,
+      team,
+      isBot: false,
+      botDifficulty: null,
+      connected: true,
+      ready: false,
+      guest: params.playerGuest,
+    };
+
+    try {
+      await set(playerRef, newPlayer);
+      break;
+    } catch {
+      const afterFail = await get(playerRef);
+      if (afterFail.exists() && (afterFail.val() as PlayerState).uid === params.playerUid) {
+        await set(ref(database, `rooms/${params.code}/players/${params.playerUid}/connected`), true);
+        break;
+      }
+      if (attempt === 3) {
+        return { success: false, error: 'Room is full or join denied' };
+      }
     }
   }
 
@@ -252,6 +295,22 @@ export async function joinRoom(params: {
   });
 
   return { success: true };
+}
+
+function normalizeDiscardPile(value: unknown): Card[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value as Card[];
+  if (typeof value === 'object') return Object.values(value as Record<string, Card>);
+  return [];
+}
+
+async function appendToDiscardPile(code: string, cards: Card[]): Promise<void> {
+  if (!database || cards.length === 0) return;
+  const discardRef = ref(database, `rooms/${code}/gameState/discardPile`);
+  await runTransaction(discardRef, (current) => {
+    const pile = normalizeDiscardPile(current);
+    return [...pile, ...cards];
+  });
 }
 
 function gameStatePlayerIndex(players: PlayerState[], playerUid: string): number {
@@ -288,12 +347,6 @@ export async function leaveRoom(code: string, playerUid: string): Promise<void> 
 
     if (leaverCount > 0 || leaverHand.length > 0) {
       updates[`rooms/${code}/gameState/handCounts/${playerUid}`] = 0;
-      if (leaverHand.length > 0) {
-        updates[`rooms/${code}/gameState/discardPile`] = [
-          ...gameState.discardPile,
-          ...leaverHand,
-        ];
-      }
       updates[`privateHands/${code}/${playerUid}/cards`] = [];
     }
 
@@ -315,6 +368,9 @@ export async function leaveRoom(code: string, playerUid: string): Promise<void> 
     }
 
     await update(ref(database), updates);
+    if (leaverHand.length > 0) {
+      await appendToDiscardPile(code, leaverHand);
+    }
     void update(roomRef, { updatedAt: now }).catch((err) => {
       console.warn('leaveRoom: updatedAt touch skipped', err);
     });
@@ -384,7 +440,8 @@ export async function addBots(
   code: string,
   count: number,
   difficulty: string,
-  mode: GameMode
+  mode: GameMode,
+  preferredSeat?: number
 ): Promise<void> {
   if (!database) return;
   const roomRef = ref(database, `rooms/${code}`);
@@ -396,7 +453,14 @@ export async function addBots(
   const maxPlayers = getMaxPlayers(mode);
   let botsAdded = 0;
 
-  for (let seat = 0; seat < maxPlayers && botsAdded < count; seat++) {
+  const seatOrder =
+    preferredSeat !== undefined
+      ? [preferredSeat]
+      : Array.from({ length: maxPlayers }, (_, i) => i);
+
+  for (const seat of seatOrder) {
+    if (botsAdded >= count) break;
+    if (seat < 0 || seat >= maxPlayers) continue;
     if (usedSeats.includes(seat)) continue;
 
     const botId = `bot_${seat}_${Date.now()}`;
@@ -411,7 +475,7 @@ export async function addBots(
       seat,
       team,
       isBot: true,
-      botDifficulty: difficulty as any,
+      botDifficulty: difficulty as PlayerState['botDifficulty'],
       connected: true,
       ready: true,
       guest: false,
@@ -419,6 +483,7 @@ export async function addBots(
 
     const botRef = ref(database, `rooms/${code}/players/${botId}`);
     await set(botRef, botPlayer);
+    usedSeats.push(seat);
     botsAdded++;
   }
 }

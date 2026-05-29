@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { useRoomSession } from '../context/room/RoomSessionContext';
 import { useGamePlay } from '../context/game/GamePlayContext';
+import { getAuthUserOrCurrent } from '../lib/firebase/auth';
 import {
   resolveRoomRouteState,
   RoomRoutePage,
@@ -13,16 +14,19 @@ export function useRoomRouteState(page: RoomRoutePage, roomCode: string | null):
   const { room, roomLoaded, isLeaving } = useRoomSession();
   const { gameState, handLoaded, handError } = useGamePlay();
 
-  const playerId = user?.uid?.trim() || null;
+  const authUser = user ?? getAuthUserOrCurrent();
+  const playerId = authUser?.uid?.trim() || null;
+  // Guest sign-in can complete before onAuthStateChanged updates React; don't block lobby on authLoading alone.
+  const effectiveAuthLoading = authLoading && !authUser;
 
   return useMemo(
     () =>
       resolveRoomRouteState({
         page,
         roomCode,
-        authLoading,
+        authLoading: effectiveAuthLoading,
         firebaseReady,
-        hasUser: Boolean(user),
+        hasUser: Boolean(authUser),
         isLeaving,
         roomLoaded,
         room,
@@ -34,9 +38,9 @@ export function useRoomRouteState(page: RoomRoutePage, roomCode: string | null):
     [
       page,
       roomCode,
-      authLoading,
+      effectiveAuthLoading,
       firebaseReady,
-      user,
+      authUser,
       isLeaving,
       roomLoaded,
       room,

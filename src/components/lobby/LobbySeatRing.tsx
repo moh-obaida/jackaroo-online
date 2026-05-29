@@ -13,7 +13,7 @@ type LobbySeatRingProps = {
   myPlayerId: string | null;
   isRoomMaker: boolean;
   onKick: (uid: string) => void;
-  onAddBot: () => void;
+  onAddBot: (seatIndex: number) => void;
   botsEnabled: boolean;
   getVoiceStatus?: (playerId: string) => VoiceParticipantStatus;
 };
@@ -132,7 +132,11 @@ export function LobbySeatRing({
                 <>
                   <p className="lobby-seat__vacant">{t('lobby.waiting')}</p>
                   {isRoomMaker && botsEnabled && (
-                    <button type="button" onClick={onAddBot} className="lobby-seat__add-bot">
+                    <button
+                      type="button"
+                      onClick={() => onAddBot(seatIndex)}
+                      className="lobby-seat__add-bot"
+                    >
                       + {t('lobby.addBot')}
                     </button>
                   )}

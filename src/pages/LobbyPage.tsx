@@ -16,6 +16,7 @@ import { LobbyRulesSummary } from '../components/lobby/LobbyRulesSummary';
 import { CardGuideModal } from '../components/cards/CardGuideModal';
 import { VoiceControls } from '../components/voice/VoiceControls';
 import { useVoiceChat } from '../hooks/useVoiceChat';
+import { getHostRoomPassword } from '../lib/room/hostRoomPassword';
 
 function normalizeRoomCode(raw: string | undefined): string | null {
   const code = raw?.trim();
@@ -39,6 +40,8 @@ function LobbyPageContent() {
   const routeState = useRoomRouteState('lobby', roomCode);
 
   const [copied, setCopied] = useState(false);
+  const [passwordCopied, setPasswordCopied] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [leaveBusy, setLeaveBusy] = useState(false);
   const [deckGuideOpen, setDeckGuideOpen] = useState(false);
   const playerId = user?.uid?.trim() || null;
@@ -70,6 +73,7 @@ function LobbyPageContent() {
   const maxPlayers = currentRoom ? getMaxPlayersForMode(currentRoom.mode) : 0;
   const seatedCount = players.length;
   const isRoomMaker = Boolean(currentRoom && playerId && currentRoom.roomMakerUid === playerId);
+  const hostPassword = roomCode ? getHostRoomPassword(roomCode) : null;
 
   const startReadiness = useMemo(() => {
     if (!currentRoom) {
@@ -127,15 +131,29 @@ function LobbyPageContent() {
     }
   }, [roomCode]);
 
+  const handleCopyPassword = useCallback(async () => {
+    if (!hostPassword) return;
+    try {
+      await navigator.clipboard.writeText(hostPassword);
+      setPasswordCopied(true);
+      setTimeout(() => setPasswordCopied(false), 2000);
+    } catch {
+      setPasswordCopied(false);
+    }
+  }, [hostPassword]);
+
   const handleReady = useCallback(async () => {
     if (!playerId || !roomCode) return;
     await setPlayerReady(roomCode, playerId, !myPlayer?.ready);
   }, [playerId, roomCode, myPlayer?.ready]);
 
-  const handleAddBot = useCallback(() => {
-    if (!roomCode || !currentRoom) return;
-    addBots(roomCode, 1, currentRoom.botSettings.difficulty, currentRoom.mode);
-  }, [roomCode, currentRoom]);
+  const handleAddBot = useCallback(
+    (seatIndex?: number) => {
+      if (!roomCode || !currentRoom) return;
+      addBots(roomCode, 1, currentRoom.botSettings.difficulty, currentRoom.mode, seatIndex);
+    },
+    [roomCode, currentRoom]
+  );
 
   if (isTerminalRouteState(routeState)) {
     return <RoomRouteFallback state={routeState} roomCode={roomCode} />;
@@ -161,15 +179,50 @@ function LobbyPageContent() {
 
         <div className="lobby-setup">
           <div className="lobby-invite-plaque">
-            <span className="lobby-invite-plaque__label">{t('lobby.code')}</span>
-            <span className="lobby-invite-plaque__code">{roomCode}</span>
-            <button
-              type="button"
-              onClick={handleCopyCode}
-              className="btn-game-secondary lobby-invite-plaque__copy"
-            >
-              {copied ? t('lobby.copied') : t('lobby.copy')}
-            </button>
+            <div className="lobby-invite-plaque__row">
+              <span className="lobby-invite-plaque__label">{t('lobby.code')}</span>
+              <span className="lobby-invite-plaque__code">{roomCode}</span>
+              <button
+                type="button"
+                onClick={handleCopyCode}
+                className="btn-game-secondary lobby-invite-plaque__copy"
+              >
+                {copied ? t('lobby.copied') : t('lobby.copy')}
+              </button>
+            </div>
+
+            {isRoomMaker && (
+              <div className="lobby-invite-plaque__row lobby-invite-plaque__row--password">
+                <span className="lobby-invite-plaque__label">{t('lobby.password')}</span>
+                {hostPassword ? (
+                  <>
+                    <span
+                      className="lobby-invite-plaque__secret"
+                      aria-label={t('lobby.password')}
+                    >
+                      {passwordVisible ? hostPassword : '•'.repeat(hostPassword.length)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPasswordVisible((v) => !v)}
+                      className="btn-game-secondary lobby-invite-plaque__toggle"
+                      aria-pressed={passwordVisible}
+                    >
+                      {passwordVisible ? t('lobby.hidePassword') : t('lobby.showPassword')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleCopyPassword()}
+                      className="btn-game-secondary lobby-invite-plaque__copy"
+                    >
+                      {passwordCopied ? t('lobby.passwordCopied') : t('lobby.copy')}
+                    </button>
+                  </>
+                ) : (
+                  <p className="lobby-invite-plaque__password-hint">{t('lobby.passwordUnavailable')}</p>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="lobby-setup__main">
@@ -240,7 +293,7 @@ function LobbyPageContent() {
           </button>
 
           {isRoomMaker && currentRoom.botSettings.enabled && (
-            <button type="button" className="btn-game-secondary" onClick={handleAddBot}>
+            <button type="button" className="btn-game-secondary" onClick={() => handleAddBot()}>
               {t('lobby.addBot')}
             </button>
           )}

@@ -6,7 +6,7 @@
 |-----------|------|------|
 | **Manus spec** | [`../jakaroo_online_manus_prompt.txt`](../jakaroo_online_manus_prompt.txt) | Product, rules §8, board §6, UI §16, Firebase §14 |
 | **Physical deck/board** | Photos (red جاكارو back, white face K=13, wooden octagonal board) | Visual target for `PlayingCard`, `GameBoard` |
-| **Knowledge Connect** | `/home/m_obaida2021/Desktop/knowledge-connect-original-main` | **Session/sync patterns only** — not game rules or visuals |
+| **Knowledge Connect** | knowledge-connect-original-main (external/local reference — not in this repo) | **Session/sync patterns only** — not game rules or visuals |
 | **This repo** | `docs/CARDS_AND_RULES_REFERENCE.md` | Engine vs UI boundary |
 
 ## Manus → Jakaroo mapping

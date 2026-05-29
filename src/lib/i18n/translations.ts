@@ -98,8 +98,14 @@ export const en: Translations = {
   // Lobby
   'lobby.title': 'Room Lobby',
   'lobby.code': 'Room Code',
+  'lobby.password': 'Room Password',
+  'lobby.showPassword': 'Show',
+  'lobby.hidePassword': 'Hide',
+  'lobby.passwordUnavailable':
+    'Password was set when you created this room. It is not stored on this browser — share it with guests manually.',
   'lobby.copy': 'Copy',
   'lobby.copied': 'Copied!',
+  'lobby.passwordCopied': 'Password copied!',
   'lobby.players': 'Players',
   'lobby.seat': 'Seat',
   'lobby.team': 'Team',
@@ -455,8 +461,14 @@ export const ar: Translations = {
   // Lobby
   'lobby.title': 'لوبي الغرفة',
   'lobby.code': 'رمز الغرفة',
+  'lobby.password': 'كلمة مرور الغرفة',
+  'lobby.showPassword': 'إظهار',
+  'lobby.hidePassword': 'إخفاء',
+  'lobby.passwordUnavailable':
+    'تم تعيين كلمة المرور عند إنشاء الغرفة. لا تُحفظ على هذا المتصفح — شاركها مع الضيوف يدوياً.',
   'lobby.copy': 'نسخ',
   'lobby.copied': 'تم النسخ!',
+  'lobby.passwordCopied': 'تم نسخ كلمة المرور!',
   'lobby.players': 'اللاعبون',
   'lobby.seat': 'المقعد',
   'lobby.team': 'الفريق',

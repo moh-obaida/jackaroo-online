@@ -21,10 +21,21 @@ export type AuthUser = User;
 /**
  * Sign in as guest (anonymous).
  */
+const GUEST_SIGN_IN_TIMEOUT_MS = 15000;
+
 export async function signInAsGuest(): Promise<User | null> {
   if (!auth) return null;
-  const result = await signInAnonymously(auth);
-  return result.user;
+  const signInPromise = signInAnonymously(auth).then((result) => result.user);
+  const timeoutPromise = new Promise<null>((resolve) => {
+    window.setTimeout(() => resolve(null), GUEST_SIGN_IN_TIMEOUT_MS);
+  });
+  const user = await Promise.race([signInPromise, timeoutPromise]);
+  return user ?? auth.currentUser;
+}
+
+/** Firebase user even if React auth state has not caught up yet (post signInAnonymously). */
+export function getAuthUserOrCurrent(): User | null {
+  return auth?.currentUser ?? null;
 }
 
 /**

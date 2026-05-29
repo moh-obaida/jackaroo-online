@@ -7,7 +7,7 @@ This doc ties together:
 - Physical Jackaroo deck photos (red back **جاكارو / JACKAROO**, white face with **large rank number** + Arabic action text)
 - Code in this repo (engine vs UI)
 
-**Knowledge Connect** ([`knowledge-connect-original-main`](/home/m_obaida2021/Desktop/knowledge-connect-original-main)): use for room sync / session / overlay discipline only — not KC quiz UI.
+**Knowledge Connect** (external project `knowledge-connect-original-main`, not vendored in this repo): use for room sync / session / overlay discipline only — not KC quiz UI.
 
 ## Golden rules for developers
 

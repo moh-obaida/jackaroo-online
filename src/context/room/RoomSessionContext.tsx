@@ -17,6 +17,8 @@ import {
   setActiveRoomCode,
   clearLeftMark,
 } from '../../lib/room/sessionMarks';
+import { clearHostRoomPassword } from '../../lib/room/hostRoomPassword';
+import { getAuthUserOrCurrent } from '../../lib/firebase/auth';
 import { useApp } from '../AppContext';
 
 export type RoomSessionContextValue = {
@@ -44,7 +46,7 @@ export function RoomSessionProvider({ children }: { children: React.ReactNode })
   const { user } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
-  const playerId = user?.uid?.trim() || null;
+  const playerId = (user ?? getAuthUserOrCurrent())?.uid?.trim() || null;
 
   const [room, setRoom] = useState<RoomData | null>(null);
   const [roomCode, setRoomCodeState] = useState<string | null>(null);
@@ -129,6 +131,7 @@ export function RoomSessionProvider({ children }: { children: React.ReactNode })
 
       // 3. Clear route/session state (+ left mark blocks rejoin on refresh)
       markLeft(trimmed);
+      clearHostRoomPassword(trimmed);
       clearGameSession();
 
       // 4. Navigate home immediately (never wait on Firebase)
