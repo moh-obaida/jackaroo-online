@@ -124,17 +124,6 @@ export function VoiceControls({
           </>
         )}
 
-        {showPermission && (
-          <button
-            type="button"
-            className="voice-controls__btn voice-controls__btn--primary"
-            onClick={onRetry}
-            disabled={connectionState === 'unsupported'}
-            aria-label={t('voice.aria.retry')}
-          >
-            {t('voice.retry')}
-          </button>
-        )}
       </div>
 
       {statusLabel && connectionState !== 'idle' && !showPermission && (

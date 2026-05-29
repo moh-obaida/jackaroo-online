@@ -118,7 +118,7 @@ export function LobbySeatRing({
                   {player.id === roomMakerUid && (
                     <span className="lobby-seat__host">{t('lobby.roomMaker')}</span>
                   )}
-                  {isRoomMaker && myPlayerId != null && player.id !== myPlayerId && !player.isBot && (
+                  {isRoomMaker && myPlayerId != null && player.id !== myPlayerId && (
                     <button
                       type="button"
                       onClick={() => onKick(player.id)}

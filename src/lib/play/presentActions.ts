@@ -92,15 +92,14 @@ export function presentLegalActions(
   const ordered = burnForCard ? [burnForCard, ...cardMoves] : cardMoves;
   const primary = ordered[0] ?? null;
   const others = ordered.slice(1);
-  const maxOthers = 4;
-  const visibleOthers = others.slice(0, maxOthers);
-  const hiddenCount = Math.max(0, others.length - maxOthers);
+  const collapsedVisibleCount = 1;
+  const hiddenCount = Math.max(0, others.length - collapsedVisibleCount);
 
   return {
     kind: 'play_card',
     cardId: selectedCardId,
     primary,
-    others: visibleOthers,
+    others,
     hiddenCount,
   };
 }

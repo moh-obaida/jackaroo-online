@@ -118,7 +118,6 @@ export function CreateRoomPage() {
       if (!currentUser) {
         currentUser = await signInAsGuest();
       }
-      currentUser = currentUser ?? getAuthUserOrCurrent();
 
       if (!currentUser) {
         setError('Failed to authenticate');

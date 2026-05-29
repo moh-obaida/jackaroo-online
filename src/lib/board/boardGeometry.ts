@@ -198,7 +198,11 @@ function buildOuterTrackFromWaypoints(waypoints: BoardPoint[]): BoardPoint[] {
   const out: BoardPoint[] = [];
   for (let s = 0; s < 4; s++) {
     const poly = sectionPolyline(waypoints, s);
-    out.push(...placeHolesAlongPolyline(poly, perSection));
+    let sectionPoints = placeHolesAlongPolyline(poly, perSection);
+    if (s > 0 && out.length > 0) {
+      sectionPoints = [{ ...out[out.length - 1] }, ...sectionPoints.slice(1)];
+    }
+    out.push(...sectionPoints);
   }
   return out;
 }

@@ -317,6 +317,16 @@ function gameStatePlayerIndex(players: PlayerState[], playerUid: string): number
   return players.findIndex((p) => p.id === playerUid);
 }
 
+/** Next human host for bot turn driving when the current maker leaves mid-game. */
+function pickNextRoomMakerUid(
+  players: Record<string, PlayerState>,
+  leavingUid: string
+): string | null {
+  const remaining = Object.values(players).filter((p) => p.id !== leavingUid);
+  const human = remaining.find((p) => !p.isBot);
+  return human?.id ?? remaining[0]?.id ?? null;
+}
+
 /**
  * Leave a room. In lobby, removes the player node. During play, marks disconnected
  * and advances turn when the leaving player was up — keeps gameState turn order valid.
@@ -348,6 +358,13 @@ export async function leaveRoom(code: string, playerUid: string): Promise<void> 
     if (leaverCount > 0 || leaverHand.length > 0) {
       updates[`rooms/${code}/gameState/handCounts/${playerUid}`] = 0;
       updates[`privateHands/${code}/${playerUid}/cards`] = [];
+    }
+
+    if (playerUid === room.roomMakerUid) {
+      const nextMaker = pickNextRoomMakerUid(room.players, playerUid);
+      if (nextMaker) {
+        updates[`rooms/${code}/roomMakerUid`] = nextMaker;
+      }
     }
 
     if (idx >= 0) {

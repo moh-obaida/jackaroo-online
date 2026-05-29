@@ -12,7 +12,6 @@
         },
         "gameState": {
           ".read": true,
-          ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val() || (!data.exists() && auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val()))",
           "mode": {
             ".write": "auth != null && (auth.uid === root.child('rooms/' + $roomCode + '/roomMakerUid').val() || auth.uid === root.child('rooms/' + $roomCode + '/gameState/currentTurnPlayerId').val())"
           },

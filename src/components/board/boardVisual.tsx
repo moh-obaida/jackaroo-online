@@ -677,7 +677,16 @@ export function BoardVisual({
                       r={16}
                       fill="transparent"
                       className="board-hole-hit"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Select move target ${positionKey(pos)}`}
                       onClick={() => onPositionClick(pos)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onPositionClick(pos);
+                        }
+                      }}
                     />
                   );
                 })}

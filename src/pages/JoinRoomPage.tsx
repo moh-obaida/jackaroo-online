@@ -59,7 +59,6 @@ export function JoinRoomPage() {
       if (!currentUser) {
         currentUser = await signInAsGuest();
       }
-      currentUser = currentUser ?? getAuthUserOrCurrent();
 
       if (!currentUser) {
         setError('Failed to authenticate. Try again or disable strict storage blocking.');
