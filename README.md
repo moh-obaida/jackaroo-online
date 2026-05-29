@@ -189,3 +189,32 @@ src/
 ## License
 
 Private project.
+
+## Firebase Setup (Updated)
+
+### 1. Create a Firebase project
+Go to [console.firebase.google.com](https://console.firebase.google.com) and create a project.
+
+### 2. Enable Authentication
+- Firebase Console → Authentication → Sign-in method
+- Enable **Anonymous** (required for guest play)
+- Enable **Email/Password**
+
+### 3. Create Realtime Database
+- Firebase Console → Realtime Database → Create database
+- Start in **test mode** (you'll deploy rules next)
+
+### 4. Deploy Database Rules
+Deploy the security rules from `firebase.database.rules.json`:
+```bash
+firebase login
+firebase deploy --only database --project YOUR_PROJECT_ID
+```
+
+## Admin / Code Export
+
+The `/admin` route is a development-only code export tool.
+- Hidden from navigation
+- Protected by `VITE_ENABLE_CODE_EXPORT=true` env flag (disabled by default)
+- **Disable before production**
+- **Warning**: This tool is for code structure export only. It does not export secrets, user data, private hands, or database contents.
