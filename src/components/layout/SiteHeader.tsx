@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { logOut } from '../../lib/firebase/auth';
 import { JakarooIcon } from '../brand/JakarooIcon';
+import { JakarooWordmark } from '../brand/JakarooWordmark';
 import { ConnectionBar } from '../ui/ConnectionBar';
 
 export function SiteHeader() {
@@ -21,9 +22,10 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <div className="site-header__inner">
-        <Link to="/" className="site-header__brand">
+        <Link to="/" className="site-header__brand" aria-label={t('app.name')}>
           <JakarooIcon size="md" className="site-header__icon" />
-          <span className="site-header__name">{t('app.name')}</span>
+          <JakarooWordmark variant="header" decorative className="site-header__wordmark hidden sm:block" />
+          <span className="site-header__name sm:hidden">{t('app.name')}</span>
         </Link>
         <div className="site-header__end">
           {onRoomRoute && <ConnectionBar />}

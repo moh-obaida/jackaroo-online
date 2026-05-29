@@ -4,8 +4,8 @@ import { useApp } from '../context/AppContext';
 import { signInAsGuest } from '../lib/firebase/auth';
 import { PageFrame } from '../components/ui/PageFrame';
 import { Alert } from '../components/ui/Alert';
-import { Button } from '../components/ui/Button';
 import { JakarooIcon } from '../components/brand/JakarooIcon';
+import { JakarooWordmark } from '../components/brand/JakarooWordmark';
 import { JackarooBoardPreview } from '../components/home/JackarooBoardPreview';
 import { HomeFeatureIcon, HomeFeatureKey } from '../components/home/HomeFeatureIcon';
 
@@ -37,14 +37,16 @@ export function HomePage() {
 
       <main className="home-hero-donor">
         <section className="hero-copy-donor">
-          <div className="brand-emblem-donor">J</div>
-          <h1 className="hero-title-donor">
-            Jakaroo <span className="text-gold-500">Online</span>
+          <p className="landing-hero__eyebrow mb-4">{t('home.eyebrow')}</p>
+
+          <h1 className="hero-brand-donor">
+            <span className="sr-only">{t('app.name')}</span>
+            <JakarooIcon size="lg" className="hero-brand-donor__icon" decorative />
+            <JakarooWordmark variant="hero" decorative className="hero-brand-donor__wordmark" />
           </h1>
-          <p className="hero-subtitle-donor">
-            {t('app.tagline') || 'Create a private table, invite friends, and play Obaida Classic Jackaroo.'}
-          </p>
-          
+
+          <p className="hero-subtitle-donor">{t('app.tagline')}</p>
+
           <div className="hero-actions-donor">
             <Link to="/create" className="btn-game-primary px-8 py-4 text-lg">
               {t('home.createTable')}
@@ -73,7 +75,11 @@ export function HomePage() {
                   {t('home.login')}
                 </Link>
                 <span className="text-cream-200/30">·</span>
-                <button onClick={handleGuest} className="text-cream-200/60 hover:text-cream-100 transition-colors">
+                <button
+                  type="button"
+                  onClick={handleGuest}
+                  className="text-cream-200/60 hover:text-cream-100 transition-colors"
+                >
                   {t('home.guest')}
                 </button>
               </div>
@@ -95,12 +101,8 @@ export function HomePage() {
               <HomeFeatureIcon feature={key} />
             </div>
             <div className="min-w-0">
-              <h3 className="feature-card-title">
-                {t(`home.feature.${key}`)}
-              </h3>
-              <p className="feature-card-desc">
-                {t(`home.feature.${key}.desc`)}
-              </p>
+              <h3 className="feature-card-title">{t(`home.feature.${key}`)}</h3>
+              <p className="feature-card-desc">{t(`home.feature.${key}.desc`)}</p>
             </div>
           </article>
         ))}
