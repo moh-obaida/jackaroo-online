@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
-import { setPlayerReady, kickPlayer, addBots } from '../lib/firebase/rooms';
+import { setPlayerReady, addBots } from '../lib/firebase/rooms';
 import { getMaxPlayersForMode } from '../lib/game/normalize';
 import { useRoomRouteState } from '../hooks/useRoomRouteState';
 import { RoomRouteFallback } from '../components/game/RoomRouteFallback';
@@ -10,13 +10,16 @@ import { RoomRouteViewport } from '../components/game/RoomRouteViewport';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { PageFrame } from '../components/ui/PageFrame';
 import { CardGuideModal } from '../components/cards/CardGuideModal';
-import { VoiceControls } from '../components/voice/VoiceControls';
 import { useVoiceChat } from '../hooks/useVoiceChat';
 import { getHostRoomPassword } from '../lib/room/hostRoomPassword';
 
 function normalizeRoomCode(raw: string | undefined): string | null {
   const code = raw?.trim();
   return code && code.length > 0 ? code : null;
+}
+
+function safeText(value: string, fallback: string): string {
+  return value.includes('.') ? fallback : value;
 }
 
 function LobbyPageContent() {
@@ -26,7 +29,6 @@ function LobbyPageContent() {
     bindRoomFromRoute,
     startGame,
     loading,
-    error: gameError,
     leaveWarning,
     safeLeaveRoom,
   } = useGame();
@@ -37,11 +39,12 @@ function LobbyPageContent() {
 
   const [copied, setCopied] = useState(false);
   const [passwordCopied, setPasswordCopied] = useState(false);
-  const [passwordVisible, setPasswordVisible] = useState(false);
   const [leaveBusy, setLeaveBusy] = useState(false);
   const [deckGuideOpen, setDeckGuideOpen] = useState(false);
   const playerId = user?.uid?.trim() || null;
-  const voice = useVoiceChat(roomCode, playerId);
+  useVoiceChat(roomCode, playerId);
+
+  const label = useCallback((key: string, fallback: string) => safeText(t(key), fallback), [t]);
 
   useEffect(() => {
     if (!roomCode) return;
@@ -178,75 +181,67 @@ function LobbyPageContent() {
     );
   }
 
+  const hostName = players.find((p) => p.uid === currentRoom.roomMakerUid)?.name || 'Host';
+
   return (
-    <PageFrame variant="lobby">
-      <main className="lobby-wrap-donor">
-        <section className="lobby-title-donor">
+    <PageFrame variant="lobby" className="lobby-page-frame">
+      <main className="lobby-wrap-donor lobby-wrap-fixed">
+        <section className="lobby-title-donor lobby-title-fixed">
           <h1 className="text-3xl md:text-4xl font-bold text-gold-300 mb-1">
             {t('lobby.title')}
           </h1>
-          <p className="text-cream-200/60 uppercase tracking-widest text-xs font-bold">
-            {players.find(p => p.uid === currentRoom.roomMakerUid)?.name || 'Host'}'s Table
+          <p className="text-cream-200/60 uppercase tracking-widest text-xs font-bold truncate">
+            {hostName}'s Table
           </p>
         </section>
 
-        <section className="invite-plaque-donor">
+        <section className="invite-plaque-donor invite-plaque-fixed">
           <span className="text-[10px] uppercase tracking-widest text-cream-200/40 font-bold mb-1 block">
             {t('lobby.code')}
           </span>
-          <strong className="text-4xl md:text-5xl font-mono text-gold-500 tracking-[0.2em] pl-[0.2em] block my-2">
+          <strong className="lobby-code-fixed">
             {roomCode}
           </strong>
-          <div className="flex justify-center gap-3 mt-4">
-            <button
-              type="button"
-              onClick={handleCopyCode}
-              className="btn-game-secondary px-4 py-2 text-xs"
-            >
+          <div className="lobby-copy-row-fixed">
+            <button type="button" onClick={handleCopyCode} className="btn-game-secondary px-4 py-2 text-xs">
               {copied ? t('lobby.copied') : t('lobby.copy')}
             </button>
-            <button
-              type="button"
-              onClick={handleCopyInvite}
-              className="btn-game-secondary px-4 py-2 text-xs"
-            >
-              {passwordCopied ? t('lobby.copied') : t('lobby.copyInvite') || 'Copy Invite'}
+            <button type="button" onClick={handleCopyInvite} className="btn-game-secondary px-4 py-2 text-xs">
+              {passwordCopied ? t('lobby.copied') : label('lobby.copyInvite', 'Copy Invite')}
             </button>
           </div>
         </section>
 
-        <section className="lobby-table-area-donor">
-          <div className="mini-table-donor">
-            <span className="text-gold-500/20 font-serif tracking-[0.3em] text-lg font-bold">JAKAROO</span>
+        <section className="lobby-table-area-donor lobby-table-area-fixed">
+          <div className="mini-table-donor mini-table-fixed" aria-hidden>
+            <span>JAKAROO</span>
           </div>
-          
+
           {Array.from({ length: maxPlayers }).map((_, i) => {
-            const player = players.find(p => p.seat === i);
+            const player = players.find((p) => p.seat === i);
             const isMe = player?.id === playerId;
             const isMaker = player?.id === currentRoom.roomMakerUid;
             const position = ['bottom', 'right', 'top', 'left'][i] || 'bottom';
             const color = player?.color || ['black', 'green', 'blue', 'white'][i];
-            
+
             return (
-              <div 
-                key={i} 
-                className={`lobby-seat-donor lobby-seat-donor-${position} ${isMe ? 'me' : ''} ${!player ? 'empty' : ''}`}
+              <div
+                key={i}
+                className={`lobby-seat-donor lobby-seat-donor-${position} lobby-seat-fixed ${isMe ? 'me' : ''} ${!player ? 'empty' : ''}`}
               >
-                <span 
-                  className="seat-color-donor" 
-                  style={{ 
+                <span
+                  className="seat-color-donor"
+                  style={{
                     backgroundColor: color === 'black' ? '#111' : color === 'white' ? '#eee' : color,
-                    borderColor: color === 'black' ? '#444' : 'rgba(255,255,255,0.4)'
-                  }} 
+                    borderColor: color === 'black' ? '#7b7b7b' : 'rgba(255,255,255,0.55)',
+                  }}
                 />
                 {player ? (
                   <>
-                    <strong className="text-sm text-cream-100 truncate w-full px-2" title={player.name}>
-                      {player.name}
-                    </strong>
+                    <strong className="lobby-seat-name-fixed" title={player.name}>{player.name}</strong>
                     <div className="seat-badges-donor">
-                      {isMe && <em>{t('lobby.you') || 'You'}</em>}
-                      {isMaker && <em>{t('lobby.roomMaker') || 'Host'}</em>}
+                      {isMe && <em>{t('lobby.you')}</em>}
+                      {isMaker && <em>{t('lobby.roomMaker')}</em>}
                       {!isMaker && (
                         <em className={player.ready ? 'ready' : ''}>
                           {player.ready ? t('lobby.ready') : t('lobby.notReady')}
@@ -256,13 +251,14 @@ function LobbyPageContent() {
                   </>
                 ) : (
                   <div className="flex flex-col items-center gap-1">
-                    <strong className="text-xs text-cream-200/30">{t('lobby.waiting') || 'Empty'}</strong>
+                    <strong className="text-xs text-cream-200/45">{t('lobby.waiting')}</strong>
                     {isRoomMaker && currentRoom.botSettings.enabled && (
-                      <button 
+                      <button
+                        type="button"
                         onClick={() => handleAddBot(i)}
-                        className="text-[10px] text-gold-500/50 hover:text-gold-500 transition-colors"
+                        className="text-[10px] text-gold-500/60 hover:text-gold-500 transition-colors"
                       >
-                        + Add Bot
+                        + {t('lobby.addBot')}
                       </button>
                     )}
                   </div>
@@ -272,41 +268,33 @@ function LobbyPageContent() {
           })}
         </section>
 
-        <section className="rules-summary-donor">
+        <section className="rules-summary-donor rules-summary-fixed">
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-widest text-cream-200/40 font-bold">Ruleset</span>
+            <span className="text-[10px] uppercase tracking-widest text-cream-200/40 font-bold">{t('lobby.ruleset')}</span>
             <strong className="text-sm text-gold-300">{rulesetLabel}</strong>
           </div>
           <div className="flex flex-col gap-1 text-right">
-            <span className="text-[10px] uppercase tracking-widest text-cream-200/40 font-bold">Mode</span>
+            <span className="text-[10px] uppercase tracking-widest text-cream-200/40 font-bold">{t('lobby.mode')}</span>
             <strong className="text-sm text-gold-300">{modeLabel}</strong>
           </div>
         </section>
 
-        {startReadiness.reason && (
-          <p className="start-reason-donor">
-            {startReadiness.reason}
-          </p>
-        )}
+        {leaveWarning && <p className="start-reason-donor">{leaveWarning}</p>}
+        {startReadiness.reason && <p className="start-reason-donor">{startReadiness.reason}</p>}
 
-        <section className="lobby-actions-donor">
-          <button 
-            type="button" 
-            className="btn-game-secondary flex-1 py-3" 
-            onClick={handleLeave}
-            disabled={leaveBusy}
-          >
+        <section className="lobby-actions-donor lobby-actions-fixed">
+          <button type="button" className="btn-game-secondary flex-1 py-3" onClick={handleLeave} disabled={leaveBusy}>
             {t('lobby.leave')}
           </button>
-          
+
           {playerId && !isRoomMaker && (
-            <button 
-              type="button" 
+            <button
+              type="button"
               className={`flex-1 py-3 rounded-xl font-bold transition-all ${
-                myPlayer?.ready 
-                  ? 'bg-black/40 text-cream-200/60 border border-white/5' 
+                myPlayer?.ready
+                  ? 'bg-black/40 text-cream-200/60 border border-white/5'
                   : 'btn-game-primary'
-              }`} 
+              }`}
               onClick={handleReady}
             >
               {myPlayer?.ready ? t('lobby.unready') : t('lobby.setReady')}
@@ -314,11 +302,12 @@ function LobbyPageContent() {
           )}
 
           {isRoomMaker && (
-            <button 
-              type="button" 
-              className="btn-game-primary flex-1 py-3" 
+            <button
+              type="button"
+              className={`btn-game-primary flex-1 py-3 ${!startReadiness.canStart ? 'button-disabled-fixed' : ''}`}
               onClick={() => { if (startReadiness.canStart) void startGame(); }}
               disabled={!startReadiness.canStart || loading}
+              aria-describedby={startReadiness.reason ? 'lobby-start-reason' : undefined}
             >
               {loading ? t('general.loading') : t('lobby.start')}
             </button>
