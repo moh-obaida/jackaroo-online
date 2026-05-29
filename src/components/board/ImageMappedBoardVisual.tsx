@@ -255,7 +255,8 @@ export function ImageMappedBoardVisual({
             const pt = getImagePointForBoardPosition(pos);
             if (!pt) return null;
             const isTarget = highlightKeys.has(positionKey(pos));
-            const interactive = isMyTurn && isTarget && onPositionClick;
+            const interactive =
+              isMyTurn && isTarget && onPositionClick && (selectedMarbleId != null || calibrationEnabled);
             const r =
               pos.type === 'start_gate' ? IMAGE_BOARD_RADII.hitZoneGate : IMAGE_BOARD_RADII.hitZone;
             return (

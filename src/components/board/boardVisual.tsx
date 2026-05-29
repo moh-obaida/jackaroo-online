@@ -686,6 +686,7 @@ function ProceduralBoardVisual({
             <g className="board-highlights-layer">
               {renderHighlights()}
               {onPositionClick &&
+                selectedMarbleId &&
                 highlightPositions.map((pos) => {
                   const pt = boardPositionToPoint(pos, layout);
                   if (!pt) return null;

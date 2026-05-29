@@ -90,22 +90,7 @@ export function FullScreenGameTable({
     [gameState, gameState.currentTurnPlayerId]
   );
 
-  const boardFlowHintKey = useMemo(() => {
-    if (!isMyTurn || !selectedCardId) return null;
-    if (boardPlay.selectedMarbleId && boardPlay.boardHighlightPositions.length > 0) {
-      return 'game.playFlow.selectTarget';
-    }
-    if (boardPlay.marbleHighlightIds.size > 0) {
-      return 'game.playFlow.selectMarble';
-    }
-    return null;
-  }, [
-    isMyTurn,
-    selectedCardId,
-    boardPlay.selectedMarbleId,
-    boardPlay.boardHighlightPositions.length,
-    boardPlay.marbleHighlightIds,
-  ]);
+  const boardFlowHintKey = boardPlay.playFlowHintKey;
 
   return (
     <div className="fullscreen-game-table jkr-stack flex flex-col h-[100dvh] max-h-[100dvh] w-full overflow-hidden max-w-[100vw]">

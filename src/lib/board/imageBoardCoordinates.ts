@@ -132,7 +132,7 @@ export const IMAGE_BOARD_RADII = {
   marbleTrack: 2.15,
   marbleBase: 1.85,
   marbleHighlight: 2.9,
-  hitZone: 2.85,
-  hitZoneGate: 3.2,
-  legalTarget: 2.75,
+  hitZone: 3.15,
+  hitZoneGate: 3.45,
+  legalTarget: 3.05,
 } as const;

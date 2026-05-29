@@ -154,6 +154,7 @@ export function PhysicalPhotoBoardVisual({
               );
             })}
             {onPositionClick &&
+              selectedMarbleId &&
               highlightPositions.map((pos) => {
                 const raw = boardPositionToPoint(pos, layout);
                 if (!raw) return null;
