@@ -11,6 +11,7 @@ interface ImportMetaEnv {
   readonly VITE_ENABLE_CODE_EXPORT: string;
   readonly VITE_LEGAL_AUDIT: string;
   readonly VITE_BOARD_CALIBRATION: string;
+  readonly VITE_ENABLE_BOARD_CALIBRATION: string;
   readonly VITE_BOARD_PROCEDURAL: string;
   readonly VITE_BOARD_PHYSICAL: string;
 }

@@ -26,11 +26,11 @@ export function DeckDiscardPiles({ gameState, onShowDeckGuide, compact = false }
 
       {topDiscard ? (
         <div className="deck-discard-strip__discard">
-          <span className="deck-discard-strip__label">{t('game.discardTop')}</span>
+          {!compact && <span className="deck-discard-strip__label">{t('game.discardTop')}</span>}
           <PlayingCard card={topDiscard} compact showHint={false} className="pointer-events-none deck-discard-strip__card" />
         </div>
       ) : (
-        <span className="deck-discard-strip__empty">{t('game.discardEmpty')}</span>
+        <span className="deck-discard-strip__empty">{compact ? '—' : t('game.discardEmpty')}</span>
       )}
 
       <button type="button" onClick={onShowDeckGuide} className="deck-discard-strip__guide">

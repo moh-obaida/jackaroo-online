@@ -8,7 +8,6 @@ import { ConnectionBar } from '../../ui/ConnectionBar';
 import { formatPlayerName, formatTableCode } from '../../../lib/player/displayName';
 import { PlayerColor } from '../../../types/game';
 import { ConfirmDialog } from '../../ui/ConfirmDialog';
-import { DeckDiscardPiles } from './DeckDiscardPiles';
 
 type GameHUDProps = {
   roomCode: string;
@@ -18,7 +17,6 @@ type GameHUDProps = {
   onLeave: () => void;
   leaveBusy: boolean;
   myColor?: PlayerColor | null;
-  onShowDeckGuide: () => void;
 };
 
 export function GameHUD({
@@ -29,7 +27,6 @@ export function GameHUD({
   onLeave,
   leaveBusy,
   myColor,
-  onShowDeckGuide,
 }: GameHUDProps) {
   const { t } = useApp();
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
@@ -85,10 +82,6 @@ export function GameHUD({
           >
             {t('game.leaveGame')}
           </Button>
-        </div>
-
-        <div className="game-table-hud__deck col-span-full">
-          <DeckDiscardPiles gameState={gameState} onShowDeckGuide={onShowDeckGuide} compact />
         </div>
       </header>
       <ConfirmDialog
