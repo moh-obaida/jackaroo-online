@@ -46,9 +46,9 @@ export function JackarooBoardPreview({
           <img
             src={HOME_BOARD_PREMIUM_SRC}
             alt={t('home.boardPreviewAlt')}
-            className="jackaroo-board-preview__image"
-            width={560}
-            height={560}
+            className="jackaroo-board-preview__image jackaroo-board-preview__image--contain"
+            width={640}
+            height={640}
             loading="eager"
             decoding="async"
             onError={() => setFailed(true)}

@@ -21,6 +21,7 @@ import {
 } from '../../lib/board/boardGeometry';
 import { positionKey } from '../../lib/play/boardHighlights';
 import { BoardPreviewPhotoVisual, PhysicalPhotoBoardVisual } from './PhysicalPhotoBoardVisual';
+import { ImageMappedBoardVisual } from './ImageMappedBoardVisual';
 
 const COLOR_FILL: Record<PlayerColor, string> = {
   black: '#2e2e2e',
@@ -717,12 +718,15 @@ function ProceduralBoardVisual({
   );
 }
 
-/** Default: literal reference photo. Set VITE_BOARD_PROCEDURAL=1 for SVG board. */
+/** Default: image-mapped premium board. VITE_BOARD_PROCEDURAL=1 for SVG; VITE_BOARD_PHYSICAL=1 for old photo. */
 export function BoardVisual(props: BoardVisualProps) {
   if (import.meta.env.VITE_BOARD_PROCEDURAL === '1') {
     return <ProceduralBoardVisual {...props} />;
   }
-  return <PhysicalPhotoBoardVisual {...props} />;
+  if (import.meta.env.VITE_BOARD_PHYSICAL === '1') {
+    return <PhysicalPhotoBoardVisual {...props} />;
+  }
+  return <ImageMappedBoardVisual {...props} />;
 }
 
 export function BoardVisualFromGame({

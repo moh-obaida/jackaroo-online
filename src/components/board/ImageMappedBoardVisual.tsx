@@ -1,0 +1,282 @@
+import React, { useCallback, useMemo, useState } from 'react';
+import {
+  BoardPosition,
+  COLORS_ORDER,
+  Marble,
+  PlayerColor,
+} from '../../types/game';
+import {
+  boardPositionAriaLabel,
+  getAllBoardPositions,
+  getImagePointForBoardPosition,
+  IMAGE_BOARD_GAME_SRC,
+  IMAGE_BOARD_POINTS,
+  IMAGE_BOARD_RADII,
+  marbleAriaLabel,
+} from '../../lib/board/imageBoardCoordinates';
+import { positionKey } from '../../lib/play/boardHighlights';
+import { BoardCalibrationOverlay } from './BoardCalibrationOverlay';
+
+export type ImageMappedBoardVisualProps = {
+  idPrefix?: string;
+  activeColors?: Set<PlayerColor>;
+  marbles?: Marble[];
+  highlightPositions?: BoardPosition[];
+  selectableMarbleIds?: Set<string>;
+  selectedMarbleId?: string | null;
+  myColor?: PlayerColor | null;
+  isMyTurn?: boolean;
+  showDemoMarbles?: boolean;
+  onMarbleClick?: (marbleId: string) => void;
+  onPositionClick?: (pos: BoardPosition) => void;
+  className?: string;
+};
+
+const MARBLE_GRADIENT: Record<PlayerColor, [string, string]> = {
+  black: ['#4a4a4a', '#1a1a1a'],
+  green: ['#3ecf7a', '#157a42'],
+  blue: ['#4a7fd4', '#1a4088'],
+  white: ['#f5f0e6', '#c4b8a8'],
+};
+
+function ImageMappedMarble({
+  marble,
+  point,
+  r,
+  isOwn,
+  isSelectable,
+  isSelected,
+  onClick,
+  pid,
+}: {
+  marble: Marble;
+  point: { x: number; y: number };
+  r: number;
+  isOwn: boolean;
+  isSelectable: boolean;
+  isSelected: boolean;
+  onClick?: () => void;
+  pid: string;
+}) {
+  const isLocked =
+    marble.position.type === 'start_gate' && marble.position.color === marble.color;
+  const gradId = `${pid}-marble-${marble.color}`;
+
+  return (
+    <g
+      className={`image-board-marble${isSelectable ? ' image-board-marble--selectable' : ''}${isSelected ? ' image-board-marble--selected' : ''}`}
+      transform={`translate(${point.x}, ${point.y})`}
+      style={{ cursor: onClick ? 'pointer' : undefined, transition: 'transform 0.28s ease-out' }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.();
+      }}
+      role="img"
+      aria-label={marbleAriaLabel(marble, isSelected, isSelectable)}
+    >
+      {isSelectable && (
+        <circle
+          r={r + 1.1}
+          fill="none"
+          stroke={isSelected ? '#ffd633' : '#5eead4'}
+          strokeWidth={isSelected ? 0.45 : 0.35}
+          className={isSelected ? 'marble-glow marble-glow--selected' : 'marble-glow marble-glow--selectable'}
+        />
+      )}
+      {isLocked && (
+        <circle r={r + 1.3} fill="none" stroke="#ffd633" strokeWidth={0.4} className="gate-lock-ring" />
+      )}
+      <ellipse cx={0.15} cy={0.35} rx={r * 0.95} ry={r * 0.75} fill="#000" opacity={0.45} />
+      <circle r={r} fill={`url(#${gradId})`} stroke={isLocked ? '#ffd633' : isOwn ? '#e6c567' : 'rgba(255,255,255,0.35)'} strokeWidth={isLocked ? 0.35 : isOwn ? 0.28 : 0.18} />
+      <circle cx={-r * 0.32} cy={-r * 0.32} r={r * 0.28} fill="#fff" opacity={0.42} />
+    </g>
+  );
+}
+
+/** Premium empty-board skin with SVG overlay for marbles, hits, and highlights. */
+export function ImageMappedBoardVisual({
+  idPrefix = 'board',
+  activeColors,
+  marbles = [],
+  highlightPositions = [],
+  selectableMarbleIds,
+  selectedMarbleId = null,
+  myColor = null,
+  isMyTurn = false,
+  showDemoMarbles = false,
+  onMarbleClick,
+  onPositionClick,
+  className = '',
+}: ImageMappedBoardVisualProps) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const pid = idPrefix;
+  const calibrationEnabled = import.meta.env.VITE_BOARD_CALIBRATION === '1';
+
+  const active = activeColors ?? new Set(COLORS_ORDER);
+
+  const highlightKeys = useMemo(
+    () => new Set(highlightPositions.map(positionKey)),
+    [highlightPositions]
+  );
+
+  const allPositions = useMemo(() => getAllBoardPositions(active), [active]);
+
+  const demoMarbles: Marble[] = showDemoMarbles
+    ? COLORS_ORDER.flatMap((color) =>
+        [0, 1, 2, 3].map((i) => ({
+          id: `demo_${color}_${i}`,
+          color,
+          position: { color, type: 'base' as const, index: i },
+          isFinished: false,
+        }))
+      )
+    : [];
+
+  const displayMarbles = showDemoMarbles ? demoMarbles : marbles;
+
+  const marbleRadius = (type: BoardPosition['type']) =>
+    type === 'base' ? IMAGE_BOARD_RADII.marbleBase : IMAGE_BOARD_RADII.marbleTrack;
+
+  const handleStageClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!calibrationEnabled) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      console.log('[board-calibration]', { x: Number(x.toFixed(2)), y: Number(y.toFixed(2)) });
+    },
+    [calibrationEnabled]
+  );
+
+  return (
+    <div
+      className={`image-board-stage board-frame ${className}`}
+      onClick={handleStageClick}
+    >
+      {imageFailed ? (
+        <div className="image-board-fallback" role="status">
+          Board image unavailable
+        </div>
+      ) : (
+        <img
+          src={IMAGE_BOARD_GAME_SRC}
+          alt=""
+          className="image-board-image"
+          draggable={false}
+          decoding="async"
+          onError={() => setImageFailed(true)}
+        />
+      )}
+
+      <svg
+        viewBox="0 0 100 100"
+        className="image-board-overlay"
+        role="img"
+        aria-label="Jackaroo board"
+      >
+        <defs>
+          {COLORS_ORDER.map((color) => (
+            <radialGradient key={color} id={`${pid}-marble-${color}`} cx="35%" cy="30%" r="65%">
+              <stop offset="0%" stopColor={MARBLE_GRADIENT[color][0]} />
+              <stop offset="100%" stopColor={MARBLE_GRADIENT[color][1]} />
+            </radialGradient>
+          ))}
+        </defs>
+
+        {calibrationEnabled && (
+          <BoardCalibrationOverlay
+            positions={allPositions}
+            imagePoints={IMAGE_BOARD_POINTS}
+          />
+        )}
+
+        {/* Hit zones — visible in calibration; targets interactive on your turn */}
+        {(calibrationEnabled || (isMyTurn && onPositionClick)) &&
+          (calibrationEnabled ? allPositions : highlightPositions).map((pos) => {
+            const pt = getImagePointForBoardPosition(pos);
+            if (!pt) return null;
+            const isTarget = highlightKeys.has(positionKey(pos));
+            const interactive = isMyTurn && isTarget && onPositionClick;
+            const r =
+              pos.type === 'start_gate' ? IMAGE_BOARD_RADII.hitZoneGate : IMAGE_BOARD_RADII.hitZone;
+            return (
+              <circle
+                key={`hit_${positionKey(pos)}`}
+                cx={pt.x}
+                cy={pt.y}
+                r={r}
+                className={`image-board-hit-zone${calibrationEnabled ? ' image-board-hit-zone--debug' : ''}`}
+                fill={calibrationEnabled ? 'rgba(255,255,255,0.1)' : 'transparent'}
+                stroke={calibrationEnabled ? 'rgba(230,197,103,0.35)' : 'transparent'}
+                strokeWidth={calibrationEnabled ? 0.15 : 0}
+                style={{ cursor: interactive ? 'pointer' : undefined, pointerEvents: interactive || calibrationEnabled ? 'auto' : 'none' }}
+                role={interactive ? 'button' : undefined}
+                tabIndex={interactive ? 0 : undefined}
+                aria-label={boardPositionAriaLabel(pos)}
+                onClick={
+                  interactive
+                    ? (e) => {
+                        e.stopPropagation();
+                        onPositionClick(pos);
+                      }
+                    : undefined
+                }
+                onKeyDown={
+                  interactive
+                    ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onPositionClick(pos);
+                        }
+                      }
+                    : undefined
+                }
+              />
+            );
+          })}
+
+        {/* Legal target rings */}
+        {isMyTurn &&
+          highlightPositions.map((pos) => {
+            const pt = getImagePointForBoardPosition(pos);
+            if (!pt) return null;
+            return (
+              <circle
+                key={`hl_${positionKey(pos)}`}
+                cx={pt.x}
+                cy={pt.y}
+                r={IMAGE_BOARD_RADII.legalTarget}
+                className="image-board-target-ring image-board-target-ring--legal legal-target-highlight"
+                pointerEvents="none"
+              />
+            );
+          })}
+
+        {/* Marbles */}
+        {displayMarbles.map((marble) => {
+          const pt = getImagePointForBoardPosition(marble.position);
+          if (!pt) return null;
+          const r = marbleRadius(marble.position.type);
+          const isOwn = marble.color === myColor;
+          const isSelectable = Boolean(
+            isMyTurn && selectableMarbleIds?.has(marble.id) && onMarbleClick
+          );
+          const isSelected = selectedMarbleId === marble.id;
+          return (
+            <ImageMappedMarble
+              key={marble.id}
+              marble={marble}
+              point={pt}
+              r={r}
+              isOwn={isOwn}
+              isSelectable={isSelectable}
+              isSelected={isSelected}
+              pid={pid}
+              onClick={isSelectable ? () => onMarbleClick?.(marble.id) : undefined}
+            />
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
