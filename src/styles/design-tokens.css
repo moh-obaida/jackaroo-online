@@ -3,6 +3,11 @@
  * Use CSS classes `.jkr-layer-*` (see index.css), not raw z-index in components.
  */
 :root {
+  --font-brand: 'Oxanium', system-ui, sans-serif;
+  --font-heading: 'Exo 2', system-ui, sans-serif;
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-arabic: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+
   /* Far below table (ambient / page depth) */
   --jkr-z-deep-bg: -10000;
   --jkr-z-page-glow: -1000;

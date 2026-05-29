@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   BoardPosition,
   GameAction,
@@ -43,6 +43,7 @@ export function useBoardPlaySelection({
 }: UseBoardPlaySelectionArgs) {
   const [selectedMarbleId, setSelectedMarbleId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     setSelectedMarbleId(null);
@@ -137,16 +138,18 @@ export function useBoardPlaySelection({
 
   const submitMatchedAction = useCallback(
     async (match: LegalAction) => {
-      if (submitting) return;
+      if (submittingRef.current) return;
+      submittingRef.current = true;
       setSubmitting(true);
       try {
         await onSubmitAction(legalActionToGameAction(match, playerId));
         setSelectedMarbleId(null);
       } finally {
+        submittingRef.current = false;
         setSubmitting(false);
       }
     },
-    [onSubmitAction, playerId, submitting]
+    [onSubmitAction, playerId]
   );
 
   const handleMarbleClick = useCallback(

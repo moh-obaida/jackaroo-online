@@ -3,7 +3,9 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles/index.css';
 import './styles/mobile-rescue.css';
+import './styles/responsive-polish.css';
 import './styles/board-image-map.css';
+import './styles/cards.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

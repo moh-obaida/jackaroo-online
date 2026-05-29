@@ -112,43 +112,45 @@ export function FullScreenGameTable({
         </Alert>
       )}
 
-      <div className="table-play-area-wrap flex-1 min-h-0 flex flex-col">
-        <TablePlayArea
-          gameState={gameState}
-          playerId={playerId}
-          selectedCardId={selectedCardId}
-          highlightPositions={boardPlay.boardHighlightPositions}
-          selectableMarbleIds={boardPlay.marbleHighlightIds}
-          selectedMarbleId={boardPlay.selectedMarbleId}
-          onMarbleClick={boardPlay.handleMarbleClick}
-          onPositionClick={boardPlay.handlePositionClick}
-          isMyTurn={isMyTurn}
-          onShowDeckGuide={() => setDeckGuideOpen(true)}
-          getVoiceStatus={voice.getParticipantStatus}
-        />
-      </div>
-
-      <div className="game-hand-rail">
-        <div className="game-hand-rail__top">
-          <TableActivity gameState={gameState} />
+      <div className="game-play-layout">
+        <div className="table-play-area-wrap flex-1 min-h-0 flex flex-col">
+          <TablePlayArea
+            gameState={gameState}
+            playerId={playerId}
+            selectedCardId={selectedCardId}
+            highlightPositions={boardPlay.boardHighlightPositions}
+            selectableMarbleIds={boardPlay.marbleHighlightIds}
+            selectedMarbleId={boardPlay.selectedMarbleId}
+            onMarbleClick={boardPlay.handleMarbleClick}
+            onPositionClick={boardPlay.handlePositionClick}
+            isMyTurn={isMyTurn}
+            onShowDeckGuide={() => setDeckGuideOpen(true)}
+            getVoiceStatus={voice.getParticipantStatus}
+          />
         </div>
-        <HandDock
-          playerName={currentPlayer?.name || ''}
-          playerColor={currentPlayer?.color ?? null}
-          hand={myHand}
-          selectedCardId={selectedCardId}
-          playableCardIds={playableCardIds}
-          onSelectCard={setSelectedCardId}
-          disabled={!isMyTurn}
-          legalActions={legalActions}
-          showAllActions={showAllActions}
-          onToggleShowAll={setShowAllActions}
-          onSubmitAction={onSubmitAction}
-          playerId={playerId}
-          isMyTurn={isMyTurn}
-          noLegalReasonKey={noLegalReasonKey}
-          boardFlowHintKey={boardFlowHintKey}
-        />
+
+        <div className="game-hand-rail">
+          <div className="game-hand-rail__top">
+            <TableActivity gameState={gameState} />
+          </div>
+          <HandDock
+            playerName={currentPlayer?.name || ''}
+            playerColor={currentPlayer?.color ?? null}
+            hand={myHand}
+            selectedCardId={selectedCardId}
+            playableCardIds={playableCardIds}
+            onSelectCard={setSelectedCardId}
+            disabled={!isMyTurn}
+            legalActions={legalActions}
+            showAllActions={showAllActions}
+            onToggleShowAll={setShowAllActions}
+            onSubmitAction={onSubmitAction}
+            playerId={playerId}
+            isMyTurn={isMyTurn}
+            noLegalReasonKey={noLegalReasonKey}
+            boardFlowHintKey={boardFlowHintKey}
+          />
+        </div>
       </div>
 
       <CardGuideModal open={deckGuideOpen} onClose={() => setDeckGuideOpen(false)} />

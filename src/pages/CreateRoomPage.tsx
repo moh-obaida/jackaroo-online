@@ -24,10 +24,6 @@ const MODES: { value: GameMode; key: '2p' | '3p' | '4p'; seats: number }[] = [
   { value: '4p_teams', key: '4p', seats: 4 },
 ];
 
-function fallbackText(value: string, fallback: string) {
-  return value.includes('.') ? fallback : value;
-}
-
 function SeatDiagram({ mode }: { mode: '2p' | '3p' | '4p' }) {
   return (
     <div className={`seat-diagram diagram-${mode}`} aria-hidden>
@@ -53,7 +49,6 @@ export function CreateRoomPage() {
   const [error, setError] = useState('');
 
   const activeModeKey = mode === '2p_solo' ? '2p' : mode === '3p_solo' ? '3p' : '4p';
-  const label = (key: string, fallback: string) => fallbackText(t(key), fallback);
 
   React.useEffect(() => {
     if (rulesetType !== 'custom' || !user || isGuestUser) return;
@@ -153,14 +148,14 @@ export function CreateRoomPage() {
         </Link>
 
         <header className="create-page-header">
-          <p className="create-eyebrow">{label('create.setupEyebrow', 'Private table setup')}</p>
+          <p className="create-eyebrow">{t('create.setupEyebrow')}</p>
           <h1>{t('create.title')}</h1>
-          <p>{label('create.subtitle', 'Choose your table access, player count, and ruleset.')}</p>
+          <p>{t('create.subtitle')}</p>
         </header>
 
         <form onSubmit={handleSubmit} className="create-form-stack">
           <section className="create-section-card">
-            <h2>{label('create.identity', 'Player Identity')}</h2>
+            <h2>{t('create.identity')}</h2>
             <FormField label={t('create.name')}>
               <TextInput
                 type="text"
@@ -173,7 +168,7 @@ export function CreateRoomPage() {
           </section>
 
           <section className="create-section-card">
-            <h2>{label('create.access', 'Private Table Access')}</h2>
+            <h2>{t('create.access')}</h2>
             <FormField label={t('create.password')} hint={t('create.passwordHelp')}>
               <TextInput
                 type="password"

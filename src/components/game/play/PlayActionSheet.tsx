@@ -12,6 +12,7 @@ type PlayActionSheetProps = {
   legalActions: LegalAction[];
   hand: Card[];
   selectedCardId: string | null;
+  onClearCard?: () => void;
   showAllActions: boolean;
   onToggleShowAll: (open: boolean) => void;
   onSubmitAction: (action: GameAction) => Promise<void>;
@@ -25,6 +26,7 @@ export function PlayActionSheet({
   legalActions,
   hand,
   selectedCardId,
+  onClearCard,
   showAllActions,
   onToggleShowAll,
   onSubmitAction,
@@ -93,6 +95,18 @@ export function PlayActionSheet({
 
       {view.kind === 'play_card' && (
         <>
+          {onClearCard && selectedCardId && (
+            <Button
+              variant="ghost"
+              size="sm"
+              fullWidth
+              disabled={loading}
+              onClick={() => onClearCard()}
+              className="play-sheet__cancel text-xs"
+            >
+              {t('game.cancel')}
+            </Button>
+          )}
           {view.primary ? (
             renderActionBtn(view.primary, 'primary')
           ) : (

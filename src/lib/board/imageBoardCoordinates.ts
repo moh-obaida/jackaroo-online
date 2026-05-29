@@ -23,6 +23,38 @@ export const IMAGE_BOARD_CALIBRATION = {
 const LAYOUT_SIZE = 100;
 const BOARD_LAYOUT = getBoardLayout(LAYOUT_SIZE);
 
+/**
+ * Home lanes on the premium board image follow the cardinal V-slots toward center,
+ * not the procedural geometry centerline (which lands in the deck well).
+ * Tune with VITE_BOARD_CALIBRATION=1.
+ */
+const IMAGE_HOME_LANE_POINTS: Record<PlayerColor, BoardImagePoint[]> = {
+  black: [
+    { x: 50.0, y: 24.2 },
+    { x: 50.0, y: 30.1 },
+    { x: 50.0, y: 36.0 },
+    { x: 50.0, y: 41.8 },
+  ],
+  green: [
+    { x: 75.8, y: 50.0 },
+    { x: 69.9, y: 50.0 },
+    { x: 64.0, y: 50.0 },
+    { x: 58.2, y: 50.0 },
+  ],
+  blue: [
+    { x: 50.0, y: 75.8 },
+    { x: 50.0, y: 69.9 },
+    { x: 50.0, y: 64.0 },
+    { x: 50.0, y: 58.2 },
+  ],
+  white: [
+    { x: 24.2, y: 50.0 },
+    { x: 30.1, y: 50.0 },
+    { x: 36.0, y: 50.0 },
+    { x: 41.8, y: 50.0 },
+  ],
+};
+
 export type ImageBoardPoints = {
   /** 72 outer track spots (18 × 4 colors, black section first). */
   mainTrack: BoardImagePoint[];
@@ -50,11 +82,7 @@ function buildImageBoardPoints(): ImageBoardPoints {
     const gatePt = boardPositionToPoint({ color, type: 'start_gate', index: 0 }, layout);
     if (gatePt) gates[color] = layoutPointToPercent(gatePt);
 
-    home[color] = [];
-    for (let i = 0; i < HOME_LENGTH; i++) {
-      const pt = boardPositionToPoint({ color, type: 'home', index: i }, layout);
-      if (pt) home[color].push(layoutPointToPercent(pt));
-    }
+    home[color] = [...IMAGE_HOME_LANE_POINTS[color]];
 
     base[color] = [];
     for (let i = 0; i < 4; i++) {
@@ -74,6 +102,11 @@ function buildImageBoardPoints(): ImageBoardPoints {
 export const IMAGE_BOARD_POINTS = buildImageBoardPoints();
 
 export function getImagePointForBoardPosition(position: BoardPosition): BoardImagePoint | null {
+  if (position.type === 'home') {
+    const lanePt = IMAGE_HOME_LANE_POINTS[position.color]?.[position.index];
+    if (lanePt) return lanePt;
+  }
+
   const pt = boardPositionToPoint(position, BOARD_LAYOUT);
   if (!pt) {
     if (import.meta.env.DEV) {

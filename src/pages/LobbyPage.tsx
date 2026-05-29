@@ -18,10 +18,6 @@ function normalizeRoomCode(raw: string | undefined): string | null {
   return code && code.length > 0 ? code : null;
 }
 
-function safeText(value: string, fallback: string): string {
-  return value.includes('.') ? fallback : value;
-}
-
 function LobbyPageContent() {
   const { t, user } = useApp();
   const {
@@ -29,6 +25,7 @@ function LobbyPageContent() {
     bindRoomFromRoute,
     startGame,
     loading,
+    error: sessionError,
     leaveWarning,
     safeLeaveRoom,
   } = useGame();
@@ -43,8 +40,6 @@ function LobbyPageContent() {
   const [deckGuideOpen, setDeckGuideOpen] = useState(false);
   const playerId = user?.uid?.trim() || null;
   useVoiceChat(roomCode, playerId);
-
-  const label = useCallback((key: string, fallback: string) => safeText(t(key), fallback), [t]);
 
   useEffect(() => {
     if (!roomCode) return;
@@ -92,7 +87,10 @@ function LobbyPageContent() {
       });
     } else if (!allHumansReady) {
       const waiting = humans.filter((p) => !p.ready).map((p) => p.name);
-      reason = t('lobby.startWaitingFor', { players: waiting.join(', ') });
+      reason =
+        waiting.length > 0
+          ? `${t('lobby.startWaitingAll')} (${t('lobby.startWaitingFor', { players: waiting.join(', ') })})`
+          : t('lobby.startWaitingAll');
     }
 
     return { canStart, reason };
@@ -187,11 +185,11 @@ function LobbyPageContent() {
     <PageFrame variant="lobby" className="lobby-page-frame">
       <main className="lobby-wrap-donor lobby-wrap-fixed">
         <section className="lobby-title-donor lobby-title-fixed">
-          <h1 className="text-3xl md:text-4xl font-bold text-gold-300 mb-1">
+          <h1 className="font-heading text-3xl md:text-4xl font-bold text-gold-300 mb-1">
             {t('lobby.title')}
           </h1>
           <p className="text-cream-200/60 uppercase tracking-widest text-xs font-bold truncate">
-            {hostName}'s Table
+            {t('lobby.hostTable', { name: hostName })}
           </p>
         </section>
 
@@ -207,7 +205,7 @@ function LobbyPageContent() {
               {copied ? t('lobby.copied') : t('lobby.copy')}
             </button>
             <button type="button" onClick={handleCopyInvite} className="btn-game-secondary px-4 py-2 text-xs">
-              {passwordCopied ? t('lobby.copied') : label('lobby.copyInvite', 'Copy Invite')}
+              {passwordCopied ? t('lobby.copied') : t('lobby.copyInvite')}
             </button>
           </div>
         </section>
@@ -280,7 +278,18 @@ function LobbyPageContent() {
         </section>
 
         {leaveWarning && <p className="start-reason-donor">{leaveWarning}</p>}
-        {startReadiness.reason && <p className="start-reason-donor">{startReadiness.reason}</p>}
+        {sessionError && (
+          <p className="start-reason-donor start-reason-donor--error" role="alert">
+            {sessionError.startsWith('lobby.') || sessionError.startsWith('game.')
+              ? t(sessionError)
+              : sessionError}
+          </p>
+        )}
+        {startReadiness.reason && (
+          <p className="start-reason-donor" id="lobby-start-reason">
+            {startReadiness.reason}
+          </p>
+        )}
 
         <section className="lobby-actions-donor lobby-actions-fixed">
           <button type="button" className="btn-game-secondary flex-1 py-3" onClick={handleLeave} disabled={leaveBusy}>

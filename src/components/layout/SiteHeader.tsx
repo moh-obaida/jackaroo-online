@@ -3,17 +3,41 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { logOut } from '../../lib/firebase/auth';
 import { JakarooIcon } from '../brand/JakarooIcon';
+import { JakarooWordmark } from '../brand/JakarooWordmark';
 import { ConnectionBar } from '../ui/ConnectionBar';
 
-type NavKey = 'play' | 'how' | 'features' | 'rules' | 'faq';
+type NavKey = 'play' | 'how' | 'features' | 'rules' | 'faq' | 'login' | 'signup';
 
-const NAV_ITEMS: { key: NavKey; hash: string }[] = [
-  { key: 'play', hash: 'play' },
-  { key: 'how', hash: 'how-it-works' },
-  { key: 'features', hash: 'features' },
-  { key: 'rules', hash: 'rules' },
-  { key: 'faq', hash: 'faq' },
+type NavItem = {
+  key: NavKey;
+  path: string;
+  /** Show only when logged out */
+  guestOnly?: boolean;
+};
+
+const NAV_ITEMS: NavItem[] = [
+  { key: 'play', path: '/create' },
+  { key: 'how', path: '/how-it-works' },
+  { key: 'features', path: '/features' },
+  { key: 'rules', path: '/rules' },
+  { key: 'faq', path: '/faq' },
+  { key: 'login', path: '/auth?mode=login', guestOnly: true },
+  { key: 'signup', path: '/auth?mode=signup', guestOnly: true },
 ];
+
+const CREATE_CTA_HIDDEN = new Set(['/create', '/join', '/auth', '/profile', '/admin']);
+
+function navItemActive(pathname: string, search: string, itemPath: string): boolean {
+  const [itemPathname, itemSearch = ''] = itemPath.split('?');
+  if (pathname !== itemPathname) return false;
+  if (!itemSearch) return true;
+  const params = new URLSearchParams(itemSearch);
+  const current = new URLSearchParams(search);
+  for (const [key, value] of params.entries()) {
+    if (current.get(key) !== value) return false;
+  }
+  return true;
+}
 
 export function SiteHeader() {
   const { t, language, setLanguage, theme, setTheme, user, isAuthenticated, isGuestUser } = useApp();
@@ -24,9 +48,11 @@ export function SiteHeader() {
   const menuPanelRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const isHome = location.pathname === '/';
   const onRoomRoute = /^\/(lobby|game)\//.test(location.pathname);
+  const showCreateCta = !CREATE_CTA_HIDDEN.has(location.pathname) && !onRoomRoute;
   const displayName = user?.displayName || (isGuestUser ? 'Guest' : '');
+
+  const visibleNavItems = NAV_ITEMS.filter((item) => !item.guestOnly || !isAuthenticated);
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
@@ -36,40 +62,14 @@ export function SiteHeader() {
     navigate('/');
   };
 
-  const scrollToSection = useCallback(
-    (hash: string) => {
-      const el = document.getElementById(hash);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    },
-    [],
-  );
-
-  const handleNavClick = (key: NavKey, hash: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (key === 'play' && !isHome) {
-      closeMenu();
-      return;
-    }
-
-    if (isHome) {
-      event.preventDefault();
-      scrollToSection(hash);
-      closeMenu();
-      return;
-    }
-
-    closeMenu();
-  };
-
-  const getNavHref = (key: NavKey, hash: string) => {
-    if (key === 'play' && !isHome) return '/create';
-    return `/#${hash}`;
-  };
+  const navLinkClass = (path: string) =>
+    navItemActive(location.pathname, location.search, path)
+      ? 'site-header__nav-link site-header__nav-link--active'
+      : 'site-header__nav-link';
 
   useEffect(() => {
     closeMenu();
-  }, [location.pathname, closeMenu]);
+  }, [location.pathname, location.search, closeMenu]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -128,36 +128,22 @@ export function SiteHeader() {
   );
 
   const renderAuthActions = (variant: 'desktop' | 'mobile') => {
-    if (isAuthenticated) {
-      return (
-        <>
-          {displayName && variant === 'desktop' && (
-            <span className="site-header__user" title={displayName}>
-              {displayName}
-            </span>
-          )}
-          <Link
-            to="/profile"
-            className="site-header__action-link"
-            onClick={closeMenu}
-          >
-            {t('nav.profile')}
-          </Link>
-          <button type="button" onClick={handleLogout} className="site-header__action-btn">
-            {t('nav.logout')}
-          </button>
-        </>
-      );
-    }
+    if (!isAuthenticated) return null;
 
     return (
-      <Link
-        to="/auth"
-        className="site-header__login-btn"
-        onClick={closeMenu}
-      >
-        {t('nav.login')}
-      </Link>
+      <>
+        {displayName && variant === 'desktop' && (
+          <span className="site-header__user" title={displayName}>
+            {displayName}
+          </span>
+        )}
+        <Link to="/profile" className="site-header__action-link" onClick={closeMenu}>
+          {t('nav.profile')}
+        </Link>
+        <button type="button" onClick={handleLogout} className="site-header__action-btn">
+          {t('nav.logout')}
+        </button>
+      </>
     );
   };
 
@@ -166,17 +152,14 @@ export function SiteHeader() {
       <div className="site-header__inner">
         <Link to="/" className="site-header__brand" aria-label={t('app.name')}>
           <JakarooIcon size="md" className="site-header__icon" decorative />
+          <JakarooWordmark variant="header" decorative className="site-header__wordmark" />
         </Link>
 
         <nav className="site-header__nav" aria-label={t('nav.main')}>
           <ul className="site-header__nav-list">
-            {NAV_ITEMS.map(({ key, hash }) => (
+            {visibleNavItems.map(({ key, path }) => (
               <li key={key}>
-                <Link
-                  to={getNavHref(key, hash)}
-                  className="site-header__nav-link"
-                  onClick={handleNavClick(key, hash)}
-                >
+                <Link to={path} className={navLinkClass(path)} onClick={closeMenu}>
                   {t(`nav.${key}`)}
                 </Link>
               </li>
@@ -187,7 +170,7 @@ export function SiteHeader() {
         <div className="site-header__end">
           {onRoomRoute && <ConnectionBar />}
 
-          {isHome && (
+          {showCreateCta && (
             <Link to="/create" className="site-header__cta">
               {t('nav.createTable')}
             </Link>
@@ -236,13 +219,20 @@ export function SiteHeader() {
         >
           <nav aria-label={t('nav.main')}>
             <ul className="site-header__mobile-nav">
-              {NAV_ITEMS.map(({ key, hash }) => (
-                <li key={key}>
+              {showCreateCta && (
+                <li>
                   <Link
-                    to={getNavHref(key, hash)}
-                    className="site-header__mobile-link"
-                    onClick={handleNavClick(key, hash)}
+                    to="/create"
+                    className="site-header__mobile-link site-header__mobile-link--cta"
+                    onClick={closeMenu}
                   >
+                    {t('nav.createTable')}
+                  </Link>
+                </li>
+              )}
+              {visibleNavItems.map(({ key, path }) => (
+                <li key={key}>
+                  <Link to={path} className="site-header__mobile-link" onClick={closeMenu}>
                     {t(`nav.${key}`)}
                   </Link>
                 </li>

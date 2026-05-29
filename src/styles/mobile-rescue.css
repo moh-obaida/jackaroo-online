@@ -109,6 +109,7 @@ svg {
 .create-page-header h1 {
   margin: 0;
   color: rgb(255 224 102);
+  font-family: var(--font-heading);
   font-size: clamp(2rem, 8vw, 3.5rem);
   line-height: 0.95;
   letter-spacing: 0.01em;
@@ -123,8 +124,9 @@ svg {
 .create-eyebrow {
   margin: 0 0 0.4rem !important;
   color: rgb(255 214 51 / .9) !important;
+  font-family: var(--font-heading);
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.12em;
   font-size: 0.72rem;
   font-weight: 800;
 }
@@ -146,8 +148,9 @@ svg {
 .create-section-card h2 {
   margin: 0 0 0.8rem;
   color: rgb(255 224 102);
+  font-family: var(--font-heading);
   text-transform: uppercase;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   font-size: 0.78rem;
   font-weight: 900;
 }
@@ -260,11 +263,11 @@ svg {
 .lobby-code-fixed {
   display: block;
   color: rgb(230 184 0);
+  font-family: var(--font-brand);
   font-size: clamp(2.35rem, 12vw, 4.25rem);
   line-height: 1;
-  letter-spacing: 0.18em;
-  padding-inline-start: 0.18em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.1em;
+  padding-inline-start: 0.1em;
 }
 
 .lobby-copy-row-fixed {
@@ -282,8 +285,8 @@ svg {
 
 .mini-table-fixed span {
   color: rgba(230,184,0,.2);
-  font-family: serif;
-  letter-spacing: .25em;
+  font-family: var(--font-brand);
+  letter-spacing: .18em;
   font-weight: 800;
 }
 
@@ -499,6 +502,20 @@ svg {
 
   .lobby-title-fixed h1 {
     font-size: 2.5rem !important;
+  }
+
+  .lobby-code-fixed {
+    letter-spacing: 0.06em;
+    padding-inline-start: 0.06em;
+  }
+
+  .code-input-donor {
+    letter-spacing: 0.15em !important;
+    padding-inline-start: 0.15em !important;
+  }
+
+  .mini-table-fixed span {
+    letter-spacing: 0.12em;
   }
 
   .invite-plaque-fixed {

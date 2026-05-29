@@ -56,8 +56,11 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        arabic: ['Noto Sans Arabic', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-ui)', 'Inter', 'system-ui', 'sans-serif'],
+        brand: ['var(--font-brand)', 'Oxanium', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-heading)', 'Exo 2', 'system-ui', 'sans-serif'],
+        ui: ['var(--font-ui)', 'Inter', 'system-ui', 'sans-serif'],
+        arabic: ['var(--font-arabic)', 'IBM Plex Sans Arabic', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         board: '0 8px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06)',

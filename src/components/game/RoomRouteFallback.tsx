@@ -11,6 +11,14 @@ type RoomRouteFallbackProps = {
   onReload?: () => void;
 };
 
+function translateSessionMessage(t: (key: string) => string, message: string): string {
+  if (/^(lobby|game|join)\.[a-zA-Z0-9_.]+$/.test(message)) {
+    const translated = t(message);
+    if (translated !== message) return translated;
+  }
+  return message;
+}
+
 export function RoomRouteFallback({ state, roomCode, onReload }: RoomRouteFallbackProps) {
   const { t } = useApp();
 
@@ -152,7 +160,7 @@ export function RoomRouteFallback({ state, roomCode, onReload }: RoomRouteFallba
       return (
         <StatusPanel
           title={t('game.handError')}
-          message={state.message}
+          message={translateSessionMessage(t, state.message)}
           variant="error"
           action={
             <div className="flex flex-col gap-2 w-full">

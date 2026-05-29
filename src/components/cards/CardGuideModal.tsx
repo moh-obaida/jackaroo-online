@@ -2,24 +2,15 @@ import React, { useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
   CARD_GUIDE_ORDER,
-  getCardCenterValue,
   getCardGuideActionKeys,
   getCardGuideTitleKey,
 } from '../../lib/game/cardGuide';
 import { CardRank } from '../../types/game';
-import { PlayingCard } from './PlayingCard';
+import { CardFace } from './CardFace';
 
 interface CardGuideModalProps {
   open: boolean;
   onClose: () => void;
-}
-
-function guidePreviewCard(rank: CardRank) {
-  return {
-    id: `guide_${rank}`,
-    rank,
-    suit: 'spades' as const,
-  };
 }
 
 export function CardGuideModal({ open, onClose }: CardGuideModalProps) {
@@ -61,29 +52,30 @@ export function CardGuideModal({ open, onClose }: CardGuideModalProps) {
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1 px-4 py-3 space-y-4">
-          <p className="text-sm text-cream-200/70 bg-surface-inset/50 rounded-lg px-3 py-2 border border-wood-800/50">
+        <div className="overflow-y-auto flex-1 px-4 py-3 card-guide-grid">
+          <p className="text-sm text-cream-200/70 bg-surface-inset/50 rounded-lg px-3 py-2 border border-wood-800/50 m-0">
             {t('deckGuide.notice')}
           </p>
+
+          <div className="deck-guide-disclaimer" aria-label="Disclaimer">
+            <p className="deck-guide-disclaimer__line" lang="en" dir="ltr">
+              {t('deckGuide.disclaimerEn')}
+            </p>
+            <p className="deck-guide-disclaimer__line" lang="ar" dir="rtl">
+              {t('deckGuide.disclaimerAr')}
+            </p>
+          </div>
 
           {CARD_GUIDE_ORDER.map((rank) => {
             const actionKeys = getCardGuideActionKeys(rank);
             return (
-              <section
-                key={rank}
-                className="flex gap-3 sm:gap-4 items-start border-b border-wood-800/40 pb-4 last:border-0"
-              >
-                <div className="shrink-0 pt-1">
-                  <PlayingCard card={guidePreviewCard(rank)} showHint={false} compact />
+              <section key={rank} className="card-guide-entry">
+                <div className="playing-card-shell playing-card-shell--guide shrink-0">
+                  <CardFace rank={rank} variant="guide" state="normal" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-semibold text-gold-300/90 mb-1">
-                    {t(getCardGuideTitleKey(rank))}
-                    <span className="text-cream-200/40 font-normal ms-2 tabular-nums">
-                      ({getCardCenterValue(rank)})
-                    </span>
-                  </h3>
-                  <ul className="list-disc list-inside space-y-0.5 text-xs sm:text-sm text-cream-200/75">
+                <div className="card-guide-entry__copy">
+                  <h3 className="card-guide-entry__title">{t(getCardGuideTitleKey(rank))}</h3>
+                  <ul className="card-guide-entry__bullets">
                     {actionKeys.map((key) => (
                       <li key={key}>{t(key)}</li>
                     ))}
@@ -93,7 +85,7 @@ export function CardGuideModal({ open, onClose }: CardGuideModalProps) {
             );
           })}
 
-          <p className="text-xs text-cream-200/45 text-center pb-2">{t('deckGuide.footer')}</p>
+          <p className="text-xs text-cream-200/45 text-center pb-2 m-0">{t('deckGuide.footer')}</p>
         </div>
       </div>
     </div>
