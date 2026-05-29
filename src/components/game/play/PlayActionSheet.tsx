@@ -135,6 +135,18 @@ export function PlayActionSheet({
 
       {view.kind === 'play_card' && legalMovesReady && (
         <>
+          {onClearCard && selectedCardId && (
+            <Button
+              variant="ghost"
+              size="sm"
+              fullWidth
+              disabled={busy}
+              onClick={() => onClearCard()}
+              className="play-sheet__cancel text-xs"
+            >
+              {t('game.cancel')}
+            </Button>
+          )}
           {view.primary ? (
             renderConfirmSummary(view.primary)
           ) : (

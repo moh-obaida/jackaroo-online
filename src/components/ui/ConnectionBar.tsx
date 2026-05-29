@@ -29,7 +29,7 @@ export function ConnectionBar({ variant = 'header' }: ConnectionBarProps) {
     status === 'offline'
       ? t('connection.offline')
       : status === 'connecting'
-        ? t('connection.syncing')
+        ? t('connection.reconnecting')
         : status === 'leaving'
           ? t('connection.leaving')
           : t('connection.connected');
