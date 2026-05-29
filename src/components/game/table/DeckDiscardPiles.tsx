@@ -18,7 +18,7 @@ export function DeckDiscardPiles({ gameState, onShowDeckGuide, compact = false }
   return (
     <div className={`deck-discard-strip ${compact ? 'deck-discard-strip--compact' : ''}`}>
       <div className="deck-pile-stack" aria-label={t('game.deckRemaining', { count: String(deckCount) })}>
-        <div className="deck-pile-icon deck-pile-icon--deck deck-pile-icon--compact" aria-hidden />
+        <div className={`deck-pile-icon deck-pile-icon--deck${compact ? ' deck-pile-icon--compact' : ''}`} aria-hidden />
         <span className="deck-discard-strip__count tabular-nums">
           {deckCount}
         </span>

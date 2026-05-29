@@ -69,3 +69,23 @@ export function canCommitMoveTransaction(
   if (newState.turnNumber !== expectedTurnNumber + 1) return false;
   return true;
 }
+
+/** In-flight submit guard used by GamePlayContext.submitAction. */
+export function rejectIfSubmitInFlight(
+  lock: { current: boolean }
+): { ok: false; error: string } | null {
+  if (lock.current) {
+    return { ok: false, error: STALE_MOVE_ERROR };
+  }
+  return null;
+}
+
+export function acquireSubmitLock(lock: { current: boolean }): boolean {
+  if (lock.current) return false;
+  lock.current = true;
+  return true;
+}
+
+export function releaseSubmitLock(lock: { current: boolean }): void {
+  lock.current = false;
+}

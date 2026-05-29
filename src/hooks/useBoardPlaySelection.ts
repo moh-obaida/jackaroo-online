@@ -151,8 +151,10 @@ export function useBoardPlaySelection({
       submittingRef.current = true;
       setSubmitting(true);
       try {
-        await onSubmitAction(legalActionToGameAction(match, playerId));
-        setSelectedMarbleId(null);
+        const result = await onSubmitAction(legalActionToGameAction(match, playerId));
+        if (result.ok) {
+          setSelectedMarbleId(null);
+        }
       } finally {
         submittingRef.current = false;
         setSubmitting(false);
