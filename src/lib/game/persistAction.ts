@@ -18,6 +18,7 @@ import {
   isDealBlockExhausted,
   getNextStartingSeat,
 } from './dealing';
+import { allPlayersHandsEmpty } from './turns';
 
 export function legalActionToGameAction(legal: LegalAction, playerId: string): GameAction {
   return {
@@ -68,7 +69,7 @@ export async function persistGameAction(
     newPrivateHands[normalizedAction.burnTargetPlayerId] = applied.burnTargetHand;
   }
 
-  if (Object.values(newState.handCounts).every((count) => count === 0)) {
+  if (allPlayersHandsEmpty(newState)) {
     const nextRound = gameState.dealState.dealRoundInBlock + 1;
     let activeDeck = [...newState.deck];
     let dealPattern = gameState.dealState.dealPattern;

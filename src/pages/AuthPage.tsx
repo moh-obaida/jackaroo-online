@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { signInWithEmail, registerWithEmail, signInAsGuest } from '../lib/firebase/auth';
-import { BackHomeButton } from '../components/common/BackHomeButton';
+import { FormPage } from '../components/ui/FormPage';
+import { FormField, TextInput } from '../components/ui/FormField';
+import { Alert } from '../components/ui/Alert';
+import { Button } from '../components/ui/Button';
 
 export function AuthPage() {
   const { t } = useApp();
@@ -46,96 +49,75 @@ export function AuthPage() {
   };
 
   return (
-    <div className="page-shell flex flex-col items-center">
-      <div className="w-full max-w-md mb-4">
-        <BackHomeButton />
-      </div>
-      <div className="card-container w-full max-w-md">
-        <h1 className="page-title">{isLogin ? t('auth.login') : t('auth.register')}</h1>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                {t('auth.displayName')}
-              </label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="input-field"
-                required={!isLogin}
-              />
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              {t('auth.email')}
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="input-field"
-              required
+    <FormPage title={isLogin ? t('auth.login') : t('auth.register')}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {!isLogin && (
+          <FormField label={t('auth.displayName')}>
+            <TextInput
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              required={!isLogin}
             />
-          </div>
+          </FormField>
+        )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              {t('auth.password')}
-            </label>
-            <input
+        <FormField label={t('auth.email')}>
+          <TextInput
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </FormField>
+
+        <FormField label={t('auth.password')}>
+          <TextInput
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+          />
+        </FormField>
+
+        {!isLogin && (
+          <FormField label={t('auth.confirmPassword')}>
+            <TextInput
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input-field"
-              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required={!isLogin}
               minLength={6}
             />
-          </div>
+          </FormField>
+        )}
 
-          {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                {t('auth.confirmPassword')}
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="input-field"
-                required={!isLogin}
-                minLength={6}
-              />
-            </div>
-          )}
+        {error && (
+          <Alert variant="error" className="rounded-xl text-left text-sm">
+            {error}
+          </Alert>
+        )}
 
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+        <Button type="submit" variant="primary" fullWidth disabled={loading}>
+          {loading ? t('general.loading') : t('auth.submit')}
+        </Button>
+      </form>
 
-          <button type="submit" disabled={loading} className="btn-primary w-full">
-            {loading ? t('general.loading') : t('auth.submit')}
-          </button>
-        </form>
-
-        <div className="mt-4 space-y-2 text-center">
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-sm text-gold-300 hover:text-gold-200 transition-colors"
-          >
-            {isLogin ? t('auth.switchToRegister') : t('auth.switchToLogin')}
-          </button>
-          <div>
-            <button
-              onClick={handleGuest}
-              className="text-sm text-gray-400 hover:text-white transition-colors"
-            >
-              {t('nav.guest')}
-            </button>
-          </div>
+      <div className="mt-6 space-y-3 text-center border-t border-wood-800/50 pt-5">
+        <button
+          type="button"
+          onClick={() => setIsLogin(!isLogin)}
+          className="text-sm text-gold-300 hover:text-gold-200 transition-colors"
+        >
+          {isLogin ? t('auth.switchToRegister') : t('auth.switchToLogin')}
+        </button>
+        <div>
+          <Button variant="ghost" size="sm" onClick={handleGuest}>
+            {t('nav.guest')}
+          </Button>
         </div>
       </div>
-    </div>
+    </FormPage>
   );
 }

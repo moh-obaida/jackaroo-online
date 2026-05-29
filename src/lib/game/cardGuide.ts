@@ -69,3 +69,14 @@ export function getCardGuideActionKeys(rank: CardRank): string[] {
 export function getCardGuideTitleKey(rank: CardRank): string {
   return `deckGuide.${rank}.title`;
 }
+
+/** Primary action line for card face (Jackaroo-style, matches physical deck layout). */
+export function getCardFaceActionKey(rank: CardRank): string {
+  const keys = getCardGuideActionKeys(rank);
+  return keys[0] ?? `deckGuide.${rank}.0`;
+}
+
+/** Corner label: standard rank letter (K, Q, J) plus numeric center when different. */
+export function getCardCornerLabel(rank: CardRank): string {
+  return rank;
+}

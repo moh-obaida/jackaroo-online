@@ -32,3 +32,6 @@ vite.config.js
 
 # Local Netlify folder
 .netlify
+
+# Local Firebase CLI link (copy from .firebaserc.example)
+.firebaserc

@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GameState } from '../../types/game';
 import { useApp } from '../../context/AppContext';
+import { Button } from '../ui/Button';
+import { Panel } from '../ui/Panel';
 
 interface WinOverlayProps {
   gameState: GameState;
@@ -10,6 +12,7 @@ interface WinOverlayProps {
 export function WinOverlay({ gameState }: WinOverlayProps) {
   const { t } = useApp();
   const navigate = useNavigate();
+  const titleId = useId();
 
   if (!gameState.winner) return null;
 
@@ -18,27 +21,24 @@ export function WinOverlay({ gameState }: WinOverlayProps) {
     .join(', ');
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="card-container text-center max-w-md mx-4">
-        <div className="text-4xl mb-4">🏆</div>
-        <h2 className="text-2xl font-bold text-gold-400 mb-2">
+    <div className="win-overlay-v2" role="dialog" aria-modal="true" aria-labelledby={titleId}>
+      <Panel glow className="text-center max-w-md mx-4">
+        <div className="text-4xl mb-4" aria-hidden>
+          🏆
+        </div>
+        <h2 id={titleId} className="text-2xl font-bold text-gold-400 mb-2">
           {t('game.winner')}
         </h2>
-        <p className="text-lg text-white mb-1">
+        <p className="text-lg text-cream-100 mb-1">
           {gameState.winner.winnerTeam
             ? t('game.teamWins', { team: gameState.winner.winnerTeam })
             : t('game.playerWins', { player: winnerNames })}
         </p>
-        <p className="text-sm text-gray-400 mb-6">{winnerNames}</p>
-        <div className="flex gap-3 justify-center">
-          <button
-            onClick={() => navigate('/')}
-            className="btn-primary"
-          >
-            {t('game.backToLobby')}
-          </button>
-        </div>
-      </div>
+        <p className="text-sm text-cream-200/50 mb-6">{winnerNames}</p>
+        <Button variant="primary" onClick={() => navigate('/')}>
+          {t('game.backToLobby')}
+        </Button>
+      </Panel>
     </div>
   );
 }

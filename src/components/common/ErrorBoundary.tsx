@@ -23,8 +23,8 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="card-container max-w-lg w-full border border-red-800/50">
+        <div className="jkr-layer-critical fixed inset-0 flex items-center justify-center p-6 bg-black/85 backdrop-blur-sm">
+          <div className="jkr-panel max-w-lg w-full border border-red-800/50">
             <h2 className="text-lg font-semibold text-red-300 mb-2">
               {this.props.title || 'Something went wrong'}
             </h2>

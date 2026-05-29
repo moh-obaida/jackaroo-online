@@ -2,6 +2,10 @@
   command = "npm run build"
   publish = "dist"
 
+# Firebase project id is public in the client bundle (VITE_*). Omit config/docs paths from smart scan.
+[build.environment]
+  SECRETS_SCAN_OMIT_PATHS = ".firebaserc,.firebaserc.example,docs/RESCUE_QA.md"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
