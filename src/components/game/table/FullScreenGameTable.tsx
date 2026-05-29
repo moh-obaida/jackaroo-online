@@ -90,6 +90,23 @@ export function FullScreenGameTable({
     [gameState, gameState.currentTurnPlayerId]
   );
 
+  const boardFlowHintKey = useMemo(() => {
+    if (!isMyTurn || !selectedCardId) return null;
+    if (boardPlay.selectedMarbleId && boardPlay.boardHighlightPositions.length > 0) {
+      return 'game.playFlow.selectTarget';
+    }
+    if (boardPlay.marbleHighlightIds.size > 0) {
+      return 'game.playFlow.selectMarble';
+    }
+    return null;
+  }, [
+    isMyTurn,
+    selectedCardId,
+    boardPlay.selectedMarbleId,
+    boardPlay.boardHighlightPositions.length,
+    boardPlay.marbleHighlightIds,
+  ]);
+
   return (
     <div className="fullscreen-game-table jkr-stack flex flex-col h-[100dvh] max-h-[100dvh] w-full overflow-hidden max-w-[100vw]">
       {gameState.winner && <WinOverlay gameState={gameState} />}
@@ -101,13 +118,7 @@ export function FullScreenGameTable({
         turnPlayerName={turnPlayer?.name || ''}
         onLeave={onLeave}
         leaveBusy={leaveBusy}
-        voiceConnectionState={voice.connectionState}
-        voiceSupported={voice.isSupported}
-        onVoiceJoin={voice.joinVoice}
-        onVoiceLeave={voice.leaveVoice}
-        onVoiceMute={voice.mute}
-        onVoiceUnmute={voice.unmute}
-        onVoiceRetry={voice.retryJoin}
+        myColor={currentPlayer?.color ?? null}
       />
 
       {(gameError || leaveWarning) && (
@@ -116,7 +127,7 @@ export function FullScreenGameTable({
         </Alert>
       )}
 
-      <div className="table-play-area-wrap flex-1 min-h-0 flex flex-col overflow-hidden">
+      <div className="table-play-area-wrap flex-1 min-h-0 flex flex-col">
         <TablePlayArea
           gameState={gameState}
           playerId={playerId}
@@ -138,6 +149,7 @@ export function FullScreenGameTable({
         </div>
         <HandDock
           playerName={currentPlayer?.name || ''}
+          playerColor={currentPlayer?.color ?? null}
           hand={myHand}
           selectedCardId={selectedCardId}
           playableCardIds={playableCardIds}
@@ -150,6 +162,7 @@ export function FullScreenGameTable({
           playerId={playerId}
           isMyTurn={isMyTurn}
           noLegalReasonKey={noLegalReasonKey}
+          boardFlowHintKey={boardFlowHintKey}
         />
       </div>
 

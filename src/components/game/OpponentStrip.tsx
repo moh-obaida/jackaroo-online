@@ -43,6 +43,7 @@ export function OpponentStrip({ gameState, myPlayerId, slot, getVoiceStatus }: O
       gameState={gameState}
       compact={slot !== 'top'}
       voiceStatus={voiceStatus}
+      opponentLabel
     />
   );
 }

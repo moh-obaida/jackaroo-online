@@ -521,7 +521,7 @@
   }
 
   .landing-hero__grid {
-    @apply relative z-[1] grid gap-3 p-3.5 sm:p-4 md:p-5 md:grid-cols-[minmax(0,45%)_minmax(0,55%)] md:items-center md:gap-5 lg:gap-6;
+    @apply relative z-[1] grid gap-3 p-3.5 sm:p-4 md:p-5 md:grid-cols-[minmax(0,42%)_minmax(0,58%)] md:items-center md:gap-5 lg:gap-6 min-h-[min(52vh,28rem)];
   }
 
   .landing-hero__copy {
@@ -608,7 +608,7 @@
   }
 
   .jackaroo-board-preview--hero {
-    @apply w-full max-w-[17.5rem] sm:max-w-[18.5rem] md:max-w-[19rem] lg:max-w-[20rem] xl:max-w-[21rem];
+    @apply w-full max-w-[19rem] sm:max-w-[21rem] md:max-w-[22rem] lg:max-w-[24rem] xl:max-w-[26rem];
     filter: drop-shadow(0 16px 36px rgba(0, 0, 0, 0.6)) drop-shadow(0 4px 12px rgba(201, 162, 39, 0.15));
   }
 
@@ -789,19 +789,19 @@
 
   .lobby-table {
     @apply relative mx-auto;
-    width: min(100%, 17.5rem);
+    width: min(100%, 20rem);
     aspect-ratio: 1;
   }
 
   @media (min-width: 768px) {
     .lobby-table {
-      width: min(100%, 19rem);
+      width: min(100%, 22rem);
     }
   }
 
   @media (min-width: 1024px) {
     .lobby-table {
-      width: min(100%, 20rem);
+      width: min(100%, 24rem);
     }
   }
 
@@ -812,7 +812,7 @@
   }
 
   .lobby-table__board {
-    @apply absolute inset-[18%] flex items-center justify-center pointer-events-none;
+    @apply absolute inset-[14%] flex items-center justify-center pointer-events-none overflow-visible;
   }
 
   .lobby-table__board .board-frame {
@@ -820,7 +820,7 @@
   }
 
   .lobby-seat-slot {
-    @apply absolute w-[30%] max-w-[7.5rem] z-[2];
+    @apply absolute w-[26%] max-w-[6.75rem] z-[2];
     transform: translate(-50%, -50%);
   }
 
@@ -911,11 +911,11 @@
 
   /* —— Create table setup —— */
   .page-frame--form:has(.create-setup-panel) {
-    @apply max-w-2xl;
+    @apply max-w-2xl pt-2 md:pt-4;
   }
 
   .create-setup {
-    @apply grid gap-4 md:grid-cols-[minmax(9rem,11rem)_1fr] md:items-start;
+    @apply grid gap-4 md:grid-cols-[minmax(10.5rem,13rem)_1fr] md:items-start;
   }
 
   .create-setup__preview {
@@ -923,6 +923,7 @@
   }
 
   .create-setup__preview .board-frame {
+    @apply w-full max-w-[12.5rem] sm:max-w-[13rem];
     filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.5));
   }
 
@@ -1044,13 +1045,14 @@
   }
 
   .table-play-area-wrap {
-    @apply relative px-1 sm:px-2 pt-1;
+    @apply relative px-2 sm:px-3 pt-1 pb-1 flex-1 min-h-0 flex items-center justify-center overflow-visible;
   }
 
   .table-play-area {
-    @apply relative flex-1 min-h-0 w-full max-w-4xl mx-auto flex items-center justify-center;
+    @apply relative w-full mx-auto flex items-center justify-center overflow-visible;
+    width: min(100%, 40rem);
     aspect-ratio: 1;
-    max-height: min(72vh, 100%);
+    max-height: min(calc(100dvh - 17rem), 92vw, 40rem);
   }
 
   .table-play-area__felt {
@@ -1076,7 +1078,7 @@
   }
 
   .table-play-area__board {
-    @apply relative jkr-layer-board w-[96%] max-w-[min(100%,36rem)] mx-auto;
+    @apply relative jkr-layer-board w-full max-w-full mx-auto overflow-visible;
   }
 
   .table-play-area__piles {
@@ -1099,6 +1101,26 @@
     @apply p-2 sm:p-3;
   }
 
+  .board-wood-rim--photo {
+    @apply p-0 bg-transparent;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .board-frame--photo {
+    filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.65));
+  }
+
+  .board-svg--photo .board-photo-surface {
+    image-rendering: auto;
+  }
+
+  @media (min-width: 768px) {
+    .board-svg--photo .board-photo-surface {
+      image-rendering: -webkit-optimize-contrast;
+    }
+  }
+
   .game-table-hud {
     @apply jkr-layer-hud grid grid-cols-[1fr_auto_auto] items-center gap-2 px-3 py-1.5 shrink-0 border-b border-wood-900/50;
     background: linear-gradient(180deg, rgba(20, 14, 8, 0.92) 0%, rgba(12, 9, 6, 0.75) 100%);
@@ -1114,6 +1136,58 @@
 
   .game-table-hud__actions {
     @apply flex flex-wrap items-center justify-end gap-1.5 shrink-0;
+  }
+
+  .game-table-hud__color-chip {
+    @apply hidden sm:inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide;
+  }
+
+  .game-table-hud__color-chip--black {
+    @apply border-gray-400/50 text-gray-200 bg-gray-900/50;
+  }
+
+  .game-table-hud__color-chip--green {
+    @apply border-emerald-600/50 text-emerald-200 bg-emerald-950/40;
+  }
+
+  .game-table-hud__color-chip--blue {
+    @apply border-blue-600/50 text-blue-200 bg-blue-950/40;
+  }
+
+  .game-table-hud__color-chip--white {
+    @apply border-cream-200/40 text-cream-100 bg-white/10;
+  }
+
+  .hand-dock-panel__color {
+    @apply text-[10px] font-semibold uppercase tracking-wide rounded px-1.5 py-0.5 border;
+  }
+
+  .hand-dock-panel__color--black {
+    @apply border-gray-500/50 text-gray-200;
+  }
+
+  .hand-dock-panel__color--green {
+    @apply border-emerald-600/50 text-emerald-300;
+  }
+
+  .hand-dock-panel__color--blue {
+    @apply border-blue-600/50 text-blue-300;
+  }
+
+  .hand-dock-panel__color--white {
+    @apply border-cream-200/40 text-cream-100;
+  }
+
+  .table-seat__you-badge {
+    @apply absolute -top-1 -end-1 text-[8px] font-bold uppercase tracking-wider px-1 py-0.5 rounded bg-gold-500 text-board-dark;
+  }
+
+  .table-seat__color-label {
+    @apply font-medium text-gold-400/80;
+  }
+
+  .table-seat__role {
+    @apply font-normal text-cream-200/45;
   }
 
   /* Voice V1 — compact cluster, RTL-safe, clear of hand dock */
@@ -1222,8 +1296,8 @@
     @apply jkr-layer-hand shrink-0 border-t-2 border-wood-800/80;
     background: linear-gradient(0deg, #0a0806 0%, rgba(15, 51, 32, 0.35) 40%, rgba(8, 6, 4, 0.95) 100%);
     box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.55);
-    padding-bottom: env(safe-area-inset-bottom, 0);
-    max-height: min(38vh, 16rem);
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+    max-height: min(42vh, 18rem);
   }
 
   .game-hand-rail__top {
@@ -1243,7 +1317,8 @@
   }
 
   .hand-dock-panel {
-    @apply relative max-w-3xl mx-auto w-full px-1 pb-safe pt-0.5;
+    @apply relative max-w-3xl mx-auto w-full px-1 pt-0.5;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
   }
 
   .hand-dock-panel__header {
@@ -1330,7 +1405,11 @@
   }
 
   .table-seat__rim {
-    @apply flex items-center gap-1.5 rounded-full border-2 bg-black/50 backdrop-blur-sm px-2 py-1;
+    @apply relative flex items-center gap-1.5 rounded-full border-2 bg-black/50 backdrop-blur-sm px-2 py-1;
+  }
+
+  .play-sheet__hint--flow {
+    @apply text-gold-300/90 text-xs font-medium mb-1.5 px-1;
   }
 
   .table-seat__color-dot {

@@ -6,6 +6,18 @@
 
 ---
 
+## Physical board reference
+
+The canonical wooden Jackaroo board photo is checked in at:
+
+`docs/reference/physical-jackaroo-board.png`
+
+The live game board uses this file **directly** as the board surface (`PhysicalPhotoBoardVisual` → `public/board/physical-jackaroo-board.jpg`). Interactive marbles and move highlights are overlaid on calibrated coordinates in `src/lib/board/physicalBoardRef.ts`.
+
+Replace `public/board/physical-jackaroo-board.jpg` with a higher-resolution photo (same framing) when available. Set `VITE_BOARD_PROCEDURAL=1` only to fall back to the old SVG board.
+
+---
+
 ## Source material (references only)
 
 Screenshots and flows from games such as **Monopoly-style** and **Richup-style** online board portals are **UX and structure references only**.

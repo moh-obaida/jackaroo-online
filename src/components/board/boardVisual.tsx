@@ -20,6 +20,7 @@ import {
   trackSectionPolylines,
 } from '../../lib/board/boardGeometry';
 import { positionKey } from '../../lib/play/boardHighlights';
+import { BoardPreviewPhotoVisual, PhysicalPhotoBoardVisual } from './PhysicalPhotoBoardVisual';
 
 const COLOR_FILL: Record<PlayerColor, string> = {
   black: '#2e2e2e',
@@ -101,11 +102,18 @@ function DrilledHole({
 }) {
   return (
     <g key={holeKey} className="board-hole">
-      <ellipse cx={cx + 1.2} cy={cy + 2.2} rx={r + 1.2} ry={r * 0.88} fill="#000" opacity={0.42} />
-      <circle cx={cx} cy={cy} r={r + 1.2} fill={`url(#${holeRimId})`} />
-      <circle cx={cx} cy={cy} r={r + 0.6} fill="#1a1208" />
-      <circle cx={cx} cy={cy} r={r} fill={`url(#${holeFaceId})`} stroke="#4a3828" strokeWidth={0.5} />
-      <circle cx={cx - r * 0.28} cy={cy - r * 0.3} r={r * 0.32} fill="#fff" opacity={0.14} />
+      <ellipse cx={cx + 1.4} cy={cy + 2.4} rx={r + 1.3} ry={r * 0.9} fill="#000" opacity={0.5} />
+      <circle cx={cx} cy={cy} r={r + 1.35} fill={`url(#${holeRimId})`} />
+      <circle cx={cx} cy={cy} r={r + 0.75} fill="#2a1c10" />
+      <circle cx={cx} cy={cy} r={r} fill={`url(#${holeFaceId})`} stroke="#5c4834" strokeWidth={0.6} />
+      <ellipse
+        cx={cx - r * 0.22}
+        cy={cy - r * 0.28}
+        rx={r * 0.38}
+        ry={r * 0.28}
+        fill="#fff"
+        opacity={0.22}
+      />
       {gate && (
         <>
           <circle
@@ -210,22 +218,22 @@ function MarblePiece({
 function WoodGrainLines({ c, size, pid }: { c: number; size: number; pid: string }) {
   const lines = useMemo(() => {
     const out: { x1: number; y1: number; x2: number; y2: number; w: number }[] = [];
-    for (let i = 0; i < 14; i++) {
-      const t = i / 13;
-      const y = c - size * 0.32 + t * size * 0.64;
+    for (let i = 0; i < 18; i++) {
+      const t = i / 17;
+      const y = c - size * 0.34 + t * size * 0.68;
       out.push({
-        x1: c - size * 0.34,
-        y1: y + Math.sin(i * 1.1) * 4,
-        x2: c + size * 0.34,
-        y2: y + Math.cos(i * 0.9) * 5,
-        w: 0.4 + (i % 3) * 0.25,
+        x1: c - size * 0.38,
+        y1: y + Math.sin(i * 0.85) * 2.5,
+        x2: c + size * 0.38,
+        y2: y + Math.cos(i * 0.75) * 2.5,
+        w: 0.35 + (i % 4) * 0.2,
       });
     }
     return out;
   }, [c, size]);
 
   return (
-    <g opacity={0.22} stroke={`url(#${pid}-grainLine)`} fill="none">
+    <g opacity={0.28} stroke={`url(#${pid}-grainLine)`} fill="none">
       {lines.map((ln, i) => (
         <path
           key={`grain_${i}`}
@@ -239,15 +247,32 @@ function WoodGrainLines({ c, size, pid }: { c: number; size: number; pid: string
 
 function CenterCardWell({ layout, pid }: { layout: BoardLayout; pid: string }) {
   const c = layout.center;
-  const outerRim = octagonOutlinePoints(layout, 36);
-  const felt = octagonOutlinePoints(layout, 42);
-  const innerLip = octagonOutlinePoints(layout, 48);
+  const outerRim = octagonOutlinePoints(layout, 34);
+  const liner = octagonOutlinePoints(layout, 40);
+  const innerFloor = octagonOutlinePoints(layout, 46);
+  const innerLip = octagonOutlinePoints(layout, 50);
 
   return (
     <g className="board-center-well">
-      <polygon points={outerRim} fill="#2a1c10" stroke="#8b6914" strokeWidth={2} />
-      <polygon points={felt} fill={`url(#${pid}-centerFelt)`} stroke="#5a7a4a" strokeWidth={1.2} />
-      <polygon points={innerLip} fill="none" stroke="#c9a227" strokeWidth={0.9} opacity={0.5} />
+      <polygon points={outerRim} fill="#1a1208" stroke="#6b4e28" strokeWidth={2.2} />
+      <polygon
+        points={liner}
+        fill={`url(#${pid}-centerLiner)`}
+        stroke="#9a7a52"
+        strokeWidth={1.4}
+      />
+      <polygon points={innerFloor} fill={`url(#${pid}-centerFloor)`} stroke="#b8a078" strokeWidth={0.8} />
+      <polygon points={innerLip} fill="none" stroke="#d4c4a0" strokeWidth={0.8} opacity={0.65} />
+      {/* Fold seam (many physical boards are hinged) */}
+      <line
+        x1={c}
+        y1={c - layout.size * 0.14}
+        x2={c}
+        y2={c + layout.size * 0.14}
+        stroke="#2a1c10"
+        strokeWidth={1.2}
+        opacity={0.35}
+      />
       {/* Subtle stacked-card hint (decorative, not playable) */}
       {[
         { dx: -8, dy: -4, rot: -8 },
@@ -264,11 +289,10 @@ function CenterCardWell({ layout, pid }: { layout: BoardLayout; pid: string }) {
           fill="#f5f0e6"
           stroke="#8b7355"
           strokeWidth={0.8}
-          opacity={0.35 - i * 0.06}
+          opacity={0.42 - i * 0.07}
           transform={`rotate(${card.rot} ${c + card.dx} ${c + card.dy})`}
         />
       ))}
-      <circle cx={c} cy={c} r={layout.size * 0.018} fill="#c9a227" opacity={0.35} />
     </g>
   );
 }
@@ -308,10 +332,10 @@ function NestPocket({
       <ellipse
         cx={nc.x}
         cy={nc.y}
-        rx={rx * 0.72}
-        ry={ry * 0.72}
-        fill={COLOR_FILL[color]}
-        fillOpacity={0.22}
+        rx={rx * 0.68}
+        ry={ry * 0.68}
+        fill="#3d2810"
+        fillOpacity={0.35}
         stroke="none"
       />
     </g>
@@ -349,14 +373,15 @@ function ColorZoneWash({
     <path
       d={path}
       fill={COLOR_ZONE_TINT[color]}
-      fillOpacity={0.55}
+      fillOpacity={0.18}
       stroke="none"
       pointerEvents="none"
     />
   );
 }
 
-export function BoardVisual({
+/** SVG wood board — only when VITE_BOARD_PROCEDURAL=1 */
+function ProceduralBoardVisual({
   layout: layoutProp,
   idPrefix = 'board',
   activeColors,
@@ -422,11 +447,11 @@ export function BoardVisual({
           key={`hl_${positionKey(pos)}`}
           cx={pt.x}
           cy={pt.y}
-          r={14}
+          r={16}
           className="legal-target-highlight"
-          fill="rgba(230, 184, 0, 0.12)"
-          stroke="#e6b800"
-          strokeWidth={2.5}
+          fill="rgba(230, 184, 0, 0.22)"
+          stroke="#f0c840"
+          strokeWidth={3}
           pointerEvents="none"
         />
       );
@@ -449,43 +474,56 @@ export function BoardVisual({
   const boardOct = octagonOutlinePoints(layout, 6);
   const bevelOct = octagonOutlinePoints(layout, 14);
 
+  const viewPad = 28;
+
   return (
-    <div className={`board-frame w-full aspect-square mx-auto ${className}`}>
+    <div className={`board-frame w-full aspect-square mx-auto overflow-visible ${className}`}>
       <svg
-        viewBox={`0 0 ${layout.size} ${layout.size}`}
-        className="w-full h-full board-svg"
+        viewBox={`${-viewPad} ${-viewPad} ${layout.size + viewPad * 2} ${layout.size + viewPad * 2}`}
+        className="w-full h-full board-svg overflow-visible"
         role="img"
         aria-label="Jackaroo board"
       >
         <defs>
           <linearGradient id={`${pid}-woodBase`} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#8f6238" />
-            <stop offset="28%" stopColor="#6b4423" />
-            <stop offset="62%" stopColor="#4a2f18" />
-            <stop offset="100%" stopColor="#261608" />
+            <stop offset="0%" stopColor="#7a5230" />
+            <stop offset="22%" stopColor="#5c3a1e" />
+            <stop offset="55%" stopColor="#3d2812" />
+            <stop offset="100%" stopColor="#1a0f06" />
           </linearGradient>
           <linearGradient id={`${pid}-woodEdge`} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#c49a5c" stopOpacity="0.55" />
-            <stop offset="45%" stopColor="#5c3d22" stopOpacity="0.15" />
-            <stop offset="100%" stopColor="#120a04" stopOpacity="0.65" />
+            <stop offset="0%" stopColor="#b8925a" stopOpacity="0.5" />
+            <stop offset="40%" stopColor="#4a3018" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#0a0604" stopOpacity="0.75" />
+          </linearGradient>
+          <linearGradient id={`${pid}-woodSheen`} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#fff" stopOpacity="0.12" />
+            <stop offset="35%" stopColor="#fff" stopOpacity="0" />
+            <stop offset="100%" stopColor="#000" stopOpacity="0.15" />
           </linearGradient>
           <linearGradient id={`${pid}-grainLine`} x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#3d2810" stopOpacity="0" />
             <stop offset="50%" stopColor="#d4a563" stopOpacity="0.35" />
             <stop offset="100%" stopColor="#3d2810" stopOpacity="0" />
           </linearGradient>
-          <radialGradient id={`${pid}-holeFace`} cx="38%" cy="32%" r="68%">
-            <stop offset="0%" stopColor="#ece2d0" />
-            <stop offset="50%" stopColor="#b8a078" />
+          <radialGradient id={`${pid}-holeFace`} cx="40%" cy="30%" r="72%">
+            <stop offset="0%" stopColor="#f2ead8" />
+            <stop offset="42%" stopColor="#d4c4a4" />
+            <stop offset="78%" stopColor="#8a7058" />
             <stop offset="100%" stopColor="#4a3828" />
           </radialGradient>
           <radialGradient id={`${pid}-holeRim`} cx="50%" cy="50%" r="50%">
-            <stop offset="70%" stopColor="#3d2810" />
-            <stop offset="100%" stopColor="#1a1008" />
+            <stop offset="55%" stopColor="#4a3018" />
+            <stop offset="100%" stopColor="#120a06" />
           </radialGradient>
-          <radialGradient id={`${pid}-centerFelt`} cx="50%" cy="45%" r="58%">
-            <stop offset="0%" stopColor="#2d5c3a" />
-            <stop offset="100%" stopColor="#142818" />
+          <linearGradient id={`${pid}-centerLiner`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#c9b898" />
+            <stop offset="100%" stopColor="#8a7058" />
+          </linearGradient>
+          <radialGradient id={`${pid}-centerFloor`} cx="50%" cy="42%" r="62%">
+            <stop offset="0%" stopColor="#ebe3d2" />
+            <stop offset="55%" stopColor="#d0c0a4" />
+            <stop offset="100%" stopColor="#9a8468" />
           </radialGradient>
           {COLORS_ORDER.map((color) => (
             <radialGradient
@@ -514,8 +552,9 @@ export function BoardVisual({
         <g filter={`url(#${pid}-boardDepth)`}>
           {/* Base slab + bevel */}
           <polygon points={outerOct} fill="#080604" stroke="#1a0f06" strokeWidth={5} />
-          <polygon points={boardOct} fill={`url(#${pid}-woodBase)`} stroke="#c9a227" strokeWidth={3} />
-          <polygon points={bevelOct} fill={`url(#${pid}-woodEdge)`} stroke="none" opacity={0.85} />
+          <polygon points={boardOct} fill={`url(#${pid}-woodBase)`} stroke="#a67c2a" strokeWidth={2.5} />
+          <polygon points={bevelOct} fill={`url(#${pid}-woodEdge)`} stroke="none" opacity={0.88} />
+          <polygon points={boardOct} fill={`url(#${pid}-woodSheen)`} stroke="none" pointerEvents="none" />
 
           <g clipPath={`url(#${pid}-boardClip)`}>
             <WoodGrainLines c={c} size={layout.size} pid={pid} />
@@ -531,22 +570,10 @@ export function BoardVisual({
                 points={pts}
                 fill="none"
                 stroke="#1a1008"
-                strokeWidth={layout.size * 0.028}
+                strokeWidth={layout.size * 0.016}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                opacity={0.85}
-              />
-            ))}
-            {trackSections.map((pts, i) => (
-              <polyline
-                key={`track_ch_hi_${i}`}
-                points={pts}
-                fill="none"
-                stroke="#8b6914"
-                strokeWidth={layout.size * 0.008}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity={0.35}
+                opacity={0.45}
               />
             ))}
 
@@ -587,18 +614,10 @@ export function BoardVisual({
                     points={lane}
                     fill="none"
                     stroke="#1a1008"
-                    strokeWidth={layout.size * 0.022}
+                    strokeWidth={layout.size * 0.014}
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    opacity={0.8}
-                  />
-                  <polyline
-                    points={lane}
-                    fill="none"
-                    stroke={COLOR_STROKE[color]}
-                    strokeWidth={1}
-                    strokeLinecap="round"
-                    opacity={0.35}
+                    opacity={0.5}
                   />
                 </g>
               );
@@ -698,6 +717,14 @@ export function BoardVisual({
   );
 }
 
+/** Default: literal reference photo. Set VITE_BOARD_PROCEDURAL=1 for SVG board. */
+export function BoardVisual(props: BoardVisualProps) {
+  if (import.meta.env.VITE_BOARD_PROCEDURAL === '1') {
+    return <ProceduralBoardVisual {...props} />;
+  }
+  return <PhysicalPhotoBoardVisual {...props} />;
+}
+
 export function BoardVisualFromGame({
   gameState,
   playerId,
@@ -721,14 +748,21 @@ export function BoardVisualFromGame({
   );
 }
 
-export function BoardPreviewVisual({ size = 200 }: { size?: number }) {
+function BoardPreviewProcedural({ size = 200 }: { size?: number }) {
   const layout = useMemo(() => scaleLayout(getBoardLayout(), size), [size]);
   return (
-    <BoardVisual
+    <ProceduralBoardVisual
       layout={layout}
       idPrefix="preview"
       showDemoMarbles
       activeColors={new Set(COLORS_ORDER)}
     />
   );
+}
+
+export function BoardPreviewVisual({ size = 200 }: { size?: number }) {
+  if (import.meta.env.VITE_BOARD_PROCEDURAL === '1') {
+    return <BoardPreviewProcedural size={size} />;
+  }
+  return <BoardPreviewPhotoVisual size={size} />;
 }

@@ -35,7 +35,7 @@ export function GameBoard({
       onMarbleClick={onMarbleClick}
       isMyTurn={isMyTurn}
       onPositionClick={onPositionClick}
-      className="max-w-[min(100vw-1.5rem,44rem)] drop-shadow-board"
+      className="w-full h-full max-w-full drop-shadow-board"
     />
   );
 }

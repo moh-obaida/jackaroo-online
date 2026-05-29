@@ -17,10 +17,19 @@ type TableSeatProps = {
   gameState: GameState;
   compact?: boolean;
   voiceStatus?: VoiceParticipantStatus;
+  isYou?: boolean;
+  opponentLabel?: boolean;
 };
 
 /** Ludo-style corner seat + Uno-style stacked card backs. */
-export function TableSeat({ player, gameState, compact = false, voiceStatus }: TableSeatProps) {
+export function TableSeat({
+  player,
+  gameState,
+  compact = false,
+  voiceStatus,
+  isYou = false,
+  opponentLabel = false,
+}: TableSeatProps) {
   const { t } = useApp();
   const isTurn = gameState.currentTurnPlayerId === player.id;
   const count = gameState.handCounts[player.id] ?? 0;
@@ -38,12 +47,20 @@ export function TableSeat({ player, gameState, compact = false, voiceStatus }: T
           aria-hidden
         />
         <div className="table-seat__info">
-          <p className="table-seat__name">{player.name}</p>
+          <p className="table-seat__name">
+            {isYou ? t('game.you') : player.name}
+            {opponentLabel && !isYou && (
+              <span className="table-seat__role"> · {t('game.opponent')}</span>
+            )}
+          </p>
           <p className="table-seat__meta">
+            <span className="table-seat__color-label">{t(`game.color.${player.color}`)}</span>
+            {' · '}
             {t('game.cardsCount', { count: String(count) })}
             {player.isBot && ` · ${t('lobby.addBot')}`}
           </p>
         </div>
+        {isYou && <span className="table-seat__you-badge">{t('game.you')}</span>}
         {showTeam && (
           <span className="table-seat__team">{player.team}</span>
         )}

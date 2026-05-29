@@ -291,10 +291,10 @@ export function getBoardLayout(size = BOARD_VIEW_SIZE): BoardLayout {
   if (cached) return cached;
 
   const c = size / 2;
-  const hw = size * 0.358;
-  const hh = size * 0.358;
-  const cut = size * 0.112;
-  const notch = size * 0.052;
+  const hw = size * 0.348;
+  const hh = size * 0.348;
+  const cut = size * 0.128;
+  const notch = size * 0.048;
 
   const frame = buildFrame(c, hw, hh, cut, notch);
   const waypoints = buildPerimeterWaypoints(frame);

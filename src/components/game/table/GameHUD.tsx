@@ -3,9 +3,8 @@ import { GameState } from '../../../types/game';
 import { useApp } from '../../../context/AppContext';
 import { Button } from '../../ui/Button';
 import { JakarooIcon } from '../../brand/JakarooIcon';
-import { VoiceControls } from '../../voice/VoiceControls';
-import { VoiceConnectionState } from '../../../lib/voice/types';
 import { formatPlayerName, formatTableCode } from '../../../lib/player/displayName';
+import { PlayerColor } from '../../../types/game';
 import { ConfirmDialog } from '../../ui/ConfirmDialog';
 
 type GameHUDProps = {
@@ -15,13 +14,7 @@ type GameHUDProps = {
   turnPlayerName: string;
   onLeave: () => void;
   leaveBusy: boolean;
-  voiceConnectionState: VoiceConnectionState;
-  voiceSupported: boolean;
-  onVoiceJoin: () => void;
-  onVoiceLeave: () => void;
-  onVoiceMute: () => void;
-  onVoiceUnmute: () => void;
-  onVoiceRetry: () => void;
+  myColor?: PlayerColor | null;
 };
 
 export function GameHUD({
@@ -31,13 +24,7 @@ export function GameHUD({
   turnPlayerName,
   onLeave,
   leaveBusy,
-  voiceConnectionState,
-  voiceSupported,
-  onVoiceJoin,
-  onVoiceLeave,
-  onVoiceMute,
-  onVoiceUnmute,
-  onVoiceRetry,
+  myColor,
 }: GameHUDProps) {
   const { t } = useApp();
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
@@ -68,17 +55,14 @@ export function GameHUD({
           )}
         </div>
         <div className="game-table-hud__actions">
-          <VoiceControls
-            compact
-            demoteInGame
-            connectionState={voiceConnectionState}
-            isSupported={voiceSupported}
-            onJoin={onVoiceJoin}
-            onLeave={onVoiceLeave}
-            onMute={onVoiceMute}
-            onUnmute={onVoiceUnmute}
-            onRetry={onVoiceRetry}
-          />
+          {myColor && (
+            <span
+              className={`game-table-hud__color-chip game-table-hud__color-chip--${myColor}`}
+              title={t(`game.color.${myColor}`)}
+            >
+              {t('game.youAreColor', { color: t(`game.color.${myColor}`) })}
+            </span>
+          )}
           <Button
             variant="danger"
             size="sm"

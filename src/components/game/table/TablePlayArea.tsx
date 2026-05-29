@@ -44,7 +44,13 @@ export function TablePlayArea({
         />
       </div>
       <div className="table-play-area__board">
-        <div className="board-wood-rim board-wood-rim--hero">
+        <div
+          className={
+            import.meta.env.VITE_BOARD_PROCEDURAL === '1'
+              ? 'board-wood-rim board-wood-rim--hero'
+              : 'board-wood-rim board-wood-rim--photo'
+          }
+        >
           <GameBoard
             gameState={gameState}
             selectedCardId={selectedCardId}

@@ -18,6 +18,7 @@ type PlayActionSheetProps = {
   playerId: string;
   isMyTurn: boolean;
   noLegalReasonKey?: NoLegalMoveReasonKey | null;
+  boardFlowHintKey?: string | null;
 };
 
 export function PlayActionSheet({
@@ -30,6 +31,7 @@ export function PlayActionSheet({
   playerId,
   isMyTurn,
   noLegalReasonKey,
+  boardFlowHintKey,
 }: PlayActionSheetProps) {
   const { t } = useApp();
   const [loading, setLoading] = useState(false);
@@ -74,6 +76,10 @@ export function PlayActionSheet({
   return (
     <div className="play-sheet">
       <PlayStepBar step={step} />
+
+      {boardFlowHintKey && isMyTurn && (
+        <p className="play-sheet__hint play-sheet__hint--flow">{t(boardFlowHintKey)}</p>
+      )}
 
       {view.kind === 'skip' && renderActionBtn(view.action, 'primary')}
       {view.kind === 'burn_all' && (

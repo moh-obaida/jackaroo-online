@@ -8,6 +8,7 @@ import { PlayActionSheet } from '../play/PlayActionSheet';
 
 type HandDockProps = {
   playerName: string;
+  playerColor?: string | null;
   hand: Card[];
   selectedCardId: string | null;
   playableCardIds?: string[];
@@ -20,11 +21,13 @@ type HandDockProps = {
   playerId: string;
   isMyTurn: boolean;
   noLegalReasonKey?: NoLegalMoveReasonKey | null;
+  boardFlowHintKey?: string | null;
 };
 
 /** Uno-style bottom hand rail — cards + step-guided actions, not a form panel. */
 export function HandDock({
   playerName,
+  playerColor,
   hand,
   selectedCardId,
   playableCardIds,
@@ -37,6 +40,7 @@ export function HandDock({
   playerId,
   isMyTurn,
   noLegalReasonKey,
+  boardFlowHintKey,
 }: HandDockProps) {
   const { t } = useApp();
   const label = formatPlayerName(playerName, 12);
@@ -47,6 +51,11 @@ export function HandDock({
     >
       <div className="hand-dock-panel__header">
         <span className="hand-dock-panel__label">{t('game.yourHand')}</span>
+        {playerColor && (
+          <span className={`hand-dock-panel__color hand-dock-panel__color--${playerColor}`}>
+            {t(`game.color.${playerColor}`)}
+          </span>
+        )}
         {label && <span className="hand-dock-panel__you">{label}</span>}
       </div>
       <div className="hand-dock-panel__cards">
@@ -70,6 +79,7 @@ export function HandDock({
           playerId={playerId}
           isMyTurn={isMyTurn}
           noLegalReasonKey={noLegalReasonKey}
+          boardFlowHintKey={boardFlowHintKey}
         />
       </div>
       {!isMyTurn && (
