@@ -7,6 +7,8 @@ export type VoiceControlsProps = {
   connectionState: VoiceConnectionState;
   isSupported: boolean;
   compact?: boolean;
+  /** In-game HUD: show coming-soon chip instead of prominent Join Voice. */
+  demoteInGame?: boolean;
   onJoin: () => void;
   onLeave: () => void;
   onMute: () => void;
@@ -19,6 +21,7 @@ export function VoiceControls({
   connectionState,
   isSupported,
   compact = false,
+  demoteInGame = false,
   onJoin,
   onLeave,
   onMute,
@@ -60,7 +63,12 @@ export function VoiceControls({
       data-voice-state={connectionState}
     >
       <div className="voice-controls__row">
-        {connectionState === 'idle' && (
+        {connectionState === 'idle' && demoteInGame && (
+          <span className="voice-controls__soon" title={t('voice.comingSoonHint')}>
+            {t('voice.comingSoon')}
+          </span>
+        )}
+        {connectionState === 'idle' && !demoteInGame && (
           <button
             type="button"
             className="voice-controls__btn voice-controls__btn--primary"

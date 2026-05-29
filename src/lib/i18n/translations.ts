@@ -168,6 +168,31 @@ export const en: Translations = {
   'game.moreActions': '{count} more moves',
   'game.fewerActions': 'Show fewer moves',
   'game.noLegalForCard': 'No legal move with this card.',
+  'game.noLegalReason.allInBaseNoAceKing':
+    'No legal move. Your marbles are still in base and none of these cards can bring one out.',
+  'game.noLegalReason.startGateBlocked':
+    'No legal move. Your start/gate is blocked by your own marble.',
+  'game.noLegalReason.noMarbleMoves':
+    'No legal move. No marble can move the exact value on your cards.',
+  'game.noLegalReason.burnUnavailable':
+    'No legal move. Burn is not available because the next player has no cards.',
+  'game.noLegalReason.teammateOnly':
+    'No legal move for your marbles. Only teammate moves would be legal (not allowed while you have own moves).',
+  'game.noLegalReason.generic': 'No legal move with any card in your hand.',
+  'game.yourHand': 'Your hand',
+  'game.turnChoosing': '{name} is choosing a card',
+  'game.leaveConfirmTitle': 'Leave this game?',
+  'game.leaveConfirmMessage': 'You will leave the table. Other players can continue or wait for you to rejoin with the same code.',
+  'player.nameTooShort': 'Name must be at least 2 characters.',
+  'player.nameTooLong': 'Name must be 20 characters or fewer.',
+  'player.nameInvalid': 'Enter a display name (letters or numbers).',
+  'join.error.fillFields': 'Please fill the table code, password, and your name.',
+  'join.error.firebase': 'Firebase is not configured. Add environment variables first.',
+  'join.stage.auth': 'Signing in…',
+  'join.stage.checking': 'Checking table seats…',
+  'join.stage.joining': 'Joining table…',
+  'lobby.waitingForMaker': 'Waiting for the table host to start the game.',
+  'create.error.fillFields': 'Please fill your name and table password.',
   'game.opponents': 'Players',
   'game.cardsCount': '{count} cards',
   'game.info': 'Game info',
@@ -179,6 +204,8 @@ export const en: Translations = {
   'game.leaveGame': 'Leave Game',
 
   // Voice (V1 mock UI)
+  'voice.comingSoon': 'Voice soon',
+  'voice.comingSoonHint': 'Real voice chat is not available yet. Mock controls only in lobby.',
   'voice.join': 'Join Voice',
   'voice.leave': 'Leave Voice',
   'voice.mute': 'Mute',
@@ -531,6 +558,31 @@ export const ar: Translations = {
   'game.moreActions': '{count} حركات إضافية',
   'game.fewerActions': 'عرض حركات أقل',
   'game.noLegalForCard': 'لا حركة قانونية بهذه الورقة.',
+  'game.noLegalReason.allInBaseNoAceKing':
+    'لا حركة قانونية. كراتك في القاعدة ولا توجد ورقة آس أو ملك لإخراجها.',
+  'game.noLegalReason.startGateBlocked':
+    'لا حركة قانونية. بوابة البداية محجوزة بكرّتك.',
+  'game.noLegalReason.noMarbleMoves':
+    'لا حركة قانونية. لا يمكن تحريك أي كرة بالقيمة المطلوبة.',
+  'game.noLegalReason.burnUnavailable':
+    'لا حركة قانونية. الحرق غير متاح لأن اللاعب التالي بلا أوراق.',
+  'game.noLegalReason.teammateOnly':
+    'لا حركة لكراتك. حركات الزميل فقط (غير مسموحة عند وجود حركة لك).',
+  'game.noLegalReason.generic': 'لا حركة قانونية بأي ورقة في يدك.',
+  'game.yourHand': 'يدك',
+  'game.turnChoosing': '{name} يختار ورقة',
+  'game.leaveConfirmTitle': 'مغادرة اللعبة؟',
+  'game.leaveConfirmMessage': 'ستغادر الطاولة. يمكن للآخرين المتابعة أو انتظار عودتك بنفس الرمز.',
+  'player.nameTooShort': 'الاسم يجب أن يكون حرفين على الأقل.',
+  'player.nameTooLong': 'الاسم يجب ألا يتجاوز 20 حرفاً.',
+  'player.nameInvalid': 'أدخل اسماً ظاهراً (حروف أو أرقام).',
+  'join.error.fillFields': 'أكمل رمز الطاولة وكلمة المرور واسمك.',
+  'join.error.firebase': 'Firebase غير مُعد. أضف متغيرات البيئة أولاً.',
+  'join.stage.auth': 'جاري تسجيل الدخول…',
+  'join.stage.checking': 'جاري التحقق من المقاعد…',
+  'join.stage.joining': 'جاري الانضمام…',
+  'lobby.waitingForMaker': 'بانتظار مضيف الطاولة لبدء اللعبة.',
+  'create.error.fillFields': 'أكمل اسمك وكلمة مرور الطاولة.',
   'game.opponents': 'اللاعبون',
   'game.cardsCount': '{count} ورقة',
   'game.info': 'معلومات اللعبة',
@@ -542,6 +594,8 @@ export const ar: Translations = {
   'game.leaveGame': 'مغادرة اللعبة',
 
   // Voice (V1 mock UI)
+  'voice.comingSoon': 'صوت قريباً',
+  'voice.comingSoonHint': 'الصوت الحقيقي غير متاح بعد. عناصر تجريبية في اللوبي فقط.',
   'voice.join': 'انضم للصوت',
   'voice.leave': 'مغادرة الصوت',
   'voice.mute': 'كتم',

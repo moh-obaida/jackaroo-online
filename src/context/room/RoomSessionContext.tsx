@@ -60,6 +60,7 @@ export function RoomSessionProvider({ children }: { children: React.ReactNode })
   const isLeavingRef = useRef(false);
   const sessionEpochRef = useRef(0);
   const leaveInFlightRef = useRef(false);
+  const subscribedRoomCodeRef = useRef<string | null>(null);
 
   sessionEpochRef.current = sessionEpoch;
 
@@ -180,7 +181,10 @@ export function RoomSessionProvider({ children }: { children: React.ReactNode })
     }
 
     const epoch = sessionEpochRef.current;
-    setRoomLoaded(false);
+    if (subscribedRoomCodeRef.current !== roomCode) {
+      subscribedRoomCodeRef.current = roomCode;
+      setRoomLoaded(false);
+    }
 
     const unsub = subscribeToRoom(roomCode, (roomData) => {
       if (!acceptSessionUpdate(epoch, roomCode)) return;

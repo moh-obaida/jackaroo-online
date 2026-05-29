@@ -3,8 +3,9 @@ import { useParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
 import { useRoomRouteState } from '../hooks/useRoomRouteState';
-import { isTerminalRouteState } from '../lib/room/routeState';
+import { getAuthUserOrCurrent } from '../lib/firebase/auth';
 import { RoomRouteFallback } from '../components/game/RoomRouteFallback';
+import { RoomRouteViewport } from '../components/game/RoomRouteViewport';
 import { FullScreenGameTable } from '../components/game/table/FullScreenGameTable';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
 
@@ -49,35 +50,55 @@ function GamePageContent() {
     }
   }, [roomCode, leaveBusy, safeLeaveRoom]);
 
-  if (isTerminalRouteState(routeState)) {
+  const reload = useCallback(() => window.location.reload(), []);
+
+  if (!roomCode) {
     return (
-      <RoomRouteFallback
-        state={routeState}
-        roomCode={roomCode}
-        onReload={() => window.location.reload()}
-      />
+      <RoomRouteViewport variant="game">
+        <RoomRouteFallback state={{ kind: 'invalid_code' }} roomCode={null} onReload={reload} />
+      </RoomRouteViewport>
     );
   }
 
-  const playerId = user?.uid?.trim() || myPlayer?.id || null;
-  if (!gameState || !roomCode || !playerId) {
-    return <RoomRouteFallback state={{ kind: 'waiting_game_state' }} roomCode={roomCode} />;
+  if (routeState.kind !== 'ready_play') {
+    return (
+      <RoomRouteViewport variant="game">
+        <RoomRouteFallback state={routeState} roomCode={roomCode} onReload={reload} />
+      </RoomRouteViewport>
+    );
+  }
+
+  const playerId =
+    (user ?? getAuthUserOrCurrent())?.uid?.trim() || myPlayer?.id?.trim() || null;
+
+  if (!gameState || !playerId) {
+    return (
+      <RoomRouteViewport variant="game">
+        <RoomRouteFallback
+          state={{ kind: 'waiting_game_state' }}
+          roomCode={roomCode}
+          onReload={reload}
+        />
+      </RoomRouteViewport>
+    );
   }
 
   return (
-    <FullScreenGameTable
-      roomCode={roomCode}
-      gameState={gameState}
-      playerId={playerId}
-      myHand={myHand}
-      legalActions={legalActions}
-      isMyTurn={isMyTurn}
-      onSubmitAction={submitAction}
-      onLeave={handleLeaveGame}
-      leaveBusy={leaveBusy}
-      gameError={gameError}
-      leaveWarning={leaveWarning}
-    />
+    <RoomRouteViewport variant="game">
+      <FullScreenGameTable
+        roomCode={roomCode}
+        gameState={gameState}
+        playerId={playerId}
+        myHand={myHand}
+        legalActions={legalActions}
+        isMyTurn={isMyTurn}
+        onSubmitAction={submitAction}
+        onLeave={handleLeaveGame}
+        leaveBusy={leaveBusy}
+        gameError={gameError}
+        leaveWarning={leaveWarning}
+      />
+    </RoomRouteViewport>
   );
 }
 

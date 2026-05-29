@@ -25,6 +25,7 @@ import { getCardsPerPlayerForRound } from '../../lib/game/cards';
 import { createInitialMarbles } from '../../lib/game/board';
 import { useRoomSession } from '../room/RoomSessionContext';
 import { useApp } from '../AppContext';
+import { getAuthUserOrCurrent } from '../../lib/firebase/auth';
 
 const BOT_TURN_DELAY_MS = 900;
 const HAND_LOAD_TIMEOUT_MS = 8000;
@@ -54,7 +55,7 @@ export function GamePlayProvider({ children }: { children: React.ReactNode }) {
     setSessionLoading,
   } = useRoomSession();
 
-  const playerId = user?.uid?.trim() || null;
+  const playerId = (user ?? getAuthUserOrCurrent())?.uid?.trim() || null;
 
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [myHand, setMyHand] = useState<Card[]>([]);
@@ -69,6 +70,7 @@ export function GamePlayProvider({ children }: { children: React.ReactNode }) {
   const scheduledBotTurnRef = useRef<string | null>(null);
   const botTurnInFlightRef = useRef(false);
   const handTimeoutRef = useRef<number | null>(null);
+  const handScopeRef = useRef<string | null>(null);
 
   const clearHandTimer = useCallback(() => {
     if (handTimeoutRef.current != null) {
@@ -125,7 +127,11 @@ export function GamePlayProvider({ children }: { children: React.ReactNode }) {
     }
 
     const epoch = sessionEpoch;
-    setHandLoaded(false);
+    const scope = `${roomCode}:${playerId}`;
+    if (handScopeRef.current !== scope) {
+      handScopeRef.current = scope;
+      setHandLoaded(false);
+    }
     setHandError(null);
 
     const unsub = subscribeToPrivateHand(roomCode, playerId, (cards) => {

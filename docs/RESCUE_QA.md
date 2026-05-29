@@ -1,20 +1,25 @@
 # Jakaroo Rescue — QA & PR Notes
 
-**Last run:** 2026-05-29 (Phase A re-QA after join/auth fixes)  
-**Branch:** `rescue/architecture-game-table` (local uncommitted join/auth fixes)  
+**Last run:** 2026-05-29 (Phase A trust pass — blank routes, legal UX, board interaction)  
+**Branch:** `rescue/architecture-game-table` (uncommitted local changes)  
 **Preview URL:** https://deploy-preview-5--jackaroo-online.netlify.app  
 **Build:** `npm run build` — **PASS** (2026-05-29)
+
+## Phase A status: **NOT GREEN**
+
+Gameplay trust and route stability improved in code; **manual sign-off still required** (incognito 2p, 10× game refresh, full leave/back matrix).
 
 ## QA environment notes
 
 | Item | Result |
 |------|--------|
 | Build (`npm run build`) | **PASS** |
-| Firebase rules deploy from agent | **NO** — not authenticated; user must deploy |
-| Local dev QA (`127.0.0.1:5173` + `.env`) | **Primary** — functional pass for join/lobby/game/fallbacks |
-| Dual-tab browser automation | **Limitation** — Firebase Auth is shared per browser profile; second tab overwrites guest UID, so room-maker **Start Game** + 2-human in-game matrix need **incognito / second browser** for full sign-off |
+| Firebase rules deploy from agent | **NO** — user must deploy |
+| Netlify SPA redirects | **YES** — `netlify.toml` has `/* → /index.html` (200) |
+| Local dev QA | **Partial** — build-only this pass |
+| Dual-tab automation | **Limitation** — shared Firebase Auth; use incognito for 2-human start |
 
-**User must deploy rules locally:**
+**User must deploy rules:**
 
 ```bash
 cp .firebaserc.example .firebaserc
@@ -22,84 +27,89 @@ firebase login
 firebase deploy --only database --project jackaroo-online-f6b7f
 ```
 
-## Code fixes this pass
+## Implemented this pass (code)
 
-- **`getLobbySeatInfo` + `JoinRoomPage`:** When a guest joins with a different display name than the seated anonymous user (same browser profile), rotate to a **fresh guest** (`logOut` → `signInAsGuest`) so the second human gets a new seat.
-- **`useRoomRouteState`:** `effectiveAuthLoading = authLoading && !authUser` using `getAuthUserOrCurrent()` so lobby/game routes do not stick on **Loading session…** after guest sign-in.
-- **`RoomSessionContext`:** `playerId` uses `getAuthUserOrCurrent()` for the same reason.
-- **`CreateRoomPage` / `JoinRoomPage`:** `getAuthUserOrCurrent()` after `signInAsGuest()` (existing).
+### A — Blank / branded route states
+- `GamePage` / `LobbyPage` gate on `ready_play` / `lobby_ready` with `RoomRouteViewport` + `RoomRouteFallback` (no bare game shell).
+- `RoomSessionContext`: `subscribedRoomCodeRef` — avoid `roomLoaded` flash on resubscribe.
+- `GamePlayContext`: `handScopeRef` — avoid hand-loading flash on resubscribe; `getAuthUserOrCurrent()` for `playerId`.
+- CSS: `.room-route-viewport`, `.status-panel-screen` `min-h-[100dvh]`.
 
-## Slice 1 Phase A manual QA matrix
+### B — Legal move audit (dev)
+- `src/lib/game/legalMoveAudit.ts` — console audit when `import.meta.env.DEV` and `VITE_LEGAL_AUDIT !== '0'`.
+- Wired from `FullScreenGameTable` on turn + selected card.
+
+### C — No-legal-move explanations
+- `explainNoLegalMove.ts` + i18n (en + ar).
+- `PlayActionSheet` shows reason above discard-all.
+
+### D — Board interaction (partial)
+- `useBoardPlaySelection`: card → marble → target hole → submit.
+- Distinct marble glow (selectable / selected) vs target hole highlights.
+- **Needs verification:** dangerous-move confirm, Jack/swap two-click flow, all card types.
+
+### E — Board visual (partial)
+- Center pit inlay (less dead center); drilled holes / wood retained.
+- **Needs verification:** vs physical wooden reference.
+
+### F–K — HUD / hand / lobby (partial)
+- Hand dock: “Your hand”, waiting overlay, fixed rail CSS.
+- Game HUD: `Table {code}`, leave **confirm modal**, turn copy `{name} is choosing a card`.
+- Voice demoted in-game (`Voice soon` chip; real WebRTC out of scope).
+- Lobby: seats farther from mini board; non-maker “waiting for host” hint.
+- Display name validation (2–20 chars) on create/join; `formatPlayerName` utility.
+
+### Tier 1 mega-list (partial)
+| Item | Status |
+|------|--------|
+| 1–2 Display name validation + ellipsis | **Done** (create/join) |
+| 3–5 Table code label, Show Deck casing | **Partial** — HUD uses `Table {code}`; lobby plaque still numeric code |
+| 7–8 Leave game confirm | **Done** (in-game) |
+| 9 Start disabled reasons + waiting for maker | **Done** |
+| 33–35 Join progress stages | **Done** (join page) |
+| 66–68 Error boundaries on routes | **Existing** on Game/Lobby pages |
+| 78 Netlify SPA | **Documented** above |
+
+## NOT done / needs verification
+
+| Area | Notes |
+|------|--------|
+| 10× refresh `/game/:code` | **Not run** — must show loading/fallback/game, never blank black |
+| 2-human ready → start → both in game | **Not run** — incognito required |
+| Legal engine correctness | Audit helps debug; **not proven** vs Obaida Classic matrix |
+| Board click flow all cards | **Partial** |
+| Burn copy with next player name in action panel | **Not done** this pass |
+| Copy invite message, kick confirm | **Not done** |
+| Tab titles (96) | **Not done** |
+| Toast system (62–64) | **Not done** |
+| Deal/event banner dedup | **Not done** |
+| Firebase rules in production | **User deploy** |
+
+## Dev: legal move audit
+
+```bash
+# default on in dev; disable with:
+VITE_LEGAL_AUDIT=0 npm run dev
+```
+
+Open browser console on your turn — collapsed `[Jakaroo legal audit]` group with marbles, per-card actions, discard-all reason key.
+
+## Slice 1 manual QA matrix (unchanged gaps)
 
 | Test | Pass | Notes |
 |------|------|-------|
 | `npm run build` | **Yes** | 2026-05-29 |
-| Home loads | **Yes** | Not re-screenshotted this pass |
-| Create room form | **Yes** | Local create → lobby |
-| Join second player (UI) | **Yes** | Tab B `/join` → room `309769` **2/2** (PlayerA + PlayerB); no REST seating |
-| 2p lobby 2/2 | **Yes** | `03-lobby-2p.png` (PlayerB view) |
-| Ready + start game (2 humans, UI) | **Not run** | Shared auth in automation: maker tab loses PlayerA session after tab B guest rotation; **manual incognito required** |
-| Both on game screen (2 humans) | **Not run** | Same blocker |
-| Game screen (maker + bot) | **Yes** | Rooms `846139`, `182578` — start/leave/mobile |
-| Private hands (own only) | **Partial** | PlayerA desktop game verified earlier pass; PlayerB in-game not captured |
-| Opponent card backs/count | **Partial** | Bot opponent shows backs + count in game UI |
-| Show Deck (guide only) | **Yes** | Modal states guide does not reveal shuffled order |
-| Leave lobby → home | **Yes** | Tab B left lobby `309769` → `/` |
-| Leave game → home | **Yes** | Mobile game `182578` → `/` |
-| Spam leave 5× | **Not run** | |
-| Browser back after leave | **Not run** | |
-| Refresh after leave | **Not run** | |
-| Refresh while seated | **Not run** | |
-| Current player leave during game | **Not run** | Blocked on 2-human in-game session in automation |
-| Non-room-maker leave during game | **Not run** | Same |
-| `/lobby/999999` invalid | **Not run** | Prior pass (`07-invalid-room.png`) |
-| `/game/999999` invalid | **Not run** | Prior pass |
-| Expired room fallback | **Not run** | Prior pass (`08-expired-room.png`) |
-| Not-member after leave | **Yes** | After leave, `/lobby/309769` → not-member panel; `06-leave-fallback.png` updated |
-| `left_room` panel | **Not run** | |
-| Arabic RTL smoke | **Not run** | Prior `09-arabic.png` |
-| Mobile in-game | **Yes** | `10-mobile-game.png` — actual game at 390×844; board + hand dock + actions visible |
-| Firebase rules in production | **No** | Agent cannot deploy |
-
-## Screenshots (`docs/qa-screenshots/`)
-
-| File | Status |
-|------|--------|
-| `01-home.png` | Prior pass |
-| `02-create.png` | Prior pass |
-| `03-lobby-2p.png` | **Updated** — UI join 2/2 (`309769`, PlayerB view) |
-| `04-game-playerA.png` | **Updated** — bot game `846139` (desktop) |
-| `05-game-playerB.png` | **Missing** — needs second browser profile / incognito |
-| `06-leave-fallback.png` | **Updated** — not-member after leave |
-| `07-invalid-room.png` | Prior pass |
-| `08-expired-room.png` | Prior pass |
-| `09-arabic.png` | Prior pass |
-| `10-mobile-game.png` | **Updated** — in-game mobile `182578` |
-
-## PR review comments (Phase A scope)
-
-| Area | Status |
-|------|--------|
-| Route machine / `room_expired` / session marks | **Done** (prior commits) |
-| `joinRoom` direct `set` + retry (no parent transaction) | **Done** |
-| Firebase rules field guards (`1c0094e`) | **In repo** — deploy pending |
-| Lobby hooks / leave / forms / bots / docs fences | **Done** (`cb01c49` triage) |
-| Guest join hang / second seat same profile | **Fixed this pass** (fresh guest + `effectiveAuthLoading`) |
-| Board a11y, voice UI, full Tailwind, stylelint | **Deferred** (Slice 2+) |
-
-Codex connector reviews hit usage limits on PR #5 during this period; CodeRabbit walkthrough only.
-
-## Slice 1 acceptance gate
-
-**Phase A: partial — not green.**
-
-| Gate | Status |
-|------|--------|
-| Second player join via UI | **Met** (local) |
-| 2-human ready → start → both in game | **Not met in automation** — manual incognito QA required |
+| Refresh game 10× no blank screen | **Not run** | **Blocker for Phase A** |
+| 2p UI join + start + both in game | **Not run** | Incognito |
 | `05-game-playerB.png` | **Missing** |
-| Leave/back/refresh full matrix | **Incomplete** |
-| In-game leave (maker / non-maker) | **Not run** |
-| Firebase rules deployed | **User action** |
+| Leave/back/refresh matrix | **Not run** |
+| Firebase rules production | **No** |
 
-**Do not start Slice 2** until: rules deploy, incognito 2p game sign-off, PlayerB screenshot, and remaining leave/back/refresh cases are run.
+## Out of scope (documented)
+
+- Real WebRTC voice, text chat, rematch, matchmaking, tournaments, stats
+- Full deal animation (banner-only acceptable for now)
+
+## Screenshots
+
+Prior screenshots in `docs/qa-screenshots/` — **not re-captured** this pass. Re-run after manual QA.

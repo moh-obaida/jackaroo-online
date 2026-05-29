@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Card, GameAction, LegalAction } from '../../../types/game';
 import { legalActionToGameAction } from '../../../lib/game/persistAction';
 import { actionLabelKey, presentLegalActions } from '../../../lib/play/presentActions';
+import { NoLegalMoveReasonKey } from '../../../lib/game/explainNoLegalMove';
 import { getPlayStep } from '../../../lib/play/playStep';
 import { useApp } from '../../../context/AppContext';
 import { Button } from '../../ui/Button';
@@ -16,6 +17,7 @@ type PlayActionSheetProps = {
   onSubmitAction: (action: GameAction) => Promise<void>;
   playerId: string;
   isMyTurn: boolean;
+  noLegalReasonKey?: NoLegalMoveReasonKey | null;
 };
 
 export function PlayActionSheet({
@@ -27,6 +29,7 @@ export function PlayActionSheet({
   onSubmitAction,
   playerId,
   isMyTurn,
+  noLegalReasonKey,
 }: PlayActionSheetProps) {
   const { t } = useApp();
   const [loading, setLoading] = useState(false);
@@ -73,7 +76,14 @@ export function PlayActionSheet({
       <PlayStepBar step={step} />
 
       {view.kind === 'skip' && renderActionBtn(view.action, 'primary')}
-      {view.kind === 'burn_all' && renderActionBtn(view.action, 'primary')}
+      {view.kind === 'burn_all' && (
+        <>
+          {noLegalReasonKey && (
+            <p className="play-sheet__hint play-sheet__hint--reason">{t(noLegalReasonKey)}</p>
+          )}
+          {renderActionBtn(view.action, 'primary')}
+        </>
+      )}
 
       {view.kind === 'play_card' && (
         <>

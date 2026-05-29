@@ -280,7 +280,45 @@
   }
 
   .status-panel-screen {
-    @apply flex-1 flex items-center justify-center p-6 min-h-[40vh];
+    @apply flex-1 flex items-center justify-center p-6 min-h-[100dvh] w-full;
+  }
+
+  .room-route-viewport {
+    @apply min-h-[100dvh] w-full flex flex-col;
+    background: radial-gradient(ellipse at 50% 0%, #1a1208 0%, #0a0806 55%, #050403 100%);
+  }
+
+  .room-route-viewport--game {
+    @apply bg-[#050403];
+  }
+
+  .room-route-loading-pulse {
+    @apply flex-1 flex flex-col items-center justify-center gap-3 p-8;
+  }
+
+  .room-route-loading-pulse__label {
+    @apply text-sm text-cream-200/70;
+  }
+
+  .confirm-dialog-backdrop {
+    @apply fixed inset-0 z-[100] flex items-center justify-center p-4;
+    background: rgba(0, 0, 0, 0.72);
+  }
+
+  .confirm-dialog {
+    @apply max-w-sm w-full text-center;
+  }
+
+  .confirm-dialog__title {
+    @apply text-lg font-semibold text-gold-300 mb-2;
+  }
+
+  .confirm-dialog__message {
+    @apply text-sm text-cream-200/75 mb-5;
+  }
+
+  .confirm-dialog__actions {
+    @apply flex flex-col gap-2;
   }
 
   .status-panel {
@@ -774,7 +812,7 @@
   }
 
   .lobby-table__board {
-    @apply absolute inset-[14%] flex items-center justify-center pointer-events-none;
+    @apply absolute inset-[18%] flex items-center justify-center pointer-events-none;
   }
 
   .lobby-table__board .board-frame {
@@ -782,7 +820,7 @@
   }
 
   .lobby-seat-slot {
-    @apply absolute w-[38%] max-w-[8.5rem] z-[2];
+    @apply absolute w-[30%] max-w-[7.5rem] z-[2];
     transform: translate(-50%, -50%);
   }
 
@@ -1205,7 +1243,32 @@
   }
 
   .hand-dock-panel {
-    @apply max-w-3xl mx-auto w-full px-1 pb-safe pt-0.5;
+    @apply relative max-w-3xl mx-auto w-full px-1 pb-safe pt-0.5;
+  }
+
+  .hand-dock-panel__header {
+    @apply flex items-center justify-between gap-2 px-1 pb-0.5;
+  }
+
+  .hand-dock-panel__label {
+    @apply text-[10px] uppercase tracking-wider text-gold-400/90 font-semibold;
+  }
+
+  .hand-dock-panel__you {
+    @apply text-[10px] text-cream-200/50 truncate;
+  }
+
+  .hand-dock-panel--waiting .hand-dock-panel__cards {
+    @apply opacity-55 pointer-events-none;
+  }
+
+  .hand-dock-panel__waiting-overlay {
+    @apply absolute inset-x-0 top-6 bottom-0 flex items-center justify-center pointer-events-none;
+    background: linear-gradient(0deg, rgba(8, 6, 4, 0.55) 0%, transparent 40%);
+  }
+
+  .hand-dock-panel__waiting-overlay span {
+    @apply text-xs font-medium text-cream-200/80 px-3 py-1 rounded-full border border-wood-700/60 bg-black/50;
   }
 
   .hand-dock-panel--card-selected .hand-dock-panel__actions {
@@ -1417,9 +1480,26 @@
       0 12px 32px rgba(230, 184, 0, 0.45);
   }
 
-  .legal-move-highlight {
+  .legal-move-highlight,
+  .legal-target-highlight {
     animation: legal-pulse 1.4s ease-in-out infinite;
     pointer-events: none;
+  }
+
+  .marble-glow--selectable {
+    animation: marble-glow-pulse 1.5s ease-in-out infinite;
+  }
+
+  .marble-glow--selected {
+    animation: marble-glow-pulse 0.9s ease-in-out infinite;
+  }
+
+  .play-sheet__hint--reason {
+    @apply text-amber-200/90 text-xs leading-snug mb-2 px-1;
+  }
+
+  .voice-controls__soon {
+    @apply text-[9px] uppercase tracking-wide text-cream-200/40 px-1.5 py-0.5 rounded border border-wood-800/60 bg-black/30;
   }
 
   .board-svg {

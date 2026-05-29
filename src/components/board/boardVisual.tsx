@@ -46,9 +46,12 @@ type BoardVisualProps = {
   activeColors?: Set<PlayerColor>;
   marbles?: Marble[];
   highlightPositions?: BoardPosition[];
+  selectableMarbleIds?: Set<string>;
+  selectedMarbleId?: string | null;
   myColor?: PlayerColor | null;
   isMyTurn?: boolean;
   showDemoMarbles?: boolean;
+  onMarbleClick?: (marbleId: string) => void;
   onPositionClick?: (pos: BoardPosition) => void;
   className?: string;
 };
@@ -104,35 +107,36 @@ function MarblePiece({
   pos,
   r,
   isOwn,
-  isMyTurn,
+  isSelectable,
+  isSelected,
   onClick,
 }: {
   marble: Marble;
   pos: BoardPoint;
   r: number;
   isOwn: boolean;
-  isMyTurn: boolean;
+  isSelectable: boolean;
+  isSelected: boolean;
   onClick?: () => void;
 }) {
   const isLocked =
     marble.position.type === 'start_gate' && marble.position.color === marble.color;
-  const glow = isOwn && isMyTurn;
 
   return (
     <g
-      className="board-marble"
-      style={{ transition: 'transform 0.28s ease-out' }}
+      className={`board-marble${isSelectable ? ' board-marble--selectable' : ''}${isSelected ? ' board-marble--selected' : ''}`}
+      style={{ transition: 'transform 0.28s ease-out', cursor: onClick ? 'pointer' : undefined }}
       transform={`translate(${pos.x}, ${pos.y})`}
       onClick={onClick}
     >
-      {glow && (
+      {isSelectable && (
         <circle
           r={r + 5}
           fill="none"
-          stroke={COLOR_GLOW[marble.color]}
-          strokeWidth={2}
-          className="marble-glow"
-          opacity={0.85}
+          stroke={isSelected ? '#ffd633' : '#5eead4'}
+          strokeWidth={isSelected ? 3 : 2}
+          className={isSelected ? 'marble-glow marble-glow--selected' : 'marble-glow marble-glow--selectable'}
+          opacity={isSelected ? 1 : 0.9}
         />
       )}
       {isLocked && (
@@ -175,9 +179,12 @@ export function BoardVisual({
   activeColors,
   marbles = [],
   highlightPositions = [],
+  selectableMarbleIds,
+  selectedMarbleId = null,
   myColor = null,
   isMyTurn = false,
   showDemoMarbles = false,
+  onMarbleClick,
   onPositionClick,
   className = '',
 }: BoardVisualProps) {
@@ -231,8 +238,8 @@ export function BoardVisual({
           cx={pt.x}
           cy={pt.y}
           r={14}
-          className="legal-move-highlight"
-          fill="none"
+          className="legal-target-highlight"
+          fill="rgba(230, 184, 0, 0.12)"
           stroke="#e6b800"
           strokeWidth={2.5}
           pointerEvents="none"
@@ -399,28 +406,46 @@ export function BoardVisual({
         <polygon
           points={octagonOutlinePoints(layout, 52)}
           fill={`url(#${pid}-centerPit)`}
-          stroke="#6b4420"
-          strokeWidth={1}
+          stroke="#8b6914"
+          strokeWidth={1.5}
         />
-        <rect
-          x={c - 22}
-          y={c - 30}
-          width={44}
-          height={58}
-          rx={4}
-          fill="#4a1515"
-          stroke="#8b2020"
+        <polygon
+          points={octagonOutlinePoints(layout, 38)}
+          fill="none"
+          stroke="#c9a227"
           strokeWidth={0.8}
-          opacity={0.92}
+          opacity={0.35}
         />
-        <line x1={c - 14} y1={c - 18} x2={c + 14} y2={c - 18} stroke="#c9a227" strokeWidth={0.6} opacity={0.4} />
-        <line x1={c - 14} y1={c - 8} x2={c + 10} y2={c - 8} stroke="#c9a227" strokeWidth={0.6} opacity={0.35} />
+        <circle cx={c} cy={c} r={layout.size * 0.04} fill="#3d2810" stroke="#6b4420" strokeWidth={1} />
+        <circle cx={c} cy={c} r={layout.size * 0.022} fill="#5c4838" opacity={0.9} />
+        {[0, 45, 90, 135].map((deg) => {
+          const rad = (deg * Math.PI) / 180;
+          const r1 = layout.size * 0.028;
+          const r2 = layout.size * 0.055;
+          return (
+            <line
+              key={`center_ray_${deg}`}
+              x1={c + Math.cos(rad) * r1}
+              y1={c + Math.sin(rad) * r1}
+              x2={c + Math.cos(rad) * r2}
+              y2={c + Math.sin(rad) * r2}
+              stroke="#c9a227"
+              strokeWidth={0.7}
+              opacity={0.45}
+              strokeLinecap="round"
+            />
+          );
+        })}
 
         {displayMarbles.map((marble) => {
           const pt = boardPositionToPoint(marble.position, layout);
           if (!pt) return null;
           const r = marble.position.type === 'base' ? 8 : 10;
           const isOwn = marble.color === myColor;
+          const isSelectable = Boolean(
+            isMyTurn && selectableMarbleIds?.has(marble.id) && onMarbleClick
+          );
+          const isSelected = selectedMarbleId === marble.id;
           return (
             <MarblePiece
               key={marble.id}
@@ -428,7 +453,11 @@ export function BoardVisual({
               pos={pt}
               r={r}
               isOwn={isOwn}
-              isMyTurn={isMyTurn}
+              isSelectable={isSelectable}
+              isSelected={isSelected}
+              onClick={
+                isSelectable ? () => onMarbleClick?.(marble.id) : undefined
+              }
             />
           );
         })}

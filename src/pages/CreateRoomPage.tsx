@@ -18,6 +18,7 @@ import { Panel } from '../components/ui/Panel';
 import { FormField, TextInput, SelectInput } from '../components/ui/FormField';
 import { Alert } from '../components/ui/Alert';
 import { BoardPreviewVisual } from '../components/board/boardVisual';
+import { validateDisplayName } from '../lib/player/displayName';
 
 const MODES: { value: GameMode; key: '2p' | '3p' | '4p'; seats: number }[] = [
   { value: '2p_solo', key: '2p', seats: 2 },
@@ -94,8 +95,13 @@ export function CreateRoomPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !password.trim()) {
-      setError('Please fill all fields');
+    if (!password.trim()) {
+      setError(t('create.error.fillFields'));
+      return;
+    }
+    const nameCheck = validateDisplayName(name);
+    if (!nameCheck.ok) {
+      setError(t(nameCheck.errorKey));
       return;
     }
 
@@ -136,7 +142,7 @@ export function CreateRoomPage() {
       const trimmedPassword = password.trim();
       const code = await createRoom({
         roomMakerUid: currentUser.uid,
-        roomMakerName: name.trim(),
+        roomMakerName: nameCheck.value,
         roomMakerGuest: currentUser.isAnonymous,
         password: trimmedPassword,
         mode,

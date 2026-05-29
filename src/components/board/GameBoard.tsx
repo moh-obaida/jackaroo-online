@@ -8,6 +8,9 @@ interface GameBoardProps {
   highlightPositions?: BoardPosition[];
   playerId: string;
   isMyTurn?: boolean;
+  selectableMarbleIds?: Set<string>;
+  selectedMarbleId?: string | null;
+  onMarbleClick?: (marbleId: string) => void;
   onPositionClick?: (pos: BoardPosition) => void;
 }
 
@@ -17,6 +20,9 @@ export function GameBoard({
   highlightPositions = [],
   playerId,
   isMyTurn = false,
+  selectableMarbleIds,
+  selectedMarbleId,
+  onMarbleClick,
   onPositionClick,
 }: GameBoardProps) {
   return (
@@ -24,6 +30,9 @@ export function GameBoard({
       gameState={gameState}
       playerId={playerId}
       highlightPositions={highlightPositions}
+      selectableMarbleIds={selectableMarbleIds}
+      selectedMarbleId={selectedMarbleId}
+      onMarbleClick={onMarbleClick}
       isMyTurn={isMyTurn}
       onPositionClick={onPositionClick}
       className="max-w-[min(100vw-1.5rem,44rem)] drop-shadow-board"

@@ -10,6 +10,10 @@ type TablePlayAreaProps = {
   playerId: string;
   selectedCardId: string | null;
   highlightPositions: BoardPosition[];
+  selectableMarbleIds?: Set<string>;
+  selectedMarbleId?: string | null;
+  onMarbleClick?: (marbleId: string) => void;
+  onPositionClick?: (pos: BoardPosition) => void;
   isMyTurn: boolean;
   onShowDeckGuide: () => void;
   getVoiceStatus?: (playerId: string) => VoiceParticipantStatus;
@@ -21,6 +25,10 @@ export function TablePlayArea({
   playerId,
   selectedCardId,
   highlightPositions,
+  selectableMarbleIds,
+  selectedMarbleId,
+  onMarbleClick,
+  onPositionClick,
   isMyTurn,
   onShowDeckGuide,
   getVoiceStatus,
@@ -41,6 +49,10 @@ export function TablePlayArea({
             gameState={gameState}
             selectedCardId={selectedCardId}
             highlightPositions={highlightPositions}
+            selectableMarbleIds={selectableMarbleIds}
+            selectedMarbleId={selectedMarbleId}
+            onMarbleClick={onMarbleClick}
+            onPositionClick={onPositionClick}
             playerId={playerId}
             isMyTurn={isMyTurn}
           />

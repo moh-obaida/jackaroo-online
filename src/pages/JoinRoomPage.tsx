@@ -8,6 +8,7 @@ import { FormPage } from '../components/ui/FormPage';
 import { FormField, TextInput } from '../components/ui/FormField';
 import { Alert } from '../components/ui/Alert';
 import { Button } from '../components/ui/Button';
+import { validateDisplayName } from '../lib/player/displayName';
 
 function mapJoinError(message: string, t: (key: string) => string): string {
   const lower = message.toLowerCase();
@@ -28,22 +29,30 @@ export function JoinRoomPage() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState(user?.displayName || '');
   const [loading, setLoading] = useState(false);
+  const [joinStage, setJoinStage] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!code.trim() || !password.trim() || !name.trim()) {
-      setError('Please fill all fields');
+    if (!code.trim() || !password.trim()) {
+      setError(t('join.error.fillFields'));
+      return;
+    }
+
+    const nameCheck = validateDisplayName(name);
+    if (!nameCheck.ok) {
+      setError(t(nameCheck.errorKey));
       return;
     }
 
     if (!firebaseReady) {
-      setError('Firebase is not configured. Add environment variables first.');
+      setError(t('join.error.firebase'));
       return;
     }
 
     setLoading(true);
     setError('');
+    setJoinStage(t('join.stage.auth'));
 
     try {
       let currentUser = user ?? getAuthUserOrCurrent();
@@ -60,8 +69,9 @@ export function JoinRoomPage() {
       let joinUid = currentUser.uid;
       let joinGuest = currentUser.isAnonymous;
 
+      setJoinStage(t('join.stage.checking'));
       const seatInfo = await getLobbySeatInfo(code.trim(), joinUid);
-      const trimmedName = name.trim();
+      const trimmedName = nameCheck.value;
       const sameGuestRejoin =
         seatInfo.inRoom && seatInfo.existingPlayerName?.trim() === trimmedName;
       const needsFreshGuest =
@@ -101,6 +111,7 @@ export function JoinRoomPage() {
       setError(mapJoinError(err.message || 'Failed to join room', t));
     } finally {
       setLoading(false);
+      setJoinStage(null);
     }
   };
 
@@ -146,6 +157,12 @@ export function JoinRoomPage() {
           />
         </FormField>
 
+        {joinStage && loading && (
+          <p className="text-xs text-cream-200/60 text-center" role="status">
+            {joinStage}
+          </p>
+        )}
+
         {error && (
           <Alert variant="error" className="rounded-xl text-left text-sm">
             {error}
@@ -153,7 +170,7 @@ export function JoinRoomPage() {
         )}
 
         <Button type="submit" variant="primary" size="lg" fullWidth disabled={loading}>
-          {loading ? t('general.loading') : t('join.submit')}
+          {loading ? joinStage || t('general.loading') : t('join.submit')}
         </Button>
       </form>
     </FormPage>

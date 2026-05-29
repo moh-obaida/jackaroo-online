@@ -5,8 +5,8 @@ import { useGame } from '../context/GameContext';
 import { setPlayerReady, kickPlayer, addBots } from '../lib/firebase/rooms';
 import { getMaxPlayersForMode } from '../lib/game/normalize';
 import { useRoomRouteState } from '../hooks/useRoomRouteState';
-import { isTerminalRouteState } from '../lib/room/routeState';
 import { RoomRouteFallback } from '../components/game/RoomRouteFallback';
+import { RoomRouteViewport } from '../components/game/RoomRouteViewport';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { PageFrame } from '../components/ui/PageFrame';
 import { Panel } from '../components/ui/Panel';
@@ -155,12 +155,30 @@ function LobbyPageContent() {
     [roomCode, currentRoom]
   );
 
-  if (isTerminalRouteState(routeState)) {
-    return <RoomRouteFallback state={routeState} roomCode={roomCode} />;
+  const reload = useCallback(() => window.location.reload(), []);
+
+  if (!roomCode) {
+    return (
+      <RoomRouteViewport variant="marketing">
+        <RoomRouteFallback state={{ kind: 'invalid_code' }} roomCode={null} onReload={reload} />
+      </RoomRouteViewport>
+    );
   }
 
-  if (!currentRoom || !roomCode) {
-    return <RoomRouteFallback state={{ kind: 'loading_room' }} roomCode={roomCode} />;
+  if (routeState.kind !== 'lobby_ready') {
+    return (
+      <RoomRouteViewport variant="marketing">
+        <RoomRouteFallback state={routeState} roomCode={roomCode} onReload={reload} />
+      </RoomRouteViewport>
+    );
+  }
+
+  if (!currentRoom) {
+    return (
+      <RoomRouteViewport variant="marketing">
+        <RoomRouteFallback state={{ kind: 'loading_room' }} roomCode={roomCode} onReload={reload} />
+      </RoomRouteViewport>
+    );
   }
 
   return (
@@ -259,6 +277,11 @@ function LobbyPageContent() {
           {!startReadiness.canStart && startReadiness.reason && isRoomMaker && (
             <p className="lobby-setup__hint text-xs text-amber-300/90 text-center mt-2">
               {startReadiness.reason}
+            </p>
+          )}
+          {!startReadiness.canStart && !isRoomMaker && (
+            <p className="lobby-setup__hint text-xs text-cream-200/60 text-center mt-2">
+              {startReadiness.reason ?? t('lobby.waitingForMaker')}
             </p>
           )}
         </div>

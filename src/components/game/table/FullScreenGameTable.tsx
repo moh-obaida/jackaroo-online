@@ -1,9 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { GameState, GameAction, LegalAction, Card } from '../../../types/game';
 import { usePlayTurn } from '../../../hooks/usePlayTurn';
+import { useBoardPlaySelection } from '../../../hooks/useBoardPlaySelection';
 import { useVoiceChat } from '../../../hooks/useVoiceChat';
-import { getHighlightPositionsForCard } from '../../../lib/play/boardHighlights';
 import { getPlayableCardIds } from '../../../lib/play/presentActions';
+import { explainNoLegalMove } from '../../../lib/game/explainNoLegalMove';
+import { isLegalMoveAuditEnabled, logLegalMoveAudit } from '../../../lib/game/legalMoveAudit';
 import { CardGuideModal } from '../../cards/CardGuideModal';
 import { WinOverlay } from '../WinOverlay';
 import { PlayActionSheet } from '../play/PlayActionSheet';
@@ -56,15 +58,32 @@ export function FullScreenGameTable({
     [isMyTurn, legalActions]
   );
 
-  const highlightPositions = useMemo(
-    () => getHighlightPositionsForCard(legalActions, selectedCardId),
-    [legalActions, selectedCardId]
-  );
-
   const currentPlayer = useMemo(
     () => gameState.players.find((p) => p.id === playerId) ?? null,
     [gameState.players, playerId]
   );
+
+  const boardPlay = useBoardPlaySelection({
+    legalActions,
+    selectedCardId,
+    marbles: gameState.marbles,
+    playerColor: currentPlayer?.color ?? null,
+    playerId,
+    isMyTurn,
+    onSubmitAction,
+  });
+
+  const noLegalReasonKey = useMemo(() => {
+    if (!isMyTurn) return null;
+    const burnAll = legalActions.find((a) => a.type === 'burn_all_cards');
+    if (!burnAll) return null;
+    return explainNoLegalMove(gameState, myHand);
+  }, [isMyTurn, legalActions, gameState, myHand]);
+
+  useEffect(() => {
+    if (!isLegalMoveAuditEnabled() || !isMyTurn) return;
+    logLegalMoveAudit(gameState, myHand, selectedCardId, roomCode);
+  }, [gameState, myHand, selectedCardId, isMyTurn, roomCode]);
 
   const turnPlayer = useMemo(
     () => gameState.players.find((p) => p.id === gameState.currentTurnPlayerId) ?? null,
@@ -102,7 +121,11 @@ export function FullScreenGameTable({
           gameState={gameState}
           playerId={playerId}
           selectedCardId={selectedCardId}
-          highlightPositions={highlightPositions}
+          highlightPositions={boardPlay.boardHighlightPositions}
+          selectableMarbleIds={boardPlay.marbleHighlightIds}
+          selectedMarbleId={boardPlay.selectedMarbleId}
+          onMarbleClick={boardPlay.handleMarbleClick}
+          onPositionClick={boardPlay.handlePositionClick}
           isMyTurn={isMyTurn}
           onShowDeckGuide={() => setDeckGuideOpen(true)}
           getVoiceStatus={voice.getParticipantStatus}
@@ -126,6 +149,7 @@ export function FullScreenGameTable({
           onSubmitAction={onSubmitAction}
           playerId={playerId}
           isMyTurn={isMyTurn}
+          noLegalReasonKey={noLegalReasonKey}
         />
       </div>
 
