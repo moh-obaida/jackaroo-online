@@ -81,7 +81,7 @@ export function SiteHeader() {
       }
     };
 
-    const onPointerDown = (event: MouseEvent) => {
+    const onPointerDown = (event: PointerEvent) => {
       const target = event.target as Node;
       if (
         menuPanelRef.current?.contains(target) ||
@@ -93,10 +93,10 @@ export function SiteHeader() {
     };
 
     document.addEventListener('keydown', onKeyDown);
-    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('pointerdown', onPointerDown);
     return () => {
       document.removeEventListener('keydown', onKeyDown);
-      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('pointerdown', onPointerDown);
     };
   }, [menuOpen, closeMenu]);
 

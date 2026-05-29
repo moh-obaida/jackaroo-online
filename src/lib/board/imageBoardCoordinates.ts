@@ -21,6 +21,7 @@ export const IMAGE_BOARD_CALIBRATION = {
 } as const;
 
 const LAYOUT_SIZE = 100;
+const BOARD_LAYOUT = getBoardLayout(LAYOUT_SIZE);
 
 export type ImageBoardPoints = {
   /** 72 outer track spots (18 × 4 colors, black section first). */
@@ -39,7 +40,7 @@ function layoutPointToPercent(pt: { x: number; y: number }): BoardImagePoint {
 }
 
 function buildImageBoardPoints(): ImageBoardPoints {
-  const layout = getBoardLayout(LAYOUT_SIZE);
+  const layout = BOARD_LAYOUT;
   const mainTrack: BoardImagePoint[] = [];
   const gates = {} as Record<PlayerColor, BoardImagePoint>;
   const home = {} as Record<PlayerColor, BoardImagePoint[]>;
@@ -73,8 +74,7 @@ function buildImageBoardPoints(): ImageBoardPoints {
 export const IMAGE_BOARD_POINTS = buildImageBoardPoints();
 
 export function getImagePointForBoardPosition(position: BoardPosition): BoardImagePoint | null {
-  const layout = getBoardLayout(LAYOUT_SIZE);
-  const pt = boardPositionToPoint(position, layout);
+  const pt = boardPositionToPoint(position, BOARD_LAYOUT);
   if (!pt) {
     if (import.meta.env.DEV) {
       console.warn('[imageBoard] unmapped position', position);
@@ -114,7 +114,7 @@ export function boardPositionAriaLabel(position: BoardPosition): string {
     case 'base':
       return `${c} nest spot ${position.index + 1}`;
     case 'track':
-      return `${c} track space`;
+      return `${c} track space ${position.index + 1}`;
     default:
       return 'Board space';
   }

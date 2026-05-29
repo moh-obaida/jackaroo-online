@@ -62,17 +62,38 @@ function ImageMappedMarble({
     marble.position.type === 'start_gate' && marble.position.color === marble.color;
   const gradId = `${pid}-marble-${marble.color}`;
 
+  const activate = () => {
+    onClick?.();
+  };
+
   return (
     <g
       className={`image-board-marble${isSelectable ? ' image-board-marble--selectable' : ''}${isSelected ? ' image-board-marble--selected' : ''}`}
       transform={`translate(${point.x}, ${point.y})`}
-      style={{ cursor: onClick ? 'pointer' : undefined, transition: 'transform 0.28s ease-out' }}
+      style={{
+        cursor: onClick ? 'pointer' : undefined,
+        pointerEvents: onClick ? 'auto' : 'none',
+        transition: 'transform 0.28s ease-out',
+      }}
+      role={isSelectable ? 'button' : 'img'}
+      tabIndex={isSelectable ? 0 : undefined}
+      aria-pressed={isSelectable ? isSelected : undefined}
+      aria-label={marbleAriaLabel(marble, isSelected, isSelectable)}
       onClick={(e) => {
         e.stopPropagation();
-        onClick?.();
+        activate();
       }}
-      role="img"
-      aria-label={marbleAriaLabel(marble, isSelected, isSelectable)}
+      onKeyDown={
+        isSelectable && onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                activate();
+              }
+            }
+          : undefined
+      }
     >
       {isSelectable && (
         <circle

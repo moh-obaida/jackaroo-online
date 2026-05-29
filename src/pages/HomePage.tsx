@@ -25,7 +25,7 @@ const FAQ_ITEMS = [
 ] as const;
 
 const SECTION_SCROLL =
-  'scroll-mt-[4.75rem] md:scroll-mt-[5.25rem] max-w-[1180px] mx-auto px-4 sm:px-6 w-full min-w-0';
+  'scroll-mt-[var(--header-height-mobile)] md:scroll-mt-[var(--header-height-desktop)] max-w-[1180px] mx-auto px-4 sm:px-6 w-full min-w-0';
 
 export function HomePage() {
   const { t, user, firebaseReady, isGuestUser } = useApp();
@@ -46,6 +46,12 @@ export function HomePage() {
   const titleSecondary = brandParts.slice(1).join(' ');
 
   useEffect(() => {
+    const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    const navType = navEntry?.type;
+    if (navType && navType !== 'navigate' && navType !== 'reload') {
+      return;
+    }
+
     const hash = window.location.hash.slice(1);
     if (!hash) return;
     const el = document.getElementById(hash);
@@ -67,7 +73,7 @@ export function HomePage() {
       )}
 
       <main
-        className="home-hero-donor scroll-mt-[4.75rem] md:scroll-mt-[5.25rem]"
+        className="home-hero-donor scroll-mt-[var(--header-height-mobile)] md:scroll-mt-[var(--header-height-desktop)]"
         id="play"
       >
         <section className="hero-copy-donor">

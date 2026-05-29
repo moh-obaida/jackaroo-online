@@ -48,6 +48,13 @@
   transition: fill 0.15s ease;
 }
 
+.image-board-hit-zone:focus-visible {
+  outline: none;
+  fill: rgba(52, 211, 153, 0.22);
+  stroke: #34d399;
+  stroke-width: 0.45;
+}
+
 .image-board-stage--preview {
   width: 100%;
   max-width: none;

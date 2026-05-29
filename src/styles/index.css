@@ -1,5 +1,5 @@
-@import './design-tokens.css';
-@import url('https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap');
+@import "./design-tokens.css";
+@import "https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap";
 
 @tailwind base;
 @tailwind components;
@@ -1867,7 +1867,7 @@ html[dir='rtl'] .text-start {
 
 .hero-title-donor {
   @apply flex flex-col items-center lg:items-start gap-0 mb-3 md:mb-4 m-0;
-  font-family: 'Literata', 'Georgia', 'Times New Roman', serif;
+  font-family: "Literata", "Georgia", "Times New Roman", serif;
   font-weight: 600;
   font-size: clamp(2.75rem, 5.5vw, 4.25rem);
   line-height: 0.95;
@@ -1944,7 +1944,7 @@ html[dir='rtl'] .text-start {
 
 .home-section__title {
   @apply text-xl md:text-2xl font-semibold text-gold-300 m-0;
-  font-family: 'Literata', 'Georgia', 'Times New Roman', serif;
+  font-family: "Literata", "Georgia", "Times New Roman", serif;
 }
 
 .home-section__subtitle {
@@ -2025,7 +2025,7 @@ html[dir='rtl'] .text-start {
 
 .home-footer__brand {
   @apply text-base font-semibold text-gold-300 m-0;
-  font-family: 'Literata', 'Georgia', 'Times New Roman', serif;
+  font-family: "Literata", "Georgia", "Times New Roman", serif;
 }
 
 .home-footer__nav {
