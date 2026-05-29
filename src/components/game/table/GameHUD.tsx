@@ -3,9 +3,12 @@ import { GameState } from '../../../types/game';
 import { useApp } from '../../../context/AppContext';
 import { Button } from '../../ui/Button';
 import { JakarooIcon } from '../../brand/JakarooIcon';
+import { JakarooWordmark } from '../../brand/JakarooWordmark';
+import { ConnectionBar } from '../../ui/ConnectionBar';
 import { formatPlayerName, formatTableCode } from '../../../lib/player/displayName';
 import { PlayerColor } from '../../../types/game';
 import { ConfirmDialog } from '../../ui/ConfirmDialog';
+import { DeckDiscardPiles } from './DeckDiscardPiles';
 
 type GameHUDProps = {
   roomCode: string;
@@ -15,6 +18,7 @@ type GameHUDProps = {
   onLeave: () => void;
   leaveBusy: boolean;
   myColor?: PlayerColor | null;
+  onShowDeckGuide: () => void;
 };
 
 export function GameHUD({
@@ -25,6 +29,7 @@ export function GameHUD({
   onLeave,
   leaveBusy,
   myColor,
+  onShowDeckGuide,
 }: GameHUDProps) {
   const { t } = useApp();
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
@@ -34,7 +39,8 @@ export function GameHUD({
     <>
       <header className="game-table-hud">
         <div className="game-table-hud__brand-row min-w-0 flex items-center gap-2">
-          <JakarooIcon size="sm" className="opacity-90" alt="" />
+          <JakarooIcon size="sm" className="opacity-90 shrink-0" alt="" />
+          <JakarooWordmark variant="header" decorative className="game-table-hud__wordmark hidden sm:inline" />
           <div className="game-table-hud__meta min-w-0">
             <p className="text-[10px] uppercase tracking-wide text-cream-200/45 tabular-nums truncate">
               <span className="font-brand">{formatTableCode(roomCode)}</span>
@@ -43,19 +49,24 @@ export function GameHUD({
             </p>
           </div>
         </div>
-        <div
-          className={`game-table-hud__turn ${isMyTurn ? 'game-table-hud__turn--yours' : ''}`}
-          role="status"
-          aria-live="polite"
-        >
-          {isMyTurn ? (
-            <p className="text-sm font-bold text-gold-300 turn-pulse">{t('game.yourTurn')}</p>
-          ) : (
-            <p className="text-xs text-cream-200/70 truncate">
-              {t('game.turnChoosing', { name: displayTurnName })}
-            </p>
-          )}
+
+        <div className="game-table-hud__center min-w-0 flex flex-col items-center gap-1">
+          <ConnectionBar variant="game" />
+          <div
+            className={`game-table-hud__turn ${isMyTurn ? 'game-table-hud__turn--yours' : ''}`}
+            role="status"
+            aria-live="polite"
+          >
+            {isMyTurn ? (
+              <p className="text-sm font-bold text-gold-300 turn-pulse">{t('game.yourTurn')}</p>
+            ) : (
+              <p className="text-xs text-cream-200/70 truncate" title={displayTurnName}>
+                {t('game.turnChoosing', { name: displayTurnName })}
+              </p>
+            )}
+          </div>
         </div>
+
         <div className="game-table-hud__actions">
           {myColor && (
             <span
@@ -74,6 +85,10 @@ export function GameHUD({
           >
             {t('game.leaveGame')}
           </Button>
+        </div>
+
+        <div className="game-table-hud__deck col-span-full">
+          <DeckDiscardPiles gameState={gameState} onShowDeckGuide={onShowDeckGuide} compact />
         </div>
       </header>
       <ConfirmDialog

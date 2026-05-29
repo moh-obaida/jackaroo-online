@@ -164,8 +164,9 @@ export function marbleAriaLabel(marble: { color: PlayerColor; id: string }, sele
 export const IMAGE_BOARD_RADII = {
   marbleTrack: 2.15,
   marbleBase: 1.85,
-  marbleHighlight: 2.9,
+  marbleHighlight: 2.55,
   hitZone: 3.15,
   hitZoneGate: 3.45,
-  legalTarget: 3.05,
+  /** Thin ring aligned to hole — not a filled blob */
+  legalTarget: 2.05,
 } as const;

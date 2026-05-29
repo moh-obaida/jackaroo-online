@@ -15,13 +15,16 @@ export type GameContextType = {
   gameState: GameState | null;
   myHand: Card[];
   legalActions: LegalAction[];
+  legalMovesReady: boolean;
   isMyTurn: boolean;
   myPlayer: PlayerState | null;
   roomCode: string | null;
   roomLoaded: boolean;
   setRoomCode: (code: string | null) => void;
   bindRoomFromRoute: (code: string, options?: { allowRejoin?: boolean }) => void;
-  submitAction: (action: GameAction) => Promise<void>;
+  submitAction: (
+    action: GameAction
+  ) => Promise<{ ok: true } | { ok: false; error: string }>;
   startGame: () => Promise<void>;
   loading: boolean;
   error: string | null;
@@ -31,6 +34,7 @@ export type GameContextType = {
   safeLeaveRoom: (code: string) => Promise<void>;
   handLoaded: boolean;
   handError: string | null;
+  isSubmittingAction: boolean;
 };
 
 const GameContext = createContext<GameContextType | null>(null);
@@ -45,6 +49,7 @@ function GameContextBridge({ children }: { children: React.ReactNode }) {
       gameState: play.gameState,
       myHand: play.myHand,
       legalActions: play.legalActions,
+      legalMovesReady: play.legalMovesReady,
       isMyTurn: play.isMyTurn,
       myPlayer: session.myPlayer,
       roomCode: session.roomCode,
@@ -61,6 +66,7 @@ function GameContextBridge({ children }: { children: React.ReactNode }) {
       safeLeaveRoom: session.safeLeaveRoom,
       handLoaded: play.handLoaded,
       handError: play.handError,
+      isSubmittingAction: play.isSubmittingAction,
     }),
     [session, play]
   );

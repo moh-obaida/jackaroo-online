@@ -23,24 +23,28 @@ export function explainNoLegalMove(state: GameState, hand: Card[]): NoLegalMoveR
   const hasBringCard = hand.some((c) => canBringOut(c.rank));
   const ownStartBlocked = myMarbles.some((m) => isLockedOnOwnStartGate(m));
 
+  const hasBurnCard = hand.some(
+    (c) => (c.rank === 'Q' || c.rank === '10') && canBurn(c.rank)
+  );
+  if (hasBurnCard) {
+    const activePlayers = state.players.filter((p) => p.connected || p.isBot);
+    const currentIndex = activePlayers.findIndex((p) => p.id === player.id);
+    const nextPlayer =
+      currentIndex >= 0
+        ? activePlayers[(currentIndex + 1) % activePlayers.length]
+        : undefined;
+    const nextCount = state.handCounts[nextPlayer?.id ?? ''] ?? 0;
+    if (nextCount === 0) {
+      return 'game.noLegalReason.burnUnavailable';
+    }
+  }
+
   if (allInBase && !hasBringCard) {
     return 'game.noLegalReason.allInBaseNoAceKing';
   }
 
   if (ownStartBlocked && hasBringCard && !startGateFreeForBringOut(state, player.color)) {
     return 'game.noLegalReason.startGateBlocked';
-  }
-
-  const hasBurnCard = hand.some(
-    (c) => (c.rank === 'Q' || c.rank === '10') && canBurn(c.rank)
-  );
-  if (hasBurnCard) {
-    const nextIdx = (state.players.findIndex((p) => p.id === player.id) + 1) % state.players.length;
-    const nextPlayer = state.players[nextIdx];
-    const nextCount = state.handCounts[nextPlayer?.id ?? ''] ?? 0;
-    if (nextCount === 0) {
-      return 'game.noLegalReason.burnUnavailable';
-    }
   }
 
   if (state.mode === '4p_teams' && hasTeammateMovesOnly(state, player, hand)) {

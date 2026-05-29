@@ -38,6 +38,9 @@
   --header-height-mobile: 4.75rem;
   --header-height-desktop: 5.25rem;
 
+  --marketing-max-width: 1180px;
+  --marketing-intro-width: 720px;
+
   --jkr-shadow-deep: 0 24px 80px -12px rgba(0, 0, 0, 0.85);
   --jkr-shadow-lift: 0 8px 32px -8px rgba(0, 0, 0, 0.55);
   --jkr-shadow-inset-rim: inset 0 2px 0 var(--jkr-rail-highlight), inset 0 -4px 12px rgba(0, 0, 0, 0.45);

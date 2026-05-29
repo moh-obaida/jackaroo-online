@@ -7,6 +7,7 @@ import {
   GameState,
   GameAction,
   LegalAction,
+  Card,
 } from '../../types/game';
 import { generateLegalActions } from './legalMoves';
 
@@ -14,7 +15,11 @@ import { generateLegalActions } from './legalMoves';
  * Validate a submitted action against the current game state.
  * Returns true if the action is legal, false otherwise.
  */
-export function validateAction(state: GameState, action: GameAction, currentPlayerHand: {id:string}[]): { valid: boolean; error?: string } {
+export function validateAction(
+  state: GameState,
+  action: GameAction,
+  currentPlayerHand: Card[]
+): { valid: boolean; error?: string } {
   // Check it's the correct player's turn
   if (action.playerId !== state.currentTurnPlayerId) {
     return { valid: false, error: 'Not your turn' };
@@ -25,8 +30,14 @@ export function validateAction(state: GameState, action: GameAction, currentPlay
     return { valid: false, error: 'Game is already finished' };
   }
 
+  if (action.type !== 'burn_all_cards' && action.type !== 'skip_no_cards' && action.cardId) {
+    if (!currentPlayerHand.some((c) => c.id === action.cardId)) {
+      return { valid: false, error: 'Card not in hand' };
+    }
+  }
+
   // Generate legal actions and check if submitted action matches one
-  const legalActions = generateLegalActions(state, currentPlayerHand as any);
+  const legalActions = generateLegalActions(state, currentPlayerHand);
 
   // Special cases
   if (action.type === 'skip_no_cards') {

@@ -10,8 +10,9 @@
 - **JoinRoomPage:** Removed `logOut()` before second guest (was signing out host tab). Shows `join.error.alreadySeated` when same Firebase uid is already seated.
 - **LobbyPage:** Surfaces `lobby.startFailed`, `lobby.startWaitingAll`, session errors.
 - **GamePlayContext / RoomRouteFallback:** Hand load failure → `game.handLoadFailed` (i18n).
+- **Post-transaction cleanup:** `game.moveRejectedStale` + `game.handSyncFailed` i18n; `savePrivateHandWithRetry` after RTDB commit; in-game alerts use `translateSessionMessage`.
 - **ConnectionBar:** Syncing → `connection.reconnecting` copy.
-- **docs/ARCHITECTURE.md:** Private hands / deck audit (Phase 2).
+- **docs/ARCHITECTURE.md:** Private hands / deck audit (Phase 2) + hand write recovery.
 - **Board asset:** `public/assets/board/jakaroo-board-game-empty.png` **missing** from repo — image board falls back to text until asset added.
 
 ## Phase A.5 status: **PARTIAL — NOT GREEN**
@@ -164,6 +165,28 @@ Real WebRTC voice, text chat, rematch, matchmaking, tournaments, stats, aggressi
 ---
 
 ## Sign-off checklist (human)
+
+Use **Chrome normal + Chrome Incognito** (separate Firebase Auth sessions). Deploy Firebase rules first.
+
+### Chrome + Incognito 2-player manual QA
+
+| Step | Window | Action | Pass criteria |
+|------|--------|--------|---------------|
+| 1 | Chrome (host) | Create 2p table, set password, note code | Lobby opens, host is maker |
+| 2 | Incognito (guest) | Join with code + password | Lobby shows **2/2**, distinct display names |
+| 3 | Both | Ready Up | Both show ready; host sees **Start Game** |
+| 4 | Host | Start Game | Both navigate to `/game/:code` |
+| 5 | Both | Wait for deal | Each sees own cards only; opponent shows backs/count |
+| 6 | Active player | Play a card (sheet or board tap) | Board marbles update on both; turn advances |
+| 7 | Active player | Board flow: card → marble → gold target | Highlights clear after submit; next turn UI resets |
+| 8 | Either | Double-click confirm quickly | Only one move commits; no duplicate turn |
+| 9 | Either | Refresh during active game (×3) | Branded loading → game resumes; no blank screen |
+| 10 | Both | Verify board sync | Marble positions match after each move + refresh |
+| 11 | Active player | Force stale reject (both submit near-same time, or refresh mid-turn then submit) | Warning shows localized `game.moveRejectedStale`; selection clears |
+| 12 | Either | Leave game (confirm) | Returns home; seat cleared |
+| 13 | Incognito | Toggle Arabic | Stale/hand-sync errors render in Arabic |
+
+### Legacy checklist
 
 - [ ] Incognito: join → 2/2 → both ready → **Start Game** → both in `/game/:code`
 - [ ] 10× refresh **in active game** — no blank screen

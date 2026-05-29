@@ -2,7 +2,6 @@ import React from 'react';
 import { GameState, BoardPosition } from '../../../types/game';
 import { GameBoard } from '../../board/GameBoard';
 import { OpponentSeats } from './OpponentSeats';
-import { DeckDiscardPiles } from './DeckDiscardPiles';
 import { VoiceParticipantStatus } from '../../../lib/voice/types';
 
 type TablePlayAreaProps = {
@@ -15,11 +14,10 @@ type TablePlayAreaProps = {
   onMarbleClick?: (marbleId: string) => void;
   onPositionClick?: (pos: BoardPosition) => void;
   isMyTurn: boolean;
-  onShowDeckGuide: () => void;
   getVoiceStatus?: (playerId: string) => VoiceParticipantStatus;
 };
 
-/** Single felt surface — Ludo board in the middle, seats on the rim. */
+/** Board zone — centered felt surface with seats on the rim (no floating deck UI). */
 export function TablePlayArea({
   gameState,
   playerId,
@@ -30,7 +28,6 @@ export function TablePlayArea({
   onMarbleClick,
   onPositionClick,
   isMyTurn,
-  onShowDeckGuide,
   getVoiceStatus,
 }: TablePlayAreaProps) {
   const boardRimClass =
@@ -63,9 +60,6 @@ export function TablePlayArea({
             playerId={playerId}
             isMyTurn={isMyTurn}
           />
-        </div>
-        <div className="table-play-area__piles">
-          <DeckDiscardPiles gameState={gameState} onShowDeckGuide={onShowDeckGuide} />
         </div>
       </div>
     </div>

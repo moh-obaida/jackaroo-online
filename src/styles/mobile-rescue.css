@@ -87,6 +87,18 @@ svg {
 
 .create-page-frame {
   width: 100%;
+  padding-top: 0.5rem;
+  scroll-padding-top: 5rem;
+}
+
+@media (min-width: 640px) {
+  .create-page-frame {
+    padding-top: 0.75rem;
+  }
+
+  .create-table-page {
+    padding-top: 0.25rem;
+  }
 }
 
 .create-table-page {

@@ -15,9 +15,13 @@ type PlayActionSheetProps = {
   onClearCard?: () => void;
   showAllActions: boolean;
   onToggleShowAll: (open: boolean) => void;
-  onSubmitAction: (action: GameAction) => Promise<void>;
+  onSubmitAction: (
+    action: GameAction
+  ) => Promise<{ ok: true } | { ok: false; error: string }>;
   playerId: string;
   isMyTurn: boolean;
+  legalMovesReady?: boolean;
+  isSubmittingAction?: boolean;
   noLegalReasonKey?: NoLegalMoveReasonKey | null;
   boardFlowHintKey?: string | null;
 };
@@ -32,25 +36,34 @@ export function PlayActionSheet({
   onSubmitAction,
   playerId,
   isMyTurn,
+  legalMovesReady = true,
+  isSubmittingAction = false,
   noLegalReasonKey,
   boardFlowHintKey,
 }: PlayActionSheetProps) {
   const { t } = useApp();
-  const [loading, setLoading] = useState(false);
+  const [localLoading, setLocalLoading] = useState(false);
+  const busy = localLoading || isSubmittingAction;
 
   const view = useMemo(
     () => presentLegalActions(legalActions, selectedCardId, hand),
     [legalActions, selectedCardId, hand]
   );
 
-  const step = getPlayStep(isMyTurn, view);
+  const step = getPlayStep(isMyTurn, view, legalMovesReady, busy);
+
+  const selectedCard = useMemo(
+    () => (selectedCardId ? hand.find((c) => c.id === selectedCardId) ?? null : null),
+    [hand, selectedCardId]
+  );
 
   const run = async (action: LegalAction) => {
-    setLoading(true);
+    if (busy) return;
+    setLocalLoading(true);
     try {
       await onSubmitAction(legalActionToGameAction(action, playerId));
     } finally {
-      setLoading(false);
+      setLocalLoading(false);
     }
   };
 
@@ -67,7 +80,7 @@ export function PlayActionSheet({
       variant={variant}
       size="lg"
       fullWidth
-      disabled={loading}
+      disabled={busy}
       onClick={() => run(action)}
       className={variant === 'secondary' ? 'play-action-btn play-action-btn--alt' : 'play-action-btn'}
     >
@@ -75,40 +88,55 @@ export function PlayActionSheet({
     </Button>
   );
 
+  const renderConfirmSummary = (action: LegalAction) => (
+    <div className="play-sheet__summary">
+      <p className="play-sheet__summary-text">
+        {t('game.actionSummary', {
+          card: selectedCard?.rank ?? '—',
+          action: labelFor(action),
+        })}
+      </p>
+      <div className="play-sheet__summary-actions">
+        <Button variant="primary" size="lg" fullWidth disabled={busy} onClick={() => run(action)}>
+          {busy ? t('game.submittingMove') : t('game.confirm')}
+        </Button>
+        {onClearCard && (
+          <Button variant="ghost" size="sm" fullWidth disabled={busy} onClick={() => onClearCard()}>
+            {t('game.cancel')}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="play-sheet">
+    <div className={`play-sheet ${busy ? 'play-sheet--busy' : ''}`}>
       <PlayStepBar step={step} />
 
-      {boardFlowHintKey && isMyTurn && (
+      {busy && (
+        <p className="play-sheet__submitting" role="status" aria-live="polite">
+          {t('game.submittingMove')}
+        </p>
+      )}
+
+      {boardFlowHintKey && isMyTurn && !busy && (
         <p className="play-sheet__hint play-sheet__hint--flow">{t(boardFlowHintKey)}</p>
       )}
 
-      {view.kind === 'skip' && renderActionBtn(view.action, 'primary')}
-      {view.kind === 'burn_all' && (
+      {view.kind === 'skip' && legalMovesReady && renderConfirmSummary(view.action)}
+      {view.kind === 'burn_all' && legalMovesReady && (
         <>
           {noLegalReasonKey && (
             <p className="play-sheet__hint play-sheet__hint--reason">{t(noLegalReasonKey)}</p>
           )}
-          {renderActionBtn(view.action, 'primary')}
+          {renderConfirmSummary(view.action)}
         </>
       )}
 
-      {view.kind === 'play_card' && (
+      {view.kind === 'play_card' && legalMovesReady && (
         <>
-          {onClearCard && selectedCardId && (
-            <Button
-              variant="ghost"
-              size="sm"
-              fullWidth
-              disabled={loading}
-              onClick={() => onClearCard()}
-              className="play-sheet__cancel text-xs"
-            >
-              {t('game.cancel')}
-            </Button>
-          )}
           {view.primary ? (
-            renderActionBtn(view.primary, 'primary')
+            renderConfirmSummary(view.primary)
           ) : (
             <p className="play-sheet__hint">{t('game.noLegalForCard')}</p>
           )}
@@ -122,6 +150,7 @@ export function PlayActionSheet({
               <button
                 type="button"
                 className="btn-ghost text-xs w-full py-1"
+                disabled={busy}
                 onClick={() => onToggleShowAll(!showAllActions)}
               >
                 {showAllActions

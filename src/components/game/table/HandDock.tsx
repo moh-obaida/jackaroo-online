@@ -17,9 +17,13 @@ type HandDockProps = {
   legalActions: LegalAction[];
   showAllActions: boolean;
   onToggleShowAll: (open: boolean) => void;
-  onSubmitAction: (action: GameAction) => Promise<void>;
+  onSubmitAction: (
+    action: GameAction
+  ) => Promise<{ ok: true } | { ok: false; error: string }>;
   playerId: string;
   isMyTurn: boolean;
+  legalMovesReady?: boolean;
+  isSubmittingAction?: boolean;
   noLegalReasonKey?: NoLegalMoveReasonKey | null;
   boardFlowHintKey?: string | null;
 };
@@ -39,6 +43,8 @@ export function HandDock({
   onSubmitAction,
   playerId,
   isMyTurn,
+  legalMovesReady = true,
+  isSubmittingAction = false,
   noLegalReasonKey,
   boardFlowHintKey,
 }: HandDockProps) {
@@ -79,6 +85,8 @@ export function HandDock({
           onSubmitAction={onSubmitAction}
           playerId={playerId}
           isMyTurn={isMyTurn}
+          legalMovesReady={legalMovesReady}
+          isSubmittingAction={isSubmittingAction}
           noLegalReasonKey={noLegalReasonKey}
           boardFlowHintKey={boardFlowHintKey}
         />

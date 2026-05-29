@@ -448,11 +448,11 @@ function ProceduralBoardVisual({
           key={`hl_${positionKey(pos)}`}
           cx={pt.x}
           cy={pt.y}
-          r={16}
+          r={12}
           className="legal-target-highlight"
-          fill="rgba(230, 184, 0, 0.22)"
+          fill="none"
           stroke="#f0c840"
-          strokeWidth={3}
+          strokeWidth={2.5}
           pointerEvents="none"
         />
       );

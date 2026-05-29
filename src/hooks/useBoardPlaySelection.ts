@@ -19,7 +19,11 @@ type UseBoardPlaySelectionArgs = {
   playerColor: PlayerColor | null;
   playerId: string;
   isMyTurn: boolean;
-  onSubmitAction: (action: GameAction) => Promise<void>;
+  turnKey: string;
+  isSubmittingAction?: boolean;
+  onSubmitAction: (
+    action: GameAction
+  ) => Promise<{ ok: true } | { ok: false; error: string }>;
 };
 
 function swapPartnerId(action: LegalAction, selectedMarbleId: string): string | null {
@@ -39,6 +43,8 @@ export function useBoardPlaySelection({
   playerColor,
   playerId,
   isMyTurn,
+  turnKey,
+  isSubmittingAction = false,
   onSubmitAction,
 }: UseBoardPlaySelectionArgs) {
   const [selectedMarbleId, setSelectedMarbleId] = useState<string | null>(null);
@@ -47,7 +53,9 @@ export function useBoardPlaySelection({
 
   useEffect(() => {
     setSelectedMarbleId(null);
-  }, [selectedCardId, isMyTurn]);
+  }, [selectedCardId, isMyTurn, turnKey]);
+
+  const busy = submitting || isSubmittingAction;
 
   const cardActions = useMemo(() => {
     if (!selectedCardId) return [];
@@ -74,10 +82,10 @@ export function useBoardPlaySelection({
   }, [cardActions, playerColor, selectedCardId]);
 
   useEffect(() => {
-    if (!isMyTurn || !selectedCardId || selectedMarbleId || submitting) return;
+    if (!isMyTurn || !selectedCardId || selectedMarbleId || busy) return;
     if (selectableMarbleIds.size !== 1) return;
     setSelectedMarbleId([...selectableMarbleIds][0]);
-  }, [isMyTurn, selectedCardId, selectedMarbleId, selectableMarbleIds, submitting]);
+  }, [isMyTurn, selectedCardId, selectedMarbleId, selectableMarbleIds, busy]);
 
   const boardHighlightPositions = useMemo(() => {
     if (!selectedCardId) return [];
@@ -119,7 +127,7 @@ export function useBoardPlaySelection({
   }, [isMyTurn, selectedCardId, selectableMarbleIds]);
 
   const playFlowHintKey = useMemo(() => {
-    if (!isMyTurn || !selectedCardId || submitting) return null;
+    if (!isMyTurn || !selectedCardId || busy) return null;
     if (selectedMarbleId && boardHighlightPositions.length > 0) {
       return 'game.playFlow.selectTarget';
     }
@@ -131,6 +139,7 @@ export function useBoardPlaySelection({
     isMyTurn,
     selectedCardId,
     submitting,
+    busy,
     selectedMarbleId,
     boardHighlightPositions.length,
     selectableMarbleIds.size,
@@ -138,7 +147,7 @@ export function useBoardPlaySelection({
 
   const submitMatchedAction = useCallback(
     async (match: LegalAction) => {
-      if (submittingRef.current) return;
+      if (submittingRef.current || isSubmittingAction) return;
       submittingRef.current = true;
       setSubmitting(true);
       try {
@@ -149,21 +158,21 @@ export function useBoardPlaySelection({
         setSubmitting(false);
       }
     },
-    [onSubmitAction, playerId]
+    [onSubmitAction, playerId, isSubmittingAction]
   );
 
   const handleMarbleClick = useCallback(
     (marbleId: string) => {
-      if (!isMyTurn || !selectedCardId || submitting) return;
+      if (!isMyTurn || !selectedCardId || busy) return;
       if (!selectableMarbleIds.has(marbleId)) return;
       setSelectedMarbleId((prev) => (prev === marbleId ? null : marbleId));
     },
-    [isMyTurn, selectedCardId, selectableMarbleIds, submitting]
+    [isMyTurn, selectedCardId, selectableMarbleIds, busy]
   );
 
   const handlePositionClick = useCallback(
     async (pos: BoardPosition) => {
-      if (!isMyTurn || !selectedCardId || submitting) return;
+      if (!isMyTurn || !selectedCardId || busy) return;
       const key = positionKey(pos);
 
       const match = cardActions.find((a) => {
@@ -190,6 +199,7 @@ export function useBoardPlaySelection({
       isMyTurn,
       selectedCardId,
       submitting,
+      busy,
       cardActions,
       selectedMarbleId,
       marbles,
@@ -202,7 +212,7 @@ export function useBoardPlaySelection({
     marbleHighlightIds,
     boardHighlightPositions,
     playFlowHintKey,
-    submitting,
+    submitting: busy,
     handleMarbleClick,
     handlePositionClick,
   };

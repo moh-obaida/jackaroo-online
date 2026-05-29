@@ -28,6 +28,7 @@ import {
   Card,
 } from '../../types/game';
 import { normalizeCards, normalizeGameState } from '../game/normalize';
+import { canCommitMoveTransaction } from '../game/compareAndSet';
 import { getNextTurnPlayerAfterLeave } from '../game/turns';
 import { isRoomExpired } from '../room/roomExpiry';
 
@@ -515,6 +516,14 @@ export async function addBots(
 // GAME STATE FIREBASE
 // ============================================================================
 
+/** Read current game state from RTDB (authoritative snapshot for move validation). */
+export async function getGameState(code: string): Promise<GameState | null> {
+  if (!database) return null;
+  const gameRef = ref(database, `rooms/${code}/gameState`);
+  const snapshot = await get(gameRef);
+  return snapshot.exists() ? normalizeGameState(snapshot.val()) : null;
+}
+
 /**
  * Persist game state under /rooms/{code}/gameState.
  * Uses update() so child-level RTDB rules apply; a parent set() is rejected for non-makers.
@@ -523,6 +532,48 @@ export async function saveGameState(code: string, gameState: any): Promise<void>
   if (!database) return;
   const gameRef = ref(database, `rooms/${code}/gameState`);
   await update(gameRef, gameState);
+}
+
+export type SaveGameStateIfMatchResult =
+  | { ok: true }
+  | { ok: false; reason: 'stale' | 'not_found' };
+
+/**
+ * Compare-and-set write for moves: re-reads gameState inside an RTDB transaction
+ * and commits only when turnNumber + currentTurnPlayerId still match expectations.
+ *
+ * Private hands are updated separately — they cannot be atomic with public gameState.
+ * If hand writes fail after a successful commit, public state may be ahead of hands
+ * until a retry or the next deal; callers should treat transaction failure as safe to retry.
+ */
+export async function saveGameStateIfMatch(
+  code: string,
+  expectedTurnNumber: number,
+  expectedCurrentPlayerId: string,
+  newState: GameState
+): Promise<SaveGameStateIfMatchResult> {
+  if (!database) return { ok: false, reason: 'not_found' };
+
+  const gameRef = ref(database, `rooms/${code}/gameState`);
+  const result = await runTransaction(gameRef, (current) => {
+    const currentState = normalizeGameState(current);
+    if (
+      !canCommitMoveTransaction(
+        currentState,
+        expectedTurnNumber,
+        expectedCurrentPlayerId,
+        newState
+      )
+    ) {
+      return;
+    }
+    return newState;
+  });
+
+  if (!result.committed) {
+    return { ok: false, reason: 'stale' };
+  }
+  return { ok: true };
 }
 
 /**
@@ -547,6 +598,41 @@ export async function savePrivateHand(code: string, playerId: string, cards: any
   if (!database) return;
   const handRef = ref(database, `privateHands/${code}/${playerId}/cards`);
   await set(handRef, cards);
+}
+
+const DEFAULT_HAND_WRITE_ATTEMPTS = 3;
+const DEFAULT_HAND_WRITE_DELAY_MS = 150;
+
+export const HAND_SYNC_FAILED_ERROR = 'game.handSyncFailed';
+
+/**
+ * Retry private hand writes after a successful public gameState commit.
+ * Public state may already be ahead if all attempts fail — caller should surface HAND_SYNC_FAILED_ERROR.
+ */
+export async function savePrivateHandWithRetry(
+  code: string,
+  playerId: string,
+  cards: Card[],
+  options?: { attempts?: number; delayMs?: number }
+): Promise<{ ok: true } | { ok: false; error: typeof HAND_SYNC_FAILED_ERROR }> {
+  const attempts = options?.attempts ?? DEFAULT_HAND_WRITE_ATTEMPTS;
+  const delayMs = options?.delayMs ?? DEFAULT_HAND_WRITE_DELAY_MS;
+
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      await savePrivateHand(code, playerId, cards);
+      return { ok: true };
+    } catch (err) {
+      console.error(
+        `[Jakaroo] savePrivateHand failed (${i}/${attempts}) room=${code} player=${playerId}`,
+        err
+      );
+      if (i < attempts) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+  return { ok: false, error: HAND_SYNC_FAILED_ERROR };
 }
 
 /**

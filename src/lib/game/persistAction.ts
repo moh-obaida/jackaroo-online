@@ -4,9 +4,11 @@
 
 import { Card, GameAction, GameState, LegalAction } from '../../types/game';
 import {
+  getGameState,
   getPrivateHand,
-  saveGameState,
-  savePrivateHand,
+  saveGameStateIfMatch,
+  savePrivateHandWithRetry,
+  HAND_SYNC_FAILED_ERROR,
   updateRoomStatus,
 } from '../firebase/rooms';
 import { validateAction } from './validators';
@@ -19,6 +21,7 @@ import {
   getNextStartingSeat,
 } from './dealing';
 import { allPlayersHandsEmpty } from './turns';
+import { STALE_MOVE_ERROR, validateMovePreconditions } from './compareAndSet';
 
 export function legalActionToGameAction(legal: LegalAction, playerId: string): GameAction {
   return {
@@ -36,11 +39,29 @@ export function legalActionToGameAction(legal: LegalAction, playerId: string): G
 
 export async function persistGameAction(
   roomCode: string,
-  gameState: GameState,
+  clientState: GameState,
   action: GameAction,
   actorHand: Card[]
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const validation = validateAction(gameState, action, actorHand);
+  const freshState = await getGameState(roomCode);
+  if (!freshState) {
+    return { ok: false, error: 'Game not found' };
+  }
+
+  const freshHand = await getPrivateHand(roomCode, action.playerId);
+  const handForValidation = freshHand.length > 0 ? freshHand : actorHand;
+
+  const preconditions = validateMovePreconditions({
+    authoritativeState: freshState,
+    clientState,
+    action,
+    hand: handForValidation,
+  });
+  if (!preconditions.ok) {
+    return { ok: false, error: preconditions.error };
+  }
+
+  const validation = validateAction(freshState, action, handForValidation);
   if (!validation.valid) {
     return { ok: false, error: validation.error || 'Invalid action' };
   }
@@ -60,7 +81,10 @@ export async function persistGameAction(
     };
   }
 
-  const applied = applyAction(gameState, normalizedAction, actorHand, burnTargetHand);
+  const expectedTurnNumber = freshState.turnNumber;
+  const expectedCurrentPlayerId = freshState.currentTurnPlayerId;
+
+  const applied = applyAction(freshState, normalizedAction, handForValidation, burnTargetHand);
   let newState = applied.state;
   const newPrivateHands: Record<string, Card[]> = {
     [action.playerId]: applied.currentPlayerHand,
@@ -70,27 +94,27 @@ export async function persistGameAction(
   }
 
   if (allPlayersHandsEmpty(newState)) {
-    const nextRound = gameState.dealState.dealRoundInBlock + 1;
+    const nextRound = freshState.dealState.dealRoundInBlock + 1;
     let activeDeck = [...newState.deck];
-    let dealPattern = gameState.dealState.dealPattern;
+    let dealPattern = freshState.dealState.dealPattern;
     let roundIndex = nextRound;
-    let startingSeat = gameState.dealState.startingSeat;
-    let dealBlockNum = gameState.dealState.dealBlock;
-    if (isDealBlockExhausted(gameState.mode, nextRound)) {
+    let startingSeat = freshState.dealState.startingSeat;
+    let dealBlockNum = freshState.dealState.dealBlock;
+    if (isDealBlockExhausted(freshState.mode, nextRound)) {
       dealBlockNum += 1;
       startingSeat = getNextStartingSeat(
-        gameState.dealState.startingSeat,
-        gameState.players.length
+        freshState.dealState.startingSeat,
+        freshState.players.length
       );
-      const nextBlock = initializeDealBlock(gameState.mode, startingSeat);
+      const nextBlock = initializeDealBlock(freshState.mode, startingSeat);
       activeDeck = nextBlock.deck;
       dealPattern = nextBlock.dealPattern;
       roundIndex = 0;
     }
     const dealt = dealRound(
       activeDeck,
-      gameState.players,
-      gameState.mode,
+      freshState.players,
+      freshState.mode,
       dealPattern,
       roundIndex
     );
@@ -111,10 +135,25 @@ export async function persistGameAction(
     );
   }
 
-  await saveGameState(roomCode, newState);
+  const commit = await saveGameStateIfMatch(
+    roomCode,
+    expectedTurnNumber,
+    expectedCurrentPlayerId,
+    newState
+  );
+  if (!commit.ok) {
+    return { ok: false, error: STALE_MOVE_ERROR };
+  }
 
+  // Order: public gameState committed first, then private hands (non-atomic across nodes).
   for (const [pid, cards] of Object.entries(newPrivateHands)) {
-    await savePrivateHand(roomCode, pid, cards);
+    const handWrite = await savePrivateHandWithRetry(roomCode, pid, cards);
+    if (!handWrite.ok) {
+      console.error(
+        `[Jakaroo] Public gameState committed but private hand sync failed room=${roomCode} player=${pid}`
+      );
+      return { ok: false, error: HAND_SYNC_FAILED_ERROR };
+    }
   }
 
   if (newState.winner) {
