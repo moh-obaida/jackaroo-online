@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
 import { getLobbySeatInfo, joinRoom } from '../lib/firebase/rooms';
 import { getAuthUserOrCurrent, logOut, signInAsGuest } from '../lib/firebase/auth';
-import { FormPage } from '../components/ui/FormPage';
+import { PageFrame } from '../components/ui/PageFrame';
 import { FormField, TextInput } from '../components/ui/FormField';
 import { Alert } from '../components/ui/Alert';
-import { Button } from '../components/ui/Button';
 import { validateDisplayName } from '../lib/player/displayName';
 
 function mapJoinError(message: string, t: (key: string) => string): string {
@@ -61,7 +60,7 @@ export function JoinRoomPage() {
       }
 
       if (!currentUser) {
-        setError('Failed to authenticate. Try again or disable strict storage blocking.');
+        setError('Failed to authenticate.');
         return;
       }
 
@@ -83,7 +82,7 @@ export function JoinRoomPage() {
         await logOut();
         const fresh = await signInAsGuest();
         if (!fresh) {
-          setError('Failed to start a new guest session for this join.');
+          setError('Failed to start a new guest session.');
           return;
         }
         joinUid = fresh.uid;
@@ -91,6 +90,7 @@ export function JoinRoomPage() {
         currentUser = fresh;
       }
 
+      setJoinStage(t('join.stage.takingSeat') || 'Taking your seat...');
       const result = await joinRoom({
         code: code.trim(),
         password: password.trim(),
@@ -115,63 +115,87 @@ export function JoinRoomPage() {
   };
 
   return (
-    <FormPage title={t('join.title')} subtitle={t('create.passwordHelp')}>
-      {!firebaseReady && (
-        <Alert variant="warn" className="mb-4 rounded-xl text-left text-xs">
-          Firebase not configured.
-        </Alert>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <FormField label={t('join.code')}>
-          <TextInput
-            type="text"
-            value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            placeholder={t('join.codePlaceholder')}
-            className="text-center text-xl tracking-normal tabular-nums font-mono"
-            maxLength={6}
-            inputMode="numeric"
-            autoComplete="off"
-          />
-        </FormField>
-
-        <FormField label={t('join.password')}>
-          <TextInput
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder={t('join.passwordPlaceholder')}
-          />
-        </FormField>
-
-        <FormField label={t('join.name')}>
-          <TextInput
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={t('join.namePlaceholder')}
-            maxLength={20}
-          />
-        </FormField>
-
-        {joinStage && loading && (
-          <p className="text-xs text-cream-200/60 text-center" role="status">
-            {joinStage}
+    <PageFrame variant="form">
+      <div className="page-center p-0">
+        <div className="panel narrow p-8 bg-panel-donor border-donor rounded-[22px] shadow-donor">
+          <Link to="/" className="text-gold-400 hover:text-gold-300 mb-6 inline-block text-sm">
+            ← {t('general.back') || 'Back'}
+          </Link>
+          
+          <h1 className="text-3xl font-bold text-gold-300 mb-2 text-center">
+            {t('join.title')}
+          </h1>
+          <p className="text-cream-200/50 mb-8 text-center text-sm">
+            Enter the table code and password to join.
           </p>
-        )}
 
-        {error && (
-          <Alert variant="error" className="rounded-xl text-left text-sm">
-            {error}
-          </Alert>
-        )}
+          {!firebaseReady && (
+            <Alert variant="warn" className="mb-6 rounded-xl text-left text-xs">
+              Firebase not configured.
+            </Alert>
+          )}
 
-        <Button type="submit" variant="primary" size="lg" fullWidth disabled={loading}>
-          {loading ? joinStage || t('general.loading') : t('join.submit')}
-        </Button>
-      </form>
-    </FormPage>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <FormField label={t('join.code')}>
+              <TextInput
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="123456"
+                className="code-input-donor"
+                maxLength={6}
+                inputMode="numeric"
+                autoComplete="off"
+              />
+            </FormField>
+
+            <FormField label={t('join.password')}>
+              <TextInput
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t('join.passwordPlaceholder')}
+                className="input-donor"
+              />
+            </FormField>
+
+            <FormField label={t('join.name')}>
+              <TextInput
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('join.namePlaceholder')}
+                maxLength={20}
+                className="input-donor"
+              />
+            </FormField>
+
+            {joinStage && loading && (
+              <div className="flex flex-col items-center gap-3 py-2">
+                <div className="spinner-donor" />
+                <p className="text-xs text-gold-500/80 animate-pulse font-medium">
+                  {joinStage}
+                </p>
+              </div>
+            )}
+
+            {error && (
+              <Alert variant="error" className="rounded-xl text-left text-sm">
+                {error}
+              </Alert>
+            )}
+
+            <button 
+              type="submit" 
+              className="btn-game-primary w-full py-4 text-lg" 
+              disabled={loading}
+            >
+              {loading ? t('general.loading') : t('join.submit')}
+            </button>
+          </form>
+        </div>
+      </div>
+    </PageFrame>
   );
 }

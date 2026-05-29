@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
 import { createRoom, getCustomTemplates } from '../lib/firebase/rooms';
@@ -17,7 +17,6 @@ import { PageFrame } from '../components/ui/PageFrame';
 import { Panel } from '../components/ui/Panel';
 import { FormField, TextInput, SelectInput } from '../components/ui/FormField';
 import { Alert } from '../components/ui/Alert';
-import { BoardPreviewVisual } from '../components/board/boardVisual';
 import { validateDisplayName } from '../lib/player/displayName';
 
 const MODES: { value: GameMode; key: '2p' | '3p' | '4p'; seats: number }[] = [
@@ -26,34 +25,11 @@ const MODES: { value: GameMode; key: '2p' | '3p' | '4p'; seats: number }[] = [
   { value: '4p_teams', key: '4p', seats: 4 },
 ];
 
-function ModeSeatDiagram({ seats }: { seats: number }) {
-  const dots =
-    seats === 2
-      ? [{ t: '12%', l: '50%' }, { t: '82%', l: '50%' }]
-      : seats === 3
-        ? [
-            { t: '10%', l: '50%' },
-            { t: '75%', l: '22%' },
-            { t: '75%', l: '78%' },
-          ]
-        : [
-            { t: '8%', l: '50%' },
-            { t: '50%', l: '88%' },
-            { t: '82%', l: '50%' },
-            { t: '50%', l: '12%' },
-          ];
-
+function SeatDiagram({ mode }: { mode: '2p' | '3p' | '4p' }) {
   return (
-    <span className="create-mode-card__diagram" aria-hidden>
-      <span className="create-mode-card__felt" />
-      {dots.map((d, i) => (
-        <span
-          key={i}
-          className="create-mode-card__dot"
-          style={{ top: d.t, left: d.l }}
-        />
-      ))}
-    </span>
+    <div className={`seat-diagram diagram-${mode}`}>
+      <span /><span /><span /><span />
+    </div>
   );
 }
 
@@ -68,14 +44,12 @@ export function CreateRoomPage() {
   const [rulesetType, setRulesetType] = useState<RulesetType>('obaida_classic');
   const [botsEnabled, setBotsEnabled] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>('very_easy');
-  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [customTemplates, setCustomTemplates] = useState<Record<string, CustomRulesConfig>>({});
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const modeHelpKey =
-    mode === '2p_solo' ? 'create.modeHelp.2p' : mode === '3p_solo' ? 'create.modeHelp.3p' : 'create.modeHelp.4p';
+  const activeModeKey = mode === '2p_solo' ? '2p' : mode === '3p_solo' ? '3p' : '4p';
 
   React.useEffect(() => {
     if (rulesetType !== 'custom' || !user || isGuestUser) return;
@@ -106,7 +80,7 @@ export function CreateRoomPage() {
     }
 
     if (!firebaseReady) {
-      setError('Firebase is not configured. Add environment variables first.');
+      setError('Firebase is not configured.');
       return;
     }
 
@@ -169,163 +143,127 @@ export function CreateRoomPage() {
 
   return (
     <PageFrame variant="form">
-      <Panel title={t('create.title')} subtitle={t('create.passwordHelp')} glow className="create-setup-panel">
-        {!firebaseReady && (
-          <Alert variant="warn" className="mb-4 rounded-xl text-left text-xs">
-            Firebase not configured.
-          </Alert>
-        )}
+      <main className="setup-page p-0">
+        <div className="setup-card border-0 shadow-none bg-transparent p-0">
+          <Link to="/" className="text-gold-400 hover:text-gold-300 mb-4 inline-block text-sm">
+            ← {t('general.back') || 'Back'}
+          </Link>
+          <h1 className="text-3xl md:text-4xl font-bold text-gold-300 mb-2">
+            {t('create.title')}
+          </h1>
+          <p className="text-cream-200/60 mb-8">
+            Set up your private Jackaroo table.
+          </p>
 
-        <form onSubmit={handleSubmit} className="create-setup">
-          <div className="create-setup__preview">
-            <BoardPreviewVisual size={200} />
-          </div>
+          <form onSubmit={handleSubmit} className="setup-grid">
+            <div className="setup-preview">
+              <SeatDiagram mode={activeModeKey} />
+              <p className="mt-4 text-sm text-cream-200/80">
+                {t(`create.modeHelp.${activeModeKey}`)}
+              </p>
+            </div>
 
-          <div className="create-setup__fields">
-            <FormField label={t('create.name')}>
-              <TextInput
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t('create.namePlaceholder')}
-                maxLength={20}
-              />
-            </FormField>
-
-            <FormField label={t('create.password')} hint={t('create.passwordHelp')}>
-              <TextInput
-                type="password"
-                autoComplete="new-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t('create.passwordPlaceholder')}
-                maxLength={30}
-                className="create-invite-input"
-              />
-            </FormField>
-
-            <fieldset className="create-fieldset">
-              <legend className="create-fieldset__legend">{t('create.mode')}</legend>
-              <p className="create-fieldset__hint">{t(modeHelpKey)}</p>
-              <div className="create-mode-cards">
-                {MODES.map(({ value, key, seats }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    className={`create-mode-card ${mode === value ? 'create-mode-card--selected' : ''}`}
-                    onClick={() => setMode(value)}
-                    aria-pressed={mode === value}
-                  >
-                    <ModeSeatDiagram seats={seats} />
-                    <span className="create-mode-card__label">{t(`create.mode.${key}`)}</span>
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="create-fieldset">
-              <legend className="create-fieldset__legend">{t('create.ruleset')}</legend>
-              <div className="create-ruleset-cards">
-                <button
-                  type="button"
-                  className={`create-ruleset-card ${
-                    rulesetType === 'obaida_classic' ? 'create-ruleset-card--selected' : ''
-                  }`}
-                  onClick={() => setRulesetType('obaida_classic')}
-                  aria-pressed={rulesetType === 'obaida_classic'}
-                >
-                  <span className="create-ruleset-card__title">{t('create.ruleset.classic')}</span>
-                  <span className="create-ruleset-card__desc">{t('create.rulesetHelp.classic')}</span>
-                </button>
-                <button
-                  type="button"
-                  className={`create-ruleset-card ${
-                    rulesetType === 'custom' ? 'create-ruleset-card--selected' : ''
-                  }`}
-                  onClick={() => setRulesetType('custom')}
-                  aria-pressed={rulesetType === 'custom'}
-                >
-                  <span className="create-ruleset-card__title">{t('create.ruleset.custom')}</span>
-                  <span className="create-ruleset-card__desc">{t('create.rulesetHelp.custom')}</span>
-                </button>
-              </div>
-            </fieldset>
-
-            {rulesetType === 'custom' && (
-              <div className="create-custom-block">
-                <Alert variant="warn" className="rounded-xl text-xs text-left">
-                  {t('custom.notice')}
-                </Alert>
-                {isGuestUser ? (
-                  <p className="text-xs text-amber-300/80">{t('custom.guestSave')}</p>
-                ) : (
-                  <FormField label={t('create.template')}>
-                    <SelectInput
-                      value={selectedTemplateId}
-                      onChange={(e) => setSelectedTemplateId(e.target.value)}
-                      className="text-sm"
-                    >
-                      {Object.keys(customTemplates).length === 0 ? (
-                        <option value="">{t('create.templateDefault')}</option>
-                      ) : (
-                        Object.entries(customTemplates).map(([id, config]) => (
-                          <option key={id} value={id}>
-                            {config.name}
-                          </option>
-                        ))
-                      )}
-                    </SelectInput>
-                  </FormField>
-                )}
-              </div>
-            )}
-
-            <details
-              className="create-advanced"
-              open={advancedOpen}
-              onToggle={(e) => setAdvancedOpen((e.target as HTMLDetailsElement).open)}
-            >
-              <summary className="create-advanced__summary">{t('create.advanced')}</summary>
-              <div className="create-advanced__body">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={botsEnabled}
-                    onChange={(e) => setBotsEnabled(e.target.checked)}
-                    className="w-4 h-4 rounded border-wood-500 bg-surface-inset text-gold-500 focus:ring-gold-500/30"
+            <div className="setup-fields">
+              <fieldset>
+                <legend>{t('create.identity') || 'Player Identity'}</legend>
+                <FormField label={t('create.name')}>
+                  <TextInput
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder={t('create.namePlaceholder')}
+                    maxLength={20}
                   />
-                  <span className="text-sm text-cream-200/80">{t('create.bots')}</span>
-                </label>
+                </FormField>
+              </fieldset>
 
-                {botsEnabled && (
-                  <FormField label={t('create.botDifficulty')}>
-                    <SelectInput
-                      value={botDifficulty}
-                      onChange={(e) => setBotDifficulty(e.target.value as BotDifficulty)}
+              <fieldset>
+                <legend>{t('create.access') || 'Private Table Access'}</legend>
+                <FormField label={t('create.password')} hint={t('create.passwordHelp')}>
+                  <TextInput
+                    type="password"
+                    autoComplete="new-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={t('create.passwordPlaceholder')}
+                    maxLength={30}
+                  />
+                </FormField>
+              </fieldset>
+
+              <fieldset>
+                <legend>{t('create.mode')}</legend>
+                <div className="mode-grid">
+                  {MODES.map(({ value, key }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className={`mode-card ${mode === value ? 'active' : ''}`}
+                      onClick={() => setMode(value)}
                     >
-                      <option value="very_easy">{t('create.botDifficulty.veryEasy')}</option>
-                      <option value="easy">{t('create.botDifficulty.easy')}</option>
-                      <option value="normal">{t('create.botDifficulty.normal')}</option>
-                      <option value="hard">{t('create.botDifficulty.hard')}</option>
-                      <option value="very_hard">{t('create.botDifficulty.veryHard')}</option>
-                    </SelectInput>
-                  </FormField>
-                )}
-              </div>
-            </details>
+                      <SeatDiagram mode={key} />
+                      <strong className="mt-2">{t(`create.mode.${key}`)}</strong>
+                      <small className="text-[10px] opacity-60">{t(`create.modeHelp.${key}`)}</small>
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
 
-            {error && (
-              <Alert variant="error" className="rounded-xl text-left text-sm">
-                {error}
-              </Alert>
-            )}
+              <fieldset>
+                <legend>{t('create.ruleset')}</legend>
+                <div className="ruleset-card-donor">
+                  <div className="flex items-center justify-between mb-3">
+                    <button
+                      type="button"
+                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                        rulesetType === 'obaida_classic' 
+                          ? 'bg-gold-500 text-board-dark shadow-lg shadow-gold-500/20' 
+                          : 'bg-black/20 text-cream-200/60 hover:bg-black/40'
+                      }`}
+                      onClick={() => setRulesetType('obaida_classic')}
+                    >
+                      {t('create.ruleset.classic')}
+                    </button>
+                    <button
+                      type="button"
+                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                        rulesetType === 'custom' 
+                          ? 'bg-gold-500 text-board-dark shadow-lg shadow-gold-500/20' 
+                          : 'bg-black/20 text-cream-200/60 hover:bg-black/40'
+                      }`}
+                      onClick={() => setRulesetType('custom')}
+                    >
+                      {t('create.ruleset.custom')}
+                    </button>
+                  </div>
+                  
+                  <div className="p-3 bg-black/20 rounded-xl border border-white/5">
+                    <p className="text-xs text-cream-200/70 leading-relaxed">
+                      {rulesetType === 'obaida_classic' 
+                        ? t('create.rulesetHelp.classic')
+                        : t('create.rulesetHelp.custom')}
+                    </p>
+                  </div>
+                </div>
+              </fieldset>
 
-            <button type="submit" className="btn-game-primary create-setup__submit" disabled={loading}>
-              {loading ? t('general.loading') : t('create.submitTable')}
-            </button>
-          </div>
-        </form>
-      </Panel>
+              {error && (
+                <Alert variant="error" className="rounded-xl text-left text-sm">
+                  {error}
+                </Alert>
+              )}
+
+              <button 
+                type="submit" 
+                className="btn-game-primary w-full py-4 text-lg mt-4" 
+                disabled={loading}
+              >
+                {loading ? t('general.loading') : t('create.submitTable')}
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
     </PageFrame>
   );
 }

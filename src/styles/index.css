@@ -1728,3 +1728,207 @@ html[dir='rtl'] .text-start {
   background: #f0ebe3;
   color: #1a1208;
 }
+
+/* —— Donor UI Partial Merge Styles —— */
+
+/* Home Page Donor Layout */
+.home-hero-donor {
+  @apply grid grid-cols-1 lg:grid-cols-[0.85fr,1.15fr] gap-8 items-center max-w-[1180px] mx-auto px-6 py-12 md:py-20;
+}
+
+.hero-copy-donor {
+  @apply flex flex-col items-center lg:items-start text-center lg:text-left;
+}
+
+.brand-emblem-donor {
+  @apply w-14 h-14 mb-6 rounded-2xl bg-gradient-to-br from-gold-400 to-white text-board-dark font-black text-3xl grid place-items-center shadow-xl shadow-gold-500/20;
+  font-family: 'Literata', serif;
+}
+
+.hero-title-donor {
+  @apply text-5xl md:text-7xl lg:text-8xl font-black leading-[0.9] mb-4 text-cream-100;
+  font-family: 'Literata', serif;
+}
+
+.hero-subtitle-donor {
+  @apply text-lg text-cream-200/60 max-w-md leading-relaxed mb-8;
+}
+
+.hero-actions-donor {
+  @apply flex flex-wrap gap-4 justify-center lg:justify-start;
+}
+
+.hero-board-donor {
+  @apply flex justify-center drop-shadow-[0_30px_50px_rgba(0,0,0,0.6)];
+}
+
+.hero-board-wrapper {
+  @apply w-full max-w-[540px] aspect-square;
+}
+
+.feature-grid-donor {
+  @apply grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-[1180px] mx-auto;
+}
+
+.feature-card-donor {
+  @apply bg-panel-donor border border-donor rounded-[22px] p-5 shadow-donor flex flex-col gap-3 transition-all hover:translate-y-[-2px] hover:border-gold-500/30;
+}
+
+.feature-card-icon {
+  @apply w-10 h-10 rounded-xl bg-gold-500/10 text-gold-500 grid place-items-center shrink-0;
+}
+
+.feature-card-title {
+  @apply text-gold-300 font-bold mb-1;
+}
+
+.feature-card-desc {
+  @apply text-xs text-cream-200/50 leading-relaxed;
+}
+
+/* Shared Donor Tokens */
+:root {
+  --bg-donor: #1A1612;
+  --panel-donor: rgba(39, 29, 21, 0.78);
+  --border-donor: rgba(230, 197, 103, 0.18);
+  --shadow-donor: 0 20px 70px rgba(0, 0, 0, 0.22);
+}
+
+.bg-panel-donor { background-color: var(--panel-donor); }
+.border-donor { border-color: var(--border-donor); }
+.shadow-donor { box-shadow: var(--shadow-donor); }
+
+/* Create Table Donor Styles */
+.setup-page {
+  @apply max-w-[980px] mx-auto py-8 px-4;
+}
+
+.setup-grid {
+  @apply grid grid-cols-1 md:grid-cols-[280px,1fr] gap-8 mt-8;
+}
+
+.setup-preview {
+  @apply rounded-[22px] bg-gradient-to-b from-emerald-900/40 to-black/40 border border-gold-500/10 p-8 flex flex-col items-center justify-center text-center h-fit sticky top-24;
+}
+
+.setup-fields {
+  @apply grid gap-6;
+}
+
+.setup-fields fieldset {
+  @apply border border-gold-500/10 rounded-[22px] p-6 bg-black/10;
+}
+
+.setup-fields legend {
+  @apply text-gold-400 font-black px-3 text-xs uppercase tracking-[0.2em];
+}
+
+.mode-grid {
+  @apply grid grid-cols-3 gap-3;
+}
+
+.mode-card {
+  @apply border border-gold-500/10 bg-white/5 rounded-2xl p-4 flex flex-col items-center gap-2 transition-all hover:bg-white/10;
+}
+
+.mode-card.active {
+  @apply border-gold-500 bg-gold-500/10 shadow-lg shadow-gold-500/10;
+}
+
+.seat-diagram {
+  @apply relative w-16 h-14 rounded-full bg-gradient-to-b from-emerald-800 to-emerald-950 border border-gold-500/30 shadow-inner;
+}
+
+.seat-diagram span {
+  @apply absolute w-2.5 h-2.5 rounded-full bg-gold-400 shadow-[0_0_10px_rgba(230,197,103,0.5)];
+}
+
+.diagram-2p span:nth-child(1) { top: 10%; left: 50%; transform: translateX(-50%); }
+.diagram-2p span:nth-child(2) { bottom: 10%; left: 50%; transform: translateX(-50%); }
+.diagram-2p span:nth-child(n+3) { @apply hidden; }
+
+.diagram-3p span:nth-child(1) { top: 10%; left: 50%; transform: translateX(-50%); }
+.diagram-3p span:nth-child(2) { bottom: 15%; right: 15%; }
+.diagram-3p span:nth-child(3) { bottom: 15%; left: 15%; }
+.diagram-3p span:nth-child(n+4) { @apply hidden; }
+
+.diagram-4p span:nth-child(1) { top: 10%; left: 50%; transform: translateX(-50%); }
+.diagram-4p span:nth-child(2) { right: 10%; top: 50%; transform: translateY(-50%); }
+.diagram-4p span:nth-child(3) { bottom: 10%; left: 50%; transform: translateX(-50%); }
+.diagram-4p span:nth-child(4) { left: 10%; top: 50%; transform: translateY(-50%); }
+
+/* Lobby Donor Styles */
+.lobby-wrap-donor {
+  @apply max-w-[640px] mx-auto px-4 py-8;
+}
+
+.lobby-title-donor {
+  @apply text-center mb-8;
+}
+
+.invite-plaque-donor {
+  @apply bg-gradient-to-b from-gold-500/10 to-black/20 border border-gold-500/20 rounded-[22px] p-6 text-center mb-8 shadow-lg;
+}
+
+.lobby-table-area-donor {
+  @apply relative w-full aspect-square max-w-[420px] mx-auto my-12;
+}
+
+.mini-table-donor {
+  @apply absolute inset-[22%] rounded-full bg-gradient-to-b from-emerald-800 to-emerald-950 border-[10px] border-wood-900 grid place-items-center shadow-[inset_0_12px_22px_rgba(0,0,0,0.4),0_20px_40px_rgba(0,0,0,0.3)];
+}
+
+.lobby-seat-donor {
+  @apply absolute w-32 h-24 rounded-2xl border border-white/10 flex flex-col items-center justify-center p-3 text-center shadow-xl backdrop-blur-md transition-all;
+  background-color: rgba(39, 29, 21, 0.9);
+}
+
+.lobby-seat-donor.me { @apply border-gold-500/60 shadow-gold-500/10; }
+.lobby-seat-donor.empty { @apply opacity-50 border-dashed border-white/5; }
+
+.lobby-seat-donor-bottom { @apply bottom-0 left-1/2 -translate-x-1/2; }
+.lobby-seat-donor-top { @apply top-0 left-1/2 -translate-x-1/2; }
+.lobby-seat-donor-right { @apply right-0 top-1/2 -translate-y-1/2; }
+.lobby-seat-donor-left { @apply left-0 top-1/2 -translate-y-1/2; }
+
+.seat-color-donor {
+  @apply w-4 h-4 rounded-full border-2 border-white/60 shadow-lg mb-2;
+}
+
+.seat-badges-donor {
+  @apply flex flex-wrap gap-1 justify-center mt-1;
+}
+
+.seat-badges-donor em {
+  @apply not-italic text-[9px] px-2 py-0.5 rounded-full bg-gold-500/10 text-gold-400 font-bold uppercase;
+}
+
+.seat-badges-donor em.ready {
+  @apply bg-emerald-500/20 text-emerald-400;
+}
+
+.rules-summary-donor {
+  @apply flex justify-between items-center gap-4 border border-gold-500/10 rounded-2xl p-4 bg-black/20 mb-6;
+}
+
+.start-reason-donor {
+  @apply text-center text-xs text-amber-400/80 bg-amber-400/5 border border-amber-400/20 rounded-xl p-3 mb-6;
+}
+
+.lobby-actions-donor {
+  @apply flex gap-4;
+}
+
+/* Spinner Donor */
+.spinner-donor {
+  @apply w-8 h-8 rounded-full border-2 border-gold-500/20 border-t-gold-500 animate-spin;
+}
+
+/* Join Code Donor */
+.code-input-donor {
+  @apply text-center text-4xl font-mono tracking-[0.4em] pl-[0.4em] py-4 !bg-black/40 !border-gold-500/20 !rounded-2xl text-gold-500;
+}
+
+.input-donor {
+  @apply !bg-black/30 !border-white/5 !rounded-xl py-3 px-4 focus:!border-gold-500/40;
+}

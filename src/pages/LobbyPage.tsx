@@ -9,10 +9,6 @@ import { RoomRouteFallback } from '../components/game/RoomRouteFallback';
 import { RoomRouteViewport } from '../components/game/RoomRouteViewport';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { PageFrame } from '../components/ui/PageFrame';
-import { Panel } from '../components/ui/Panel';
-import { Alert } from '../components/ui/Alert';
-import { LobbySeatRing } from '../components/lobby/LobbySeatRing';
-import { LobbyRulesSummary } from '../components/lobby/LobbyRulesSummary';
 import { CardGuideModal } from '../components/cards/CardGuideModal';
 import { VoiceControls } from '../components/voice/VoiceControls';
 import { useVoiceChat } from '../hooks/useVoiceChat';
@@ -131,16 +127,17 @@ function LobbyPageContent() {
     }
   }, [roomCode]);
 
-  const handleCopyPassword = useCallback(async () => {
-    if (!hostPassword) return;
+  const handleCopyInvite = useCallback(async () => {
+    if (!roomCode) return;
+    const inviteText = `Join my Jakaroo table. Code: ${roomCode}${hostPassword ? ` Password: ${hostPassword}` : ''}`;
     try {
-      await navigator.clipboard.writeText(hostPassword);
+      await navigator.clipboard.writeText(inviteText);
       setPasswordCopied(true);
       setTimeout(() => setPasswordCopied(false), 2000);
     } catch {
       setPasswordCopied(false);
     }
-  }, [hostPassword]);
+  }, [roomCode, hostPassword]);
 
   const handleReady = useCallback(async () => {
     if (!playerId || !roomCode) return;
@@ -183,166 +180,151 @@ function LobbyPageContent() {
 
   return (
     <PageFrame variant="lobby">
-      <Panel
-        title={t('lobby.title')}
-        subtitle={`${modeLabel} · ${rulesetLabel} · ${seatedCount}/${maxPlayers}`}
-        glow
-        className="lobby-page-panel jkr-panel--compact"
-      >
-        {leaveWarning && (
-          <Alert variant="warn" className="mb-3 rounded-xl text-xs py-2">
-            {leaveWarning}
-          </Alert>
-        )}
+      <main className="lobby-wrap-donor">
+        <section className="lobby-title-donor">
+          <h1 className="text-3xl md:text-4xl font-bold text-gold-300 mb-1">
+            {t('lobby.title')}
+          </h1>
+          <p className="text-cream-200/60 uppercase tracking-widest text-xs font-bold">
+            {players.find(p => p.uid === currentRoom.roomMakerUid)?.name || 'Host'}'s Table
+          </p>
+        </section>
 
-        <div className="lobby-setup">
-          <div className="lobby-invite-plaque">
-            <div className="lobby-invite-plaque__row">
-              <span className="lobby-invite-plaque__label">{t('lobby.code')}</span>
-              <span className="lobby-invite-plaque__code">{roomCode}</span>
-              <button
-                type="button"
-                onClick={handleCopyCode}
-                className="btn-game-secondary lobby-invite-plaque__copy"
+        <section className="invite-plaque-donor">
+          <span className="text-[10px] uppercase tracking-widest text-cream-200/40 font-bold mb-1 block">
+            {t('lobby.code')}
+          </span>
+          <strong className="text-4xl md:text-5xl font-mono text-gold-500 tracking-[0.2em] pl-[0.2em] block my-2">
+            {roomCode}
+          </strong>
+          <div className="flex justify-center gap-3 mt-4">
+            <button
+              type="button"
+              onClick={handleCopyCode}
+              className="btn-game-secondary px-4 py-2 text-xs"
+            >
+              {copied ? t('lobby.copied') : t('lobby.copy')}
+            </button>
+            <button
+              type="button"
+              onClick={handleCopyInvite}
+              className="btn-game-secondary px-4 py-2 text-xs"
+            >
+              {passwordCopied ? t('lobby.copied') : t('lobby.copyInvite') || 'Copy Invite'}
+            </button>
+          </div>
+        </section>
+
+        <section className="lobby-table-area-donor">
+          <div className="mini-table-donor">
+            <span className="text-gold-500/20 font-serif tracking-[0.3em] text-lg font-bold">JAKAROO</span>
+          </div>
+          
+          {Array.from({ length: maxPlayers }).map((_, i) => {
+            const player = players.find(p => p.seat === i);
+            const isMe = player?.id === playerId;
+            const isMaker = player?.id === currentRoom.roomMakerUid;
+            const position = ['bottom', 'right', 'top', 'left'][i] || 'bottom';
+            const color = player?.color || ['black', 'green', 'blue', 'white'][i];
+            
+            return (
+              <div 
+                key={i} 
+                className={`lobby-seat-donor lobby-seat-donor-${position} ${isMe ? 'me' : ''} ${!player ? 'empty' : ''}`}
               >
-                {copied ? t('lobby.copied') : t('lobby.copy')}
-              </button>
-            </div>
-
-            {isRoomMaker && (
-              <div className="lobby-invite-plaque__row lobby-invite-plaque__row--password">
-                <span className="lobby-invite-plaque__label">{t('lobby.password')}</span>
-                {hostPassword ? (
+                <span 
+                  className="seat-color-donor" 
+                  style={{ 
+                    backgroundColor: color === 'black' ? '#111' : color === 'white' ? '#eee' : color,
+                    borderColor: color === 'black' ? '#444' : 'rgba(255,255,255,0.4)'
+                  }} 
+                />
+                {player ? (
                   <>
-                    <span
-                      className="lobby-invite-plaque__secret"
-                      aria-label={t('lobby.password')}
-                    >
-                      {passwordVisible ? hostPassword : '•'.repeat(hostPassword.length)}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setPasswordVisible((v) => !v)}
-                      className="btn-game-secondary lobby-invite-plaque__toggle"
-                      aria-pressed={passwordVisible}
-                    >
-                      {passwordVisible ? t('lobby.hidePassword') : t('lobby.showPassword')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleCopyPassword()}
-                      className="btn-game-secondary lobby-invite-plaque__copy"
-                    >
-                      {passwordCopied ? t('lobby.passwordCopied') : t('lobby.copy')}
-                    </button>
+                    <strong className="text-sm text-cream-100 truncate w-full px-2" title={player.name}>
+                      {player.name}
+                    </strong>
+                    <div className="seat-badges-donor">
+                      {isMe && <em>{t('lobby.you') || 'You'}</em>}
+                      {isMaker && <em>{t('lobby.roomMaker') || 'Host'}</em>}
+                      {!isMaker && (
+                        <em className={player.ready ? 'ready' : ''}>
+                          {player.ready ? t('lobby.ready') : t('lobby.notReady')}
+                        </em>
+                      )}
+                    </div>
                   </>
                 ) : (
-                  <p className="lobby-invite-plaque__password-hint">{t('lobby.passwordUnavailable')}</p>
+                  <div className="flex flex-col items-center gap-1">
+                    <strong className="text-xs text-cream-200/30">{t('lobby.waiting') || 'Empty'}</strong>
+                    {isRoomMaker && currentRoom.botSettings.enabled && (
+                      <button 
+                        onClick={() => handleAddBot(i)}
+                        className="text-[10px] text-gold-500/50 hover:text-gold-500 transition-colors"
+                      >
+                        + Add Bot
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
+            );
+          })}
+        </section>
+
+        <section className="rules-summary-donor">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] uppercase tracking-widest text-cream-200/40 font-bold">Ruleset</span>
+            <strong className="text-sm text-gold-300">{rulesetLabel}</strong>
           </div>
-
-          <div className="lobby-setup__main">
-            <div className="lobby-setup__table">
-              <LobbySeatRing
-                maxPlayers={maxPlayers}
-                mode={currentRoom.mode}
-                players={players}
-                roomMakerUid={currentRoom.roomMakerUid}
-                myPlayerId={playerId}
-                isRoomMaker={isRoomMaker}
-                onKick={(uid) => kickPlayer(roomCode, uid)}
-                onAddBot={handleAddBot}
-                botsEnabled={currentRoom.botSettings.enabled}
-                getVoiceStatus={voice.getParticipantStatus}
-              />
-            </div>
-
-            <aside className="lobby-setup__rules">
-              <LobbyRulesSummary
-                rulesetType={currentRoom.rulesetType}
-                compact
-                showDeckLink={false}
-              />
-            </aside>
+          <div className="flex flex-col gap-1 text-right">
+            <span className="text-[10px] uppercase tracking-widest text-cream-200/40 font-bold">Mode</span>
+            <strong className="text-sm text-gold-300">{modeLabel}</strong>
           </div>
+        </section>
 
-          {gameError && (
-            <Alert variant="error" className="rounded-xl text-xs py-2 mt-3">
-              {gameError}
-            </Alert>
-          )}
+        {startReadiness.reason && (
+          <p className="start-reason-donor">
+            {startReadiness.reason}
+          </p>
+        )}
 
-          {!startReadiness.canStart && startReadiness.reason && isRoomMaker && (
-            <p className="lobby-setup__hint text-xs text-amber-300/90 text-center mt-2">
-              {startReadiness.reason}
-            </p>
-          )}
-          {!startReadiness.canStart && !isRoomMaker && (
-            <p className="lobby-setup__hint text-xs text-cream-200/60 text-center mt-2">
-              {startReadiness.reason ?? t('lobby.waitingForMaker')}
-            </p>
-          )}
-        </div>
-
-        <footer className="lobby-action-bar">
-          <VoiceControls
-            compact
-            connectionState={voice.connectionState}
-            isSupported={voice.isSupported}
-            onJoin={voice.joinVoice}
-            onLeave={voice.leaveVoice}
-            onMute={voice.mute}
-            onUnmute={voice.unmute}
-            onRetry={voice.retryJoin}
-          />
-
-          <button
-            type="button"
-            className="btn-game-danger"
+        <section className="lobby-actions-donor">
+          <button 
+            type="button" 
+            className="btn-game-secondary flex-1 py-3" 
             onClick={handleLeave}
             disabled={leaveBusy}
           >
             {t('lobby.leave')}
           </button>
-
-          <button
-            type="button"
-            className="btn-game-secondary"
-            onClick={() => setDeckGuideOpen(true)}
-          >
-            {t('game.showDeck')}
-          </button>
-
-          {isRoomMaker && currentRoom.botSettings.enabled && (
-            <button type="button" className="btn-game-secondary" onClick={() => handleAddBot()}>
-              {t('lobby.addBot')}
+          
+          {playerId && !isRoomMaker && (
+            <button 
+              type="button" 
+              className={`flex-1 py-3 rounded-xl font-bold transition-all ${
+                myPlayer?.ready 
+                  ? 'bg-black/40 text-cream-200/60 border border-white/5' 
+                  : 'btn-game-primary'
+              }`} 
+              onClick={handleReady}
+            >
+              {myPlayer?.ready ? t('lobby.unready') : t('lobby.setReady')}
             </button>
           )}
 
-          <div className="lobby-action-bar__primary">
-            {playerId && !isRoomMaker && (
-              <button type="button" className="btn-game-primary" onClick={handleReady}>
-                {myPlayer?.ready ? t('lobby.unready') : t('lobby.setReady')}
-              </button>
-            )}
-
-            {isRoomMaker && (
-              <button
-                type="button"
-                className="btn-game-primary"
-                onClick={() => {
-                  if (startReadiness.canStart) void startGame();
-                }}
-                disabled={!startReadiness.canStart || loading}
-              >
-                {loading ? t('general.loading') : t('lobby.start')}
-              </button>
-            )}
-          </div>
-        </footer>
-      </Panel>
+          {isRoomMaker && (
+            <button 
+              type="button" 
+              className="btn-game-primary flex-1 py-3" 
+              onClick={() => { if (startReadiness.canStart) void startGame(); }}
+              disabled={!startReadiness.canStart || loading}
+            >
+              {loading ? t('general.loading') : t('lobby.start')}
+            </button>
+          )}
+        </section>
+      </main>
 
       <CardGuideModal open={deckGuideOpen} onClose={() => setDeckGuideOpen(false)} />
     </PageFrame>
