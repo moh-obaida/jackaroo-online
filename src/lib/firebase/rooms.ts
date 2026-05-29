@@ -323,8 +323,14 @@ function pickNextRoomMakerUid(
   leavingUid: string
 ): string | null {
   const remaining = Object.values(players).filter((p) => p.id !== leavingUid);
-  const human = remaining.find((p) => !p.isBot);
-  return human?.id ?? remaining[0]?.id ?? null;
+  const connectedHumans = remaining
+    .filter((p) => !p.isBot && p.connected !== false)
+    .sort((a, b) => a.seat - b.seat);
+  if (connectedHumans.length > 0) {
+    return connectedHumans[0].id;
+  }
+  // Bot turns run only on the room maker's client — do not assign a disconnected human.
+  return null;
 }
 
 /**
@@ -510,21 +516,20 @@ export async function addBots(
 // ============================================================================
 
 /**
- * Save initial game state to Firebase when game starts.
+ * Persist game state under /rooms/{code}/gameState.
+ * Uses update() so child-level RTDB rules apply; a parent set() is rejected for non-makers.
  */
 export async function saveGameState(code: string, gameState: any): Promise<void> {
   if (!database) return;
   const gameRef = ref(database, `rooms/${code}/gameState`);
-  await set(gameRef, gameState);
+  await update(gameRef, gameState);
 }
 
 /**
- * Update game state in Firebase after an action.
+ * Partial game state patch (same path as saveGameState).
  */
 export async function updateGameState(code: string, updates: any): Promise<void> {
-  if (!database) return;
-  const gameRef = ref(database, `rooms/${code}/gameState`);
-  await update(gameRef, updates);
+  await saveGameState(code, updates);
 }
 
 /**
