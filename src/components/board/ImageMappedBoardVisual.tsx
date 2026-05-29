@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { useApp } from '../../context/AppContext';
 import {
   BoardPosition,
   COLORS_ORDER,
@@ -10,7 +11,6 @@ import {
   getAllBoardPositions,
   getImagePointForBoardPosition,
   IMAGE_BOARD_GAME_SRC,
-  IMAGE_BOARD_POINTS,
   IMAGE_BOARD_RADII,
   marbleAriaLabel,
 } from '../../lib/board/imageBoardCoordinates';
@@ -108,6 +108,7 @@ export function ImageMappedBoardVisual({
   onPositionClick,
   className = '',
 }: ImageMappedBoardVisualProps) {
+  const { t } = useApp();
   const [imageFailed, setImageFailed] = useState(false);
   const pid = idPrefix;
   const calibrationEnabled = import.meta.env.VITE_BOARD_CALIBRATION === '1';
@@ -155,7 +156,7 @@ export function ImageMappedBoardVisual({
     >
       {imageFailed ? (
         <div className="image-board-fallback" role="status">
-          Board image unavailable
+          {t('game.boardUnavailable')}
         </div>
       ) : (
         <img
@@ -183,14 +184,51 @@ export function ImageMappedBoardVisual({
           ))}
         </defs>
 
-        {calibrationEnabled && (
-          <BoardCalibrationOverlay
-            positions={allPositions}
-            imagePoints={IMAGE_BOARD_POINTS}
-          />
-        )}
+        {calibrationEnabled && <BoardCalibrationOverlay positions={allPositions} />}
 
-        {/* Hit zones — visible in calibration; targets interactive on your turn */}
+        {/* Legal target rings */}
+        {isMyTurn &&
+          highlightPositions.map((pos) => {
+            const pt = getImagePointForBoardPosition(pos);
+            if (!pt) return null;
+            return (
+              <circle
+                key={`hl_${positionKey(pos)}`}
+                cx={pt.x}
+                cy={pt.y}
+                r={IMAGE_BOARD_RADII.legalTarget}
+                className="image-board-target-ring image-board-target-ring--legal legal-target-highlight"
+                pointerEvents="none"
+              />
+            );
+          })}
+
+        {/* Marbles */}
+        {displayMarbles.map((marble) => {
+          const pt = getImagePointForBoardPosition(marble.position);
+          if (!pt) return null;
+          const r = marbleRadius(marble.position.type);
+          const isOwn = marble.color === myColor;
+          const isSelectable = Boolean(
+            isMyTurn && selectableMarbleIds?.has(marble.id) && onMarbleClick
+          );
+          const isSelected = selectedMarbleId === marble.id;
+          return (
+            <ImageMappedMarble
+              key={marble.id}
+              marble={marble}
+              point={pt}
+              r={r}
+              isOwn={isOwn}
+              isSelectable={isSelectable}
+              isSelected={isSelected}
+              pid={pid}
+              onClick={isSelectable ? () => onMarbleClick?.(marble.id) : undefined}
+            />
+          );
+        })}
+
+        {/* Hit zones on top so occupied legal targets (swap, capture) stay clickable */}
         {(calibrationEnabled || (isMyTurn && onPositionClick)) &&
           (calibrationEnabled ? allPositions : highlightPositions).map((pos) => {
             const pt = getImagePointForBoardPosition(pos);
@@ -234,48 +272,6 @@ export function ImageMappedBoardVisual({
               />
             );
           })}
-
-        {/* Legal target rings */}
-        {isMyTurn &&
-          highlightPositions.map((pos) => {
-            const pt = getImagePointForBoardPosition(pos);
-            if (!pt) return null;
-            return (
-              <circle
-                key={`hl_${positionKey(pos)}`}
-                cx={pt.x}
-                cy={pt.y}
-                r={IMAGE_BOARD_RADII.legalTarget}
-                className="image-board-target-ring image-board-target-ring--legal legal-target-highlight"
-                pointerEvents="none"
-              />
-            );
-          })}
-
-        {/* Marbles */}
-        {displayMarbles.map((marble) => {
-          const pt = getImagePointForBoardPosition(marble.position);
-          if (!pt) return null;
-          const r = marbleRadius(marble.position.type);
-          const isOwn = marble.color === myColor;
-          const isSelectable = Boolean(
-            isMyTurn && selectableMarbleIds?.has(marble.id) && onMarbleClick
-          );
-          const isSelected = selectedMarbleId === marble.id;
-          return (
-            <ImageMappedMarble
-              key={marble.id}
-              marble={marble}
-              point={pt}
-              r={r}
-              isOwn={isOwn}
-              isSelectable={isSelectable}
-              isSelected={isSelected}
-              pid={pid}
-              onClick={isSelectable ? () => onMarbleClick?.(marble.id) : undefined}
-            />
-          );
-        })}
       </svg>
     </div>
   );

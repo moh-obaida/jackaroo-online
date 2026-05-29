@@ -764,9 +764,25 @@ function BoardPreviewProcedural({ size = 200 }: { size?: number }) {
   );
 }
 
+function BoardPreviewImageMapped({ size = 200 }: { size?: number }) {
+  return (
+    <div className="board-preview-image-mapped" style={{ width: size, height: size }}>
+      <ImageMappedBoardVisual
+        idPrefix="preview"
+        showDemoMarbles
+        activeColors={new Set(COLORS_ORDER)}
+        className="image-board-stage--preview"
+      />
+    </div>
+  );
+}
+
 export function BoardPreviewVisual({ size = 200 }: { size?: number }) {
   if (import.meta.env.VITE_BOARD_PROCEDURAL === '1') {
     return <BoardPreviewProcedural size={size} />;
   }
-  return <BoardPreviewPhotoVisual size={size} />;
+  if (import.meta.env.VITE_BOARD_PHYSICAL === '1') {
+    return <BoardPreviewPhotoVisual size={size} />;
+  }
+  return <BoardPreviewImageMapped size={size} />;
 }

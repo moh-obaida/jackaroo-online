@@ -3,13 +3,11 @@ import { BoardPosition } from '../../types/game';
 import {
   boardPositionAriaLabel,
   getImagePointForBoardPosition,
-  type ImageBoardPoints,
 } from '../../lib/board/imageBoardCoordinates';
 import { positionKey } from '../../lib/play/boardHighlights';
 
 type BoardCalibrationOverlayProps = {
   positions: BoardPosition[];
-  imagePoints?: ImageBoardPoints;
 };
 
 /** Dev-only overlay — shows mapped points when VITE_BOARD_CALIBRATION=1. */

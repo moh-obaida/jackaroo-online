@@ -48,8 +48,14 @@
   transition: fill 0.15s ease;
 }
 
-.image-board-hit-zone--debug {
-  pointer-events: none;
+.image-board-stage--preview {
+  width: 100%;
+  max-width: none;
+  max-height: none;
+}
+
+.board-preview-image-mapped {
+  max-width: 100%;
 }
 
 .image-board-target-ring--legal {

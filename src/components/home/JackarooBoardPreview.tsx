@@ -22,12 +22,15 @@ export function JackarooBoardPreview({
         className={`jackaroo-board-preview jackaroo-board-preview--watermark ${className}`}
         aria-hidden
       >
-        <img
-          src={HOME_BOARD_PREMIUM_SRC}
-          alt=""
-          className="jackaroo-board-preview__image jackaroo-board-preview__image--watermark"
-          decoding="async"
-        />
+        {failed ? null : (
+          <img
+            src={HOME_BOARD_PREMIUM_SRC}
+            alt=""
+            className="jackaroo-board-preview__image jackaroo-board-preview__image--watermark"
+            decoding="async"
+            onError={() => setFailed(true)}
+          />
+        )}
       </div>
     );
   }
