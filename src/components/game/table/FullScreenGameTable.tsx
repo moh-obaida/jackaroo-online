@@ -1,5 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { GameState, GameAction, LegalAction, Card } from '../../../types/game';
+import { useApp } from '../../../context/AppContext';
+import { translateSessionMessage } from '../../../lib/i18n/translateSessionMessage';
 import { usePlayTurn } from '../../../hooks/usePlayTurn';
 import { useBoardPlaySelection } from '../../../hooks/useBoardPlaySelection';
 import { useVoiceChat } from '../../../hooks/useVoiceChat';
@@ -21,8 +23,12 @@ export type FullScreenGameTableProps = {
   playerId: string;
   myHand: Card[];
   legalActions: LegalAction[];
+  legalMovesReady: boolean;
   isMyTurn: boolean;
-  onSubmitAction: (action: GameAction) => Promise<void>;
+  isSubmittingAction?: boolean;
+  onSubmitAction: (
+    action: GameAction
+  ) => Promise<{ ok: true } | { ok: false; error: string }>;
   onLeave: () => void;
   leaveBusy: boolean;
   gameError: string | null;
@@ -35,17 +41,20 @@ export function FullScreenGameTable({
   playerId,
   myHand,
   legalActions,
+  legalMovesReady,
   isMyTurn,
+  isSubmittingAction = false,
   onSubmitAction,
   onLeave,
   leaveBusy,
   gameError,
   leaveWarning,
 }: FullScreenGameTableProps) {
+  const { t } = useApp();
   const [deckGuideOpen, setDeckGuideOpen] = useState(false);
   const voice = useVoiceChat(roomCode, playerId);
 
-  const turnKey = `${gameState.currentTurnPlayerId}:${gameState.dealState.dealRoundInBlock}:${legalActions.length}`;
+  const turnKey = `${gameState.turnNumber}:${gameState.currentTurnPlayerId}:${gameState.dealState.dealBlock}:${gameState.dealState.dealRoundInBlock}`;
   const { selectedCardId, setSelectedCardId, showAllActions, setShowAllActions } = usePlayTurn(
     isMyTurn,
     turnKey,
@@ -53,9 +62,23 @@ export function FullScreenGameTable({
     legalActions
   );
 
+  const clearPlaySelection = useCallback(() => {
+    setSelectedCardId(null);
+    setShowAllActions(false);
+  }, [setSelectedCardId, setShowAllActions]);
+
+  const handleSubmitAction = useCallback(
+    async (action: GameAction) => {
+      const result = await onSubmitAction(action);
+      clearPlaySelection();
+      return result;
+    },
+    [onSubmitAction, clearPlaySelection]
+  );
+
   const playableCardIds = useMemo(
-    () => (isMyTurn ? getPlayableCardIds(legalActions) : []),
-    [isMyTurn, legalActions]
+    () => (isMyTurn && legalMovesReady ? getPlayableCardIds(legalActions) : []),
+    [isMyTurn, legalMovesReady, legalActions]
   );
 
   const currentPlayer = useMemo(
@@ -70,15 +93,17 @@ export function FullScreenGameTable({
     playerColor: currentPlayer?.color ?? null,
     playerId,
     isMyTurn,
-    onSubmitAction,
+    turnKey,
+    isSubmittingAction,
+    onSubmitAction: handleSubmitAction,
   });
 
   const noLegalReasonKey = useMemo(() => {
-    if (!isMyTurn) return null;
+    if (!isMyTurn || !legalMovesReady) return null;
     const burnAll = legalActions.find((a) => a.type === 'burn_all_cards');
     if (!burnAll) return null;
     return explainNoLegalMove(gameState, myHand);
-  }, [isMyTurn, legalActions, gameState, myHand]);
+  }, [isMyTurn, legalMovesReady, legalActions, gameState, myHand]);
 
   useEffect(() => {
     if (!isLegalMoveAuditEnabled() || !isMyTurn) return;
@@ -104,11 +129,12 @@ export function FullScreenGameTable({
         onLeave={onLeave}
         leaveBusy={leaveBusy}
         myColor={currentPlayer?.color ?? null}
+        onShowDeckGuide={() => setDeckGuideOpen(true)}
       />
 
       {(gameError || leaveWarning) && (
         <Alert variant="warn" className="rounded-none border-x-0 shrink-0 text-xs py-1.5">
-          {gameError || leaveWarning}
+          {translateSessionMessage(t, gameError || leaveWarning || '')}
         </Alert>
       )}
 
@@ -124,7 +150,6 @@ export function FullScreenGameTable({
             onMarbleClick={boardPlay.handleMarbleClick}
             onPositionClick={boardPlay.handlePositionClick}
             isMyTurn={isMyTurn}
-            onShowDeckGuide={() => setDeckGuideOpen(true)}
             getVoiceStatus={voice.getParticipantStatus}
           />
         </div>
@@ -140,13 +165,15 @@ export function FullScreenGameTable({
             selectedCardId={selectedCardId}
             playableCardIds={playableCardIds}
             onSelectCard={setSelectedCardId}
-            disabled={!isMyTurn}
+            disabled={!isMyTurn || isSubmittingAction}
             legalActions={legalActions}
             showAllActions={showAllActions}
             onToggleShowAll={setShowAllActions}
-            onSubmitAction={onSubmitAction}
+            onSubmitAction={handleSubmitAction}
             playerId={playerId}
             isMyTurn={isMyTurn}
+            legalMovesReady={legalMovesReady}
+            isSubmittingAction={isSubmittingAction}
             noLegalReasonKey={noLegalReasonKey}
             boardFlowHintKey={boardFlowHintKey}
           />

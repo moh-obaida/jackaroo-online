@@ -10,6 +10,7 @@ import { RoomRouteViewport } from '../components/game/RoomRouteViewport';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { PageFrame } from '../components/ui/PageFrame';
 import { CardGuideModal } from '../components/cards/CardGuideModal';
+import { BoardPreviewVisual } from '../components/board/boardVisual';
 import { useVoiceChat } from '../hooks/useVoiceChat';
 import { getHostRoomPassword } from '../lib/room/hostRoomPassword';
 
@@ -211,8 +212,8 @@ function LobbyPageContent() {
         </section>
 
         <section className="lobby-table-area-donor lobby-table-area-fixed">
-          <div className="mini-table-donor mini-table-fixed" aria-hidden>
-            <span>JAKAROO</span>
+          <div className="mini-table-donor mini-table-fixed lobby-board-preview" aria-hidden>
+            <BoardPreviewVisual size={280} />
           </div>
 
           {Array.from({ length: maxPlayers }).map((_, i) => {

@@ -30,9 +30,16 @@
 
 ### Start game flow
 
-1. Room maker calls `startGame` → `saveGameState`, `savePrivateHand` per player, `updateRoomStatus('playing')`.
+1. Room maker calls `startGame` → `saveGameState`, `savePrivateHandWithRetry` per player (3 attempts, 150ms delay), `updateRoomStatus('playing')`.
 2. All clients: room subscription flips status → `GamePlayContext` attaches gameState + privateHand listeners.
 3. `resolveRoomRouteState` gates game page: `waiting_game_state` → `loading_hand` → `ready_play`.
+
+### Move commit + private hand recovery
+
+1. `persistGameAction` validates against fresh RTDB state, applies move locally, then `saveGameStateIfMatch` (RTDB transaction).
+2. On transaction success, each affected private hand is written via `savePrivateHandWithRetry` (3 attempts, 150ms delay between failures).
+3. If a hand write fails after the public commit, the move **is saved on the board** but the client shows `game.handSyncFailed` — user should reload. Dev console logs `[Jakaroo] savePrivateHand failed` and `Public gameState committed but private hand sync failed`.
+4. Stale move rejection returns stable key `game.moveRejectedStale` (translate at display time); internal constant `STALE_MOVE_ERROR`.
 
 ### Two-player same browser
 

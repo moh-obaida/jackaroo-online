@@ -48,10 +48,11 @@ export function PlayerHand({
           >
             <PlayingCard
               card={card}
+              compact={docked}
               selected={isSelected}
               playable={canPlay && !isSelected}
               disabled={disabled}
-              showHint
+              showHint={docked}
               onClick={() => {
                 if (disabled) return;
                 onSelectCard(isSelected ? null : card.id);

@@ -47,7 +47,7 @@ export function TableSeat({
           aria-hidden
         />
         <div className="table-seat__info">
-          <p className="table-seat__name">
+          <p className="table-seat__name" title={player.name}>
             {isYou ? t('game.you') : player.name}
             {opponentLabel && !isYou && (
               <span className="table-seat__role"> · {t('game.opponent')}</span>

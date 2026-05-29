@@ -12,13 +12,15 @@ import {
   subscribeToGameState,
   subscribeToPrivateHand,
   saveGameState,
-  savePrivateHand,
+  savePrivateHandWithRetry,
+  HAND_SYNC_FAILED_ERROR,
   updateRoomStatus,
   getPrivateHand,
 } from '../../lib/firebase/rooms';
 import { isFirebaseConfigured } from '../../lib/firebase/config';
 import { generateLegalActions } from '../../lib/game/legalMoves';
 import { generateBotAction } from '../../lib/game/bots';
+import { STALE_MOVE_ERROR } from '../../lib/game/compareAndSet';
 import { legalActionToGameAction, persistGameAction } from '../../lib/game/persistAction';
 import { initializeDealBlock, dealRound } from '../../lib/game/dealing';
 import { getCardsPerPlayerForRound } from '../../lib/game/cards';
@@ -34,10 +36,14 @@ export type GamePlayContextValue = {
   gameState: GameState | null;
   myHand: Card[];
   legalActions: LegalAction[];
+  legalMovesReady: boolean;
   isMyTurn: boolean;
   handLoaded: boolean;
   handError: string | null;
-  submitAction: (action: GameAction) => Promise<void>;
+  isSubmittingAction: boolean;
+  submitAction: (
+    action: GameAction
+  ) => Promise<{ ok: true } | { ok: false; error: string }>;
   startGame: () => Promise<void>;
 };
 
@@ -71,6 +77,10 @@ export function GamePlayProvider({ children }: { children: React.ReactNode }) {
   const botTurnInFlightRef = useRef(false);
   const handTimeoutRef = useRef<number | null>(null);
   const handScopeRef = useRef<string | null>(null);
+  const dealEpochRef = useRef<string | null>(null);
+  const submittingRef = useRef(false);
+
+  const [isSubmittingAction, setIsSubmittingAction] = useState(false);
 
   const clearHandTimer = useCallback(() => {
     if (handTimeoutRef.current != null) {
@@ -198,8 +208,40 @@ export function GamePlayProvider({ children }: { children: React.ReactNode }) {
     clearHandTimer,
   ]);
 
+  useEffect(() => {
+    if (isLeaving || !gameState || !playerId) {
+      dealEpochRef.current = null;
+      return;
+    }
+
+    const dealKey = `${gameState.dealState.dealBlock}:${gameState.dealState.dealRoundInBlock}`;
+    if (dealEpochRef.current === dealKey) return;
+
+    dealEpochRef.current = dealKey;
+    const expected = gameState.handCounts[playerId] ?? 0;
+    if (expected > 0) {
+      setHandLoaded(false);
+    }
+  }, [
+    gameState?.dealState.dealBlock,
+    gameState?.dealState.dealRoundInBlock,
+    gameState?.handCounts,
+    playerId,
+    isLeaving,
+    gameState,
+  ]);
+
+  const isMyTurn = gameState?.currentTurnPlayerId === playerId;
+
+  const legalMovesReady = useMemo(() => {
+    if (!gameState || !playerId || !isMyTurn || !handLoaded) return false;
+    const expected = gameState.handCounts[playerId] ?? 0;
+    if (expected === 0) return true;
+    return myHand.length > 0;
+  }, [gameState, playerId, isMyTurn, handLoaded, myHand.length]);
+
   const legalActions = useMemo(() => {
-    if (!gameState || !playerId || gameState.currentTurnPlayerId !== playerId) {
+    if (!gameState || !playerId || !isMyTurn || !legalMovesReady) {
       return [];
     }
     try {
@@ -208,9 +250,7 @@ export function GamePlayProvider({ children }: { children: React.ReactNode }) {
       console.error('generateLegalActions failed:', err);
       return [];
     }
-  }, [gameState, playerId, myHand]);
-
-  const isMyTurn = gameState?.currentTurnPlayerId === playerId;
+  }, [gameState, playerId, isMyTurn, legalMovesReady, myHand]);
 
   useEffect(() => {
     if (isLeaving) return;
@@ -365,7 +405,14 @@ export function GamePlayProvider({ children }: { children: React.ReactNode }) {
 
       await saveGameState(roomCode, initialState);
       for (const [pid, cards] of Object.entries(hands)) {
-        await savePrivateHand(roomCode, pid, cards);
+        const handWrite = await savePrivateHandWithRetry(roomCode, pid, cards);
+        if (!handWrite.ok) {
+          console.error(
+            `[Jakaroo] Game started but private hand sync failed room=${roomCode} player=${pid}`
+          );
+          setSessionError(HAND_SYNC_FAILED_ERROR);
+          return;
+        }
       }
       await updateRoomStatus(roomCode, 'playing');
     } catch (err: unknown) {
@@ -391,23 +438,63 @@ export function GamePlayProvider({ children }: { children: React.ReactNode }) {
   ]);
 
   const submitAction = useCallback(
-    async (action: GameAction) => {
-      if (!gameState || !roomCode) return;
+    async (action: GameAction): Promise<{ ok: true } | { ok: false; error: string }> => {
+      if (!gameState || !roomCode || submittingRef.current) {
+        return { ok: false, error: STALE_MOVE_ERROR };
+      }
+
+      const snapshot = gameStateRef.current;
+      if (
+        !snapshot ||
+        snapshot.currentTurnPlayerId !== action.playerId ||
+        snapshot.currentTurnPlayerId !== playerId
+      ) {
+        return { ok: false, error: 'Not your turn' };
+      }
+
       const epoch = sessionEpoch;
-      const result = await persistGameAction(roomCode, gameState, action, myHand);
-      if (!acceptSessionUpdate(epoch, roomCode)) return;
-      if (!result.ok) setSessionError(result.error);
+      submittingRef.current = true;
+      setIsSubmittingAction(true);
+      try {
+        const result = await persistGameAction(
+          roomCode,
+          snapshot,
+          action,
+          myHandRef.current
+        );
+        if (!acceptSessionUpdate(epoch, roomCode)) {
+          return { ok: false, error: STALE_MOVE_ERROR };
+        }
+        if (!result.ok) {
+          setSessionError(result.error);
+          return result;
+        }
+        setSessionError(null);
+        return { ok: true };
+      } catch (err: unknown) {
+        if (!acceptSessionUpdate(epoch, roomCode)) {
+          return { ok: false, error: STALE_MOVE_ERROR };
+        }
+        const message = err instanceof Error ? err.message : STALE_MOVE_ERROR;
+        setSessionError(message);
+        return { ok: false, error: message };
+      } finally {
+        submittingRef.current = false;
+        setIsSubmittingAction(false);
+      }
     },
-    [gameState, roomCode, myHand, sessionEpoch, acceptSessionUpdate, setSessionError]
+    [gameState, roomCode, playerId, sessionEpoch, acceptSessionUpdate, setSessionError]
   );
 
   const value: GamePlayContextValue = {
     gameState,
     myHand,
     legalActions,
+    legalMovesReady,
     isMyTurn,
     handLoaded,
     handError,
+    isSubmittingAction,
     submitAction,
     startGame,
   };

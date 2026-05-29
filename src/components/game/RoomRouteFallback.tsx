@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { RoomRouteState } from '../../lib/room/routeState';
+import { translateSessionMessage } from '../../lib/i18n/translateSessionMessage';
 import { StatusPanel } from '../ui/StatusPanel';
 import { BackHomeButton } from '../common/BackHomeButton';
 import { Button } from '../ui/Button';
@@ -10,14 +11,6 @@ type RoomRouteFallbackProps = {
   roomCode?: string | null;
   onReload?: () => void;
 };
-
-function translateSessionMessage(t: (key: string) => string, message: string): string {
-  if (/^(lobby|game|join)\.[a-zA-Z0-9_.]+$/.test(message)) {
-    const translated = t(message);
-    if (translated !== message) return translated;
-  }
-  return message;
-}
 
 export function RoomRouteFallback({ state, roomCode, onReload }: RoomRouteFallbackProps) {
   const { t } = useApp();

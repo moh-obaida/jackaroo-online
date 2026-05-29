@@ -6,39 +6,34 @@ import { PlayingCard } from '../../cards/PlayingCard';
 type DeckDiscardPilesProps = {
   gameState: GameState;
   onShowDeckGuide: () => void;
+  compact?: boolean;
 };
 
-/**
- * Deck count + top discard face (public). Show Deck = static rank guide only (Manus / CARDS_AND_RULES_REFERENCE).
- */
-export function DeckDiscardPiles({ gameState, onShowDeckGuide }: DeckDiscardPilesProps) {
+/** Deck count + top discard — lives in HUD rail, not over board holes. */
+export function DeckDiscardPiles({ gameState, onShowDeckGuide, compact = false }: DeckDiscardPilesProps) {
   const { t } = useApp();
   const deckCount = gameState.deck.length;
   const topDiscard = gameState.discardPile[gameState.discardPile.length - 1];
 
   return (
-    <div className="deck-discard-strip flex items-end gap-3 shrink-0">
-      <div className="deck-pile-stack flex flex-col items-center gap-0.5">
-        <div className="deck-pile-icon deck-pile-icon--deck" aria-hidden />
-        <span className="text-[10px] text-cream-200/55 tabular-nums">
-          {t('game.deckRemaining', { count: String(deckCount) })}
+    <div className={`deck-discard-strip ${compact ? 'deck-discard-strip--compact' : ''}`}>
+      <div className="deck-pile-stack" aria-label={t('game.deckRemaining', { count: String(deckCount) })}>
+        <div className={`deck-pile-icon deck-pile-icon--deck${compact ? ' deck-pile-icon--compact' : ''}`} aria-hidden />
+        <span className="deck-discard-strip__count tabular-nums">
+          {deckCount}
         </span>
       </div>
 
-      {topDiscard && (
-        <div className="flex flex-col items-center gap-0.5">
-          <p className="text-[9px] uppercase tracking-wider text-cream-200/40">
-            {t('game.discardTop')}
-          </p>
-          <PlayingCard card={topDiscard} compact showHint={false} className="pointer-events-none scale-90" />
+      {topDiscard ? (
+        <div className="deck-discard-strip__discard">
+          <span className="deck-discard-strip__label">{t('game.discardTop')}</span>
+          <PlayingCard card={topDiscard} compact showHint={false} className="pointer-events-none deck-discard-strip__card" />
         </div>
+      ) : (
+        <span className="deck-discard-strip__empty">{t('game.discardEmpty')}</span>
       )}
 
-      <button
-        type="button"
-        onClick={onShowDeckGuide}
-        className="btn-ghost text-[10px] px-2 py-1 ms-auto self-center"
-      >
+      <button type="button" onClick={onShowDeckGuide} className="deck-discard-strip__guide">
         {t('game.showDeck')}
       </button>
     </div>

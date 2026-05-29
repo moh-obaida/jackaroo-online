@@ -180,17 +180,17 @@ body,
   .home-hero-donor {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
-    padding: 1rem 0.875rem 1.5rem;
+    gap: 1rem;
+    padding: 0.875rem 0.875rem 1.25rem;
     min-height: auto;
   }
 
   .hero-board-wrapper {
-    width: min(90vw, 100%);
+    width: min(100%, 100%);
   }
 
   .hero-board-wrapper .jackaroo-board-preview__image {
-    max-height: min(52dvh, 420px);
+    max-height: none;
   }
 
   .hero-actions-donor {
@@ -657,13 +657,57 @@ body,
   text-align: start;
 }
 
-/* ── Page frames ── */
-.page-frame--marketing {
-  overflow-x: clip;
+/* ── Marketing pages ── */
+@media (max-width: 767px) {
+  .marketing-page__cta {
+    align-items: stretch;
+  }
+
+  .marketing-page__cta-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .marketing-page__cta-actions a {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .rules-page-actions {
+    flex-direction: column;
+  }
+
+  .rules-page-actions .btn-game-primary,
+  .rules-page-actions .btn-game-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .home-footer__nav {
+    justify-content: flex-start;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .how-steps {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 1023px) {
+  .feature-group__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 767px) {
   .page-frame {
     padding-inline: 1rem;
   }
+}
+
+.page-frame--marketing {
+  overflow-x: clip;
 }

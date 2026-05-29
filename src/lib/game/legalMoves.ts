@@ -60,7 +60,12 @@ export function generateLegalActions(state: GameState, currentPlayerHand: Card[]
   const rulesConfig = getRulesetConfig(state.rulesetType, state.customRulesConfig ?? null);
 
   const hand = currentPlayerHand || [];
+  const expectedCount = state.handCounts[player.id] ?? 0;
   if (hand.length === 0) {
+    if (expectedCount > 0) {
+      // Hand not synced yet — caller should show loading, not skip/burn-all
+      return [];
+    }
     return [{ type: 'skip_no_cards', cardId: '', description: 'No cards — skip turn' }];
   }
 

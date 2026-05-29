@@ -3,10 +3,15 @@ import { useApp } from '../../context/AppContext';
 import { useGame } from '../../context/GameContext';
 import { useLocation } from 'react-router-dom';
 
+type ConnectionBarProps = {
+  /** Game HUD uses always-visible compact strip */
+  variant?: 'header' | 'game';
+};
+
 /**
- * Room-session sync indicator — only on lobby/game routes (not marketing home).
+ * Room-session sync indicator — Connected / Syncing / Reconnecting on lobby & game routes.
  */
-export function ConnectionBar() {
+export function ConnectionBar({ variant = 'header' }: ConnectionBarProps) {
   const { t, firebaseReady } = useApp();
   const { roomCode, isLeaving, roomLoaded, room } = useGame();
   const location = useLocation();
@@ -27,7 +32,7 @@ export function ConnectionBar() {
         ? t('connection.reconnecting')
         : status === 'leaving'
           ? t('connection.leaving')
-          : t('connection.roomLive');
+          : t('connection.connected');
 
   const dot =
     status === 'live'
@@ -39,10 +44,14 @@ export function ConnectionBar() {
           : 'connection-bar__dot--off';
 
   return (
-    <div className="connection-bar" role="status" aria-live="polite">
+    <div
+      className={`connection-bar ${variant === 'game' ? 'connection-bar--game' : ''}`}
+      role="status"
+      aria-live="polite"
+    >
       <span className={`connection-bar__dot ${dot}`} aria-hidden />
       <span className="connection-bar__label">{label}</span>
-      {roomCode && status === 'live' && (
+      {variant === 'header' && roomCode && status === 'live' && (
         <span className="connection-bar__code tabular-nums">{roomCode}</span>
       )}
     </div>

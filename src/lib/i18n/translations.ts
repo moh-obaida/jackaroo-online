@@ -32,6 +32,7 @@ export const en: Translations = {
   'nav.guest': 'Continue as Guest',
   'nav.openMenu': 'Open menu',
   'nav.closeMenu': 'Close menu',
+  'nav.backHome': 'Back',
 
   // Home
   'home.createRoom': 'Create Table',
@@ -91,7 +92,9 @@ export const en: Translations = {
   'home.footer.features': 'Features',
   'home.footer.langNote': 'English and Arabic — switch anytime in the header.',
   'home.footer.copyright': '© 2026 Jakaroo Online',
+  'home.footer.tagline': 'Private Jackaroo tables with Obaida Classic rules.',
   'home.explore.title': 'Learn more',
+  'home.explore.eyebrow': 'Discover',
   'home.explore.how.title': 'How It Works',
   'home.explore.how.desc': 'Create a table, invite friends, and play a full match.',
   'home.explore.features.title': 'Features',
@@ -101,6 +104,7 @@ export const en: Translations = {
   'home.explore.faq.title': 'FAQ',
   'home.explore.faq.desc': 'Guests, private hands, custom rules, and common questions.',
 
+  'pages.how.eyebrow': 'Getting started',
   'pages.how.title': 'How It Works',
   'pages.how.subtitle': 'From table code to winning move in five steps.',
   'pages.how.intro':
@@ -121,6 +125,7 @@ export const en: Translations = {
   'pages.how.step5.desc':
     'Move into home, protect your gate, and finish before the other side. Team mode wins when both partners finish.',
 
+  'pages.features.eyebrow': 'Product',
   'pages.features.title': 'Features',
   'pages.features.subtitle': 'Everything for a private Jackaroo night online.',
   'pages.features.intro':
@@ -139,7 +144,17 @@ export const en: Translations = {
     'Full RTL Arabic layout with one-click language switch in the header.',
   'pages.features.detail.players':
     'Premium board art with clear highlights for legal moves on desktop and mobile.',
+  'pages.features.group.private.title': 'Private Play',
+  'pages.features.group.private.desc':
+    'Password-protected tables and saved templates — your group, your rules.',
+  'pages.features.group.automation.title': 'Game Automation',
+  'pages.features.group.automation.desc':
+    'Obaida Classic logic handles burns, splits, captures, and turn sync for everyone.',
+  'pages.features.group.premium.title': 'Premium Experience',
+  'pages.features.group.premium.desc':
+    'Polished board art, bilingual UI, and mobile-friendly play from any browser.',
 
+  'pages.rules.eyebrow': 'Rulebook',
   'pages.rules.title': 'Obaida Classic Rules',
   'pages.rules.subtitle': '52 cards, no jokers — suits never change what a card does.',
   'pages.rules.intro':
@@ -151,9 +166,20 @@ export const en: Translations = {
   'pages.rules.basics.3': 'Burn, split-7, swap (Jack), and backward-4 follow Obaida Classic automation.',
   'pages.rules.cardsTitle': 'Card reference',
   'pages.rules.cardsLead': 'Quick summary by rank — open the full deck guide for details.',
+  'pages.rules.category.movement': 'Move',
+  'pages.rules.category.special': 'Special',
+  'pages.rules.category.split': 'Split',
+  'pages.rules.warnings.title': 'Critical rules to remember',
+  'pages.rules.warnings.0': 'Suits never change what a card does — only the rank matters.',
+  'pages.rules.warnings.1': 'Your hand stays hidden from everyone, including teammates.',
+  'pages.rules.warnings.2': 'Locked gates block entry until cleared; captures send marbles home.',
+  'pages.rules.ctaDeck': 'Show Full Deck Guide',
 
-  'pages.faq.title': 'FAQ',
-  'pages.faq.intro': 'Common questions about playing Jakaroo Online with friends.',
+  'pages.faq.eyebrow': 'Support',
+  'pages.faq.title': 'Common Questions',
+  'pages.faq.intro': 'Quick answers about playing Jakaroo Online with friends.',
+  'pages.faq.ctaTitle': 'Ready to play?',
+  'pages.faq.ctaLead': 'Create a private table or join with a code from your host.',
   'pages.faq.q.guest': 'Can I play as a guest?',
   'pages.faq.a.guest':
     'Yes. Continue as Guest from the home page or auth screen. You can sign up later to save templates and match history.',
@@ -181,6 +207,7 @@ export const en: Translations = {
 
   'nav.signup': 'Sign Up',
   'connection.roomLive': 'At the table',
+  'connection.connected': 'Connected',
 
   // Create Room
   'create.setupEyebrow': 'Private table setup',
@@ -294,6 +321,12 @@ export const en: Translations = {
   'game.split': 'Split 7',
   'game.confirm': 'Confirm',
   'game.cancel': 'Cancel',
+  'game.submittingMove': 'Submitting move…',
+  'game.moveRejectedStale':
+    'Move rejected because the table changed. Please try again.',
+  'game.handSyncFailed':
+    'Move was saved, but your hand could not sync. Refresh the table.',
+  'game.actionSummary': '{card} — {action}',
   'game.eventLog': 'Event Log',
   'game.discard': 'Discard Pile',
   'game.hand': 'Your Hand',
@@ -315,6 +348,9 @@ export const en: Translations = {
   'game.moreActions': '{count} more moves',
   'game.fewerActions': 'Show fewer moves',
   'game.noLegalForCard': 'No legal move with this card.',
+  'game.loadingLegalMoves': 'Loading legal moves…',
+  'game.step.loading_legal': 'Loading legal moves…',
+  'game.step.submitting': 'Submitting move…',
   'game.noLegalReason.allInBaseNoAceKing':
     'No legal move. Your marbles are still in base and none of these cards can bring one out.',
   'game.noLegalReason.startGateBlocked':
@@ -358,6 +394,7 @@ export const en: Translations = {
   'game.deckRemaining': 'Cards in deck: {count}',
   'game.discardPile': 'Discard',
   'game.discardTop': 'Top discard',
+  'game.discardEmpty': 'No discard yet',
   'game.leaveGame': 'Leave Game',
 
   // Voice (V1 mock UI)
@@ -649,6 +686,7 @@ export const ar: Translations = {
   'nav.guest': 'المتابعة كضيف',
   'nav.openMenu': 'فتح القائمة',
   'nav.closeMenu': 'إغلاق القائمة',
+  'nav.backHome': 'رجوع',
 
   // Home
   'home.createRoom': 'إنشاء طاولة',
@@ -706,7 +744,9 @@ export const ar: Translations = {
   'home.footer.features': 'المميزات',
   'home.footer.langNote': 'عربي وإنجليزي — بدّل في أي وقت من الشريط العلوي.',
   'home.footer.copyright': '© 2026 جاكارو أونلاين',
+  'home.footer.tagline': 'طاولات جاكارو خاصة بقواعد أوبيدا كلاسيك.',
   'home.explore.title': 'اعرف المزيد',
+  'home.explore.eyebrow': 'اكتشف',
   'home.explore.how.title': 'كيف تلعب',
   'home.explore.how.desc': 'أنشئ طاولة، ادعُ الأصدقاء، والعب مباراة كاملة.',
   'home.explore.features.title': 'المميزات',
@@ -716,6 +756,7 @@ export const ar: Translations = {
   'home.explore.faq.title': 'الأسئلة',
   'home.explore.faq.desc': 'الضيوف، الأوراق الخاصة، القواعد المخصصة، وأسئلة شائعة.',
 
+  'pages.how.eyebrow': 'البداية',
   'pages.how.title': 'كيف تلعب',
   'pages.how.subtitle': 'من رمز الطاولة إلى حركة الفوز في خمس خطوات.',
   'pages.how.intro':
@@ -734,6 +775,7 @@ export const ar: Translations = {
   'pages.how.step5.desc':
     'ادخل المنزل، احمِ بوابتك، وأنهِ قبل الطرف الآخر. في الفرق يفوز الشريكان معًا.',
 
+  'pages.features.eyebrow': 'المنتج',
   'pages.features.title': 'المميزات',
   'pages.features.subtitle': 'كل ما تحتاجه ليلة جاكارو خاصة على الإنترنت.',
   'pages.features.intro':
@@ -746,7 +788,14 @@ export const ar: Translations = {
   'pages.features.detail.custom': 'المضيف المسجل يحفظ قوالب؛ الضيوف يلعبون قواعد المضيف.',
   'pages.features.detail.lang': 'عربي RTL كامل مع تبديل لغة من الشريط العلوي.',
   'pages.features.detail.players': 'لوحة فاخرة مع تمييز واضح للحركات القانونية على الجوال.',
+  'pages.features.group.private.title': 'لعب خاص',
+  'pages.features.group.private.desc': 'طاولات بكلمة مرور وقوالب محفوظة — مجموعتك وقواعدك.',
+  'pages.features.group.automation.title': 'أتمتة اللعب',
+  'pages.features.group.automation.desc': 'منطق أوبيدا كلاسيك يدير الحرق والتقسيم والأكل والمزامنة.',
+  'pages.features.group.premium.title': 'تجربة فاخرة',
+  'pages.features.group.premium.desc': 'لوحة مصقولة، واجهة ثنائية اللغة، ولعب من أي متصفح.',
 
+  'pages.rules.eyebrow': 'دليل القواعد',
   'pages.rules.title': 'قواعد أوبيدا كلاسيك',
   'pages.rules.subtitle': '52 ورقة بدون جوكر — الشكل لا يغيّر فعل الورقة.',
   'pages.rules.intro':
@@ -758,9 +807,20 @@ export const ar: Translations = {
   'pages.rules.basics.3': 'الحرق وتقسيم 7 والتبديل والرجوع 4 تلقائية حسب أوبيدا كلاسيك.',
   'pages.rules.cardsTitle': 'مرجع الأوراق',
   'pages.rules.cardsLead': 'ملخص سريع لكل رتبة — افتح دليل المجموعة للتفاصيل.',
+  'pages.rules.category.movement': 'حركة',
+  'pages.rules.category.special': 'خاص',
+  'pages.rules.category.split': 'تقسيم',
+  'pages.rules.warnings.title': 'قواعد مهمة',
+  'pages.rules.warnings.0': 'الشكل لا يغيّر فعل الورقة — الرتبة فقط.',
+  'pages.rules.warnings.1': 'يدك مخفية عن الجميع بما فيهم الزميل.',
+  'pages.rules.warnings.2': 'البوابة المقفلة تمنع الدخول؛ الأكل يرجّع الرخام للبيت.',
+  'pages.rules.ctaDeck': 'عرض دليل المجموعة',
 
-  'pages.faq.title': 'الأسئلة الشائعة',
-  'pages.faq.intro': 'أسئلة شائعة عن اللعب مع الأصدقاء على جاكارو أونلاين.',
+  'pages.faq.eyebrow': 'الدعم',
+  'pages.faq.title': 'أسئلة شائعة',
+  'pages.faq.intro': 'إجابات سريعة عن اللعب مع الأصدقاء على جاكارو أونلاين.',
+  'pages.faq.ctaTitle': 'مستعد للعب؟',
+  'pages.faq.ctaLead': 'أنشئ طاولة خاصة أو انضم برمز من المضيف.',
   'pages.faq.q.guest': 'هل يمكن اللعب كضيف؟',
   'pages.faq.a.guest':
     'نعم. من الرئيسية أو شاشة الدخول. يمكنك التسجيل لاحقًا لحفظ القوالب والتاريخ.',
@@ -781,6 +841,7 @@ export const ar: Translations = {
 
   'nav.signup': 'إنشاء حساب',
   'connection.roomLive': 'على الطاولة',
+  'connection.connected': 'متصل',
 
   // Create Room
   'create.setupEyebrow': 'إعداد طاولة خاصة',
@@ -894,6 +955,12 @@ export const ar: Translations = {
   'game.split': 'تقسيم ٧',
   'game.confirm': 'تأكيد',
   'game.cancel': 'إلغاء',
+  'game.submittingMove': 'جاري إرسال الحركة…',
+  'game.moveRejectedStale':
+    'تم رفض الحركة لأن حالة الطاولة تغيرت. حاول مرة أخرى.',
+  'game.handSyncFailed':
+    'تم حفظ الحركة، لكن تعذّر مزامنة يدك. أعد تحميل الطاولة.',
+  'game.actionSummary': '{card} — {action}',
   'game.eventLog': 'سجل الأحداث',
   'game.discard': 'كومة المحروقات',
   'game.hand': 'أوراقك',
@@ -915,6 +982,9 @@ export const ar: Translations = {
   'game.moreActions': '{count} حركات إضافية',
   'game.fewerActions': 'عرض حركات أقل',
   'game.noLegalForCard': 'لا حركة قانونية بهذه الورقة.',
+  'game.loadingLegalMoves': 'جاري تحميل الحركات القانونية…',
+  'game.step.loading_legal': 'جاري تحميل الحركات القانونية…',
+  'game.step.submitting': 'جاري إرسال الحركة…',
   'game.noLegalReason.allInBaseNoAceKing':
     'لا حركة قانونية. كراتك في القاعدة ولا توجد ورقة آس أو ملك لإخراجها.',
   'game.noLegalReason.startGateBlocked':
@@ -958,6 +1028,7 @@ export const ar: Translations = {
   'game.deckRemaining': 'أوراق متبقية: {count}',
   'game.discardPile': 'المحروقات',
   'game.discardTop': 'آخر ورقة محروقة',
+  'game.discardEmpty': 'لا توجد محروقات بعد',
   'game.leaveGame': 'مغادرة اللعبة',
 
   // Voice (V1 mock UI)

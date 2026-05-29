@@ -14,12 +14,16 @@ export function HomeExploreLinks() {
 
   return (
     <section className="home-explore">
+      <p className="home-explore__eyebrow">{t('home.explore.eyebrow')}</p>
       <h2 className="home-explore__title">{t('home.explore.title')}</h2>
       <div className="home-explore__grid">
         {LINKS.map(({ to, titleKey, descKey }) => (
           <Link key={to} to={to} className="home-explore__card">
             <h3 className="home-explore__card-title">{t(titleKey)}</h3>
             <p className="home-explore__card-desc">{t(descKey)}</p>
+            <span className="home-explore__card-arrow" aria-hidden="true">
+              →
+            </span>
           </Link>
         ))}
       </div>

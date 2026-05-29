@@ -22,6 +22,8 @@ function GamePageContent() {
     myHand,
     legalActions,
     isMyTurn,
+    legalMovesReady,
+    isSubmittingAction,
     myPlayer,
     submitAction,
     error: gameError,
@@ -91,7 +93,9 @@ function GamePageContent() {
         playerId={playerId}
         myHand={myHand}
         legalActions={legalActions}
+        legalMovesReady={legalMovesReady}
         isMyTurn={isMyTurn}
+        isSubmittingAction={isSubmittingAction}
         onSubmitAction={submitAction}
         onLeave={handleLeaveGame}
         leaveBusy={leaveBusy}

@@ -3,13 +3,22 @@ import { PlayPresentation } from './presentActions';
 /** Uno/Ludo-style guided steps — UI only. */
 export type PlayStepId =
   | 'wait'
+  | 'loading_legal'
+  | 'submitting'
   | 'select_card'
   | 'choose_action'
   | 'discard_all'
   | 'skip_turn';
 
-export function getPlayStep(isMyTurn: boolean, view: PlayPresentation): PlayStepId {
+export function getPlayStep(
+  isMyTurn: boolean,
+  view: PlayPresentation,
+  legalMovesReady: boolean,
+  isSubmitting = false
+): PlayStepId {
   if (!isMyTurn) return 'wait';
+  if (isSubmitting) return 'submitting';
+  if (!legalMovesReady) return 'loading_legal';
   switch (view.kind) {
     case 'skip':
       return 'skip_turn';

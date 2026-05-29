@@ -29,6 +29,24 @@ export function PlayStepBar({ step }: PlayStepBarProps) {
     );
   }
 
+  if (step === 'loading_legal') {
+    return (
+      <div className="play-step-bar play-step-bar--wait">
+        <span className="play-step-bar__pulse" aria-hidden />
+        <p>{t('game.loadingLegalMoves')}</p>
+      </div>
+    );
+  }
+
+  if (step === 'submitting') {
+    return (
+      <div className="play-step-bar play-step-bar--wait">
+        <span className="play-step-bar__pulse" aria-hidden />
+        <p>{t('game.submittingMove')}</p>
+      </div>
+    );
+  }
+
   const activeIndex = step === 'select_card' ? 0 : 1;
 
   return (

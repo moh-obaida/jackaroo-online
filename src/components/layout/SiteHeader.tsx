@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { logOut } from '../../lib/firebase/auth';
+import { formatTableCode } from '../../lib/player/displayName';
 import { JakarooIcon } from '../brand/JakarooIcon';
 import { JakarooWordmark } from '../brand/JakarooWordmark';
 import { ConnectionBar } from '../ui/ConnectionBar';
@@ -11,7 +12,6 @@ type NavKey = 'play' | 'how' | 'features' | 'rules' | 'faq' | 'login' | 'signup'
 type NavItem = {
   key: NavKey;
   path: string;
-  /** Show only when logged out */
   guestOnly?: boolean;
 };
 
@@ -39,6 +39,12 @@ function navItemActive(pathname: string, search: string, itemPath: string): bool
   return true;
 }
 
+function roomCodeFromPath(pathname: string): string | null {
+  const match = pathname.match(/^\/(?:lobby|game)\/([^/]+)/);
+  const code = match?.[1]?.trim();
+  return code || null;
+}
+
 export function SiteHeader() {
   const { t, language, setLanguage, theme, setTheme, user, isAuthenticated, isGuestUser } = useApp();
   const navigate = useNavigate();
@@ -49,6 +55,7 @@ export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const onRoomRoute = /^\/(lobby|game)\//.test(location.pathname);
+  const roomCode = roomCodeFromPath(location.pathname);
   const showCreateCta = !CREATE_CTA_HIDDEN.has(location.pathname) && !onRoomRoute;
   const displayName = user?.displayName || (isGuestUser ? 'Guest' : '');
 
@@ -72,7 +79,7 @@ export function SiteHeader() {
   }, [location.pathname, location.search, closeMenu]);
 
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!menuOpen || onRoomRoute) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -98,7 +105,7 @@ export function SiteHeader() {
       document.removeEventListener('keydown', onKeyDown);
       document.removeEventListener('pointerdown', onPointerDown);
     };
-  }, [menuOpen, closeMenu]);
+  }, [menuOpen, closeMenu, onRoomRoute]);
 
   const renderLanguageTheme = (compact = false) => (
     <div
@@ -127,25 +134,32 @@ export function SiteHeader() {
     </div>
   );
 
-  const renderAuthActions = (variant: 'desktop' | 'mobile') => {
-    if (!isAuthenticated) return null;
-
+  if (onRoomRoute) {
     return (
-      <>
-        {displayName && variant === 'desktop' && (
-          <span className="site-header__user" title={displayName}>
-            {displayName}
-          </span>
-        )}
-        <Link to="/profile" className="site-header__action-link" onClick={closeMenu}>
-          {t('nav.profile')}
-        </Link>
-        <button type="button" onClick={handleLogout} className="site-header__action-btn">
-          {t('nav.logout')}
-        </button>
-      </>
+      <header className="site-header site-header--room">
+        <div className="site-header__inner site-header__inner--room">
+          <Link to="/" className="site-header__brand" aria-label={t('app.name')}>
+            <JakarooIcon size="md" className="site-header__icon" decorative />
+            <JakarooWordmark variant="header" decorative className="site-header__wordmark" />
+          </Link>
+
+          {roomCode && (
+            <p className="site-header__room-code font-brand tabular-nums truncate" title={roomCode}>
+              {formatTableCode(roomCode)}
+            </p>
+          )}
+
+          <div className="site-header__end site-header__end--room">
+            <ConnectionBar />
+            {renderLanguageTheme(true)}
+            <Link to="/" className="site-header__room-back">
+              {t('nav.backHome')}
+            </Link>
+          </div>
+        </div>
+      </header>
     );
-  };
+  }
 
   return (
     <header className="site-header">
@@ -168,8 +182,6 @@ export function SiteHeader() {
         </nav>
 
         <div className="site-header__end">
-          {onRoomRoute && <ConnectionBar />}
-
           {showCreateCta && (
             <Link to="/create" className="site-header__cta">
               {t('nav.createTable')}
@@ -178,7 +190,21 @@ export function SiteHeader() {
 
           <div className="site-header__actions site-header__actions--desktop">
             {renderLanguageTheme()}
-            {renderAuthActions('desktop')}
+            {isAuthenticated && (
+              <>
+                {displayName && (
+                  <span className="site-header__user" title={displayName}>
+                    {displayName}
+                  </span>
+                )}
+                <Link to="/profile" className="site-header__action-link" onClick={closeMenu}>
+                  {t('nav.profile')}
+                </Link>
+                <button type="button" onClick={handleLogout} className="site-header__action-btn">
+                  {t('nav.logout')}
+                </button>
+              </>
+            )}
           </div>
 
           <div className="site-header__mobile-tools">
@@ -237,7 +263,16 @@ export function SiteHeader() {
                   </Link>
                 </li>
               ))}
-              <li className="site-header__mobile-auth">{renderAuthActions('mobile')}</li>
+              {isAuthenticated && (
+                <li className="site-header__mobile-auth">
+                  <Link to="/profile" className="site-header__mobile-link" onClick={closeMenu}>
+                    {t('nav.profile')}
+                  </Link>
+                  <button type="button" onClick={handleLogout} className="site-header__action-btn">
+                    {t('nav.logout')}
+                  </button>
+                </li>
+              )}
             </ul>
           </nav>
         </div>
