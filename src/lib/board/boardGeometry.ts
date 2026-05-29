@@ -207,7 +207,7 @@ function nestAndBase(f: PerimeterFrame): {
   nestCenter: Record<PlayerColor, BoardPoint>;
   base: Record<PlayerColor, BoardPoint[]>;
 } {
-  const spread = f.hw * 0.048;
+  const spread = f.hw * 0.052;
   const nests: Record<PlayerColor, BoardPoint> = {
     black: lerpPt(f.gateBlack, f.vTL, 0.42),
     green: lerpPt(
@@ -246,8 +246,8 @@ function homePaths(f: PerimeterFrame): {
   vNotch: Record<PlayerColor, BoardPoint>;
 } {
   const { c } = f;
-  const step = f.hw * 0.1;
-  const inward = 20;
+  const step = f.hw * 0.098;
+  const inward = 26;
 
   const vNotch: Record<PlayerColor, BoardPoint> = {
     black: f.topMid,
@@ -340,6 +340,27 @@ export function marbleToPoint(
   layout = getBoardLayout()
 ): BoardPoint | null {
   return boardPositionToPoint(marble.position, layout);
+}
+
+/** SVG polyline for one color's outer track section (gate + 18 track holes). */
+export function trackSectionPolyline(layout: BoardLayout, sectionIndex: number): string {
+  const perSection = TRACK_LENGTH + 1;
+  const start = sectionIndex * perSection;
+  const pts = layout.outerTrack.slice(start, start + perSection);
+  return pts.map((p) => `${p.x},${p.y}`).join(' ');
+}
+
+/** All four track section polylines (for carved channel strokes). */
+export function trackSectionPolylines(layout: BoardLayout): string[] {
+  return [0, 1, 2, 3].map((s) => trackSectionPolyline(layout, s));
+}
+
+/** Home lane from V-notch through home holes toward center. */
+export function homeLanePolyline(layout: BoardLayout, color: PlayerColor): string {
+  const notch = layout.vNotch[color];
+  const homes = layout.home[color];
+  if (!notch || !homes?.length) return '';
+  return [notch, ...homes].map((p) => `${p.x},${p.y}`).join(' ');
 }
 
 export function octagonOutlinePoints(layout: BoardLayout, inset = 0): string {
