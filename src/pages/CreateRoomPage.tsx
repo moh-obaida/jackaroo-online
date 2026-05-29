@@ -14,8 +14,7 @@ import {
   DEFAULT_CUSTOM_RULES,
 } from '../types/game';
 import { PageFrame } from '../components/ui/PageFrame';
-import { Panel } from '../components/ui/Panel';
-import { FormField, TextInput, SelectInput } from '../components/ui/FormField';
+import { FormField, TextInput } from '../components/ui/FormField';
 import { Alert } from '../components/ui/Alert';
 import { validateDisplayName } from '../lib/player/displayName';
 
@@ -25,9 +24,13 @@ const MODES: { value: GameMode; key: '2p' | '3p' | '4p'; seats: number }[] = [
   { value: '4p_teams', key: '4p', seats: 4 },
 ];
 
+function fallbackText(value: string, fallback: string) {
+  return value.includes('.') ? fallback : value;
+}
+
 function SeatDiagram({ mode }: { mode: '2p' | '3p' | '4p' }) {
   return (
-    <div className={`seat-diagram diagram-${mode}`}>
+    <div className={`seat-diagram diagram-${mode}`} aria-hidden>
       <span /><span /><span /><span />
     </div>
   );
@@ -42,14 +45,15 @@ export function CreateRoomPage() {
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState<GameMode>('4p_teams');
   const [rulesetType, setRulesetType] = useState<RulesetType>('obaida_classic');
-  const [botsEnabled, setBotsEnabled] = useState(false);
-  const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>('very_easy');
+  const [botsEnabled] = useState(false);
+  const [botDifficulty] = useState<BotDifficulty>('very_easy');
   const [customTemplates, setCustomTemplates] = useState<Record<string, CustomRulesConfig>>({});
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const activeModeKey = mode === '2p_solo' ? '2p' : mode === '3p_solo' ? '3p' : '4p';
+  const label = (key: string, fallback: string) => fallbackText(t(key), fallback);
 
   React.useEffect(() => {
     if (rulesetType !== 'custom' || !user || isGuestUser) return;
@@ -80,7 +84,7 @@ export function CreateRoomPage() {
     }
 
     if (!firebaseReady) {
-      setError('Firebase is not configured.');
+      setError(t('game.firebaseMissingMessage'));
       return;
     }
 
@@ -134,7 +138,7 @@ export function CreateRoomPage() {
       bindRoomFromRoute(code, { allowRejoin: true });
       navigate(`/lobby/${code}`);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create room';
+      const message = err instanceof Error ? err.message : 'Failed to create table';
       setError(message);
     } finally {
       setLoading(false);
@@ -142,127 +146,102 @@ export function CreateRoomPage() {
   };
 
   return (
-    <PageFrame variant="form">
-      <main className="setup-page p-0">
-        <div className="setup-card border-0 shadow-none bg-transparent p-0">
-          <Link to="/" className="text-gold-400 hover:text-gold-300 mb-4 inline-block text-sm">
-            ← {t('general.back') || 'Back'}
-          </Link>
-          <h1 className="text-3xl md:text-4xl font-bold text-gold-300 mb-2">
-            {t('create.title')}
-          </h1>
-          <p className="text-cream-200/60 mb-8">
-            Set up your private Jackaroo table.
-          </p>
+    <PageFrame variant="form" className="create-page-frame">
+      <main className="create-table-page">
+        <Link to="/" className="create-back-link">
+          ← {t('general.back')}
+        </Link>
 
-          <form onSubmit={handleSubmit} className="setup-grid">
-            <div className="setup-preview">
-              <SeatDiagram mode={activeModeKey} />
-              <p className="mt-4 text-sm text-cream-200/80">
-                {t(`create.modeHelp.${activeModeKey}`)}
-              </p>
+        <header className="create-page-header">
+          <p className="create-eyebrow">{label('create.setupEyebrow', 'Private table setup')}</p>
+          <h1>{t('create.title')}</h1>
+          <p>{label('create.subtitle', 'Choose your table access, player count, and ruleset.')}</p>
+        </header>
+
+        <form onSubmit={handleSubmit} className="create-form-stack">
+          <section className="create-section-card">
+            <h2>{label('create.identity', 'Player Identity')}</h2>
+            <FormField label={t('create.name')}>
+              <TextInput
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('create.namePlaceholder')}
+                maxLength={20}
+              />
+            </FormField>
+          </section>
+
+          <section className="create-section-card">
+            <h2>{label('create.access', 'Private Table Access')}</h2>
+            <FormField label={t('create.password')} hint={t('create.passwordHelp')}>
+              <TextInput
+                type="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t('create.passwordPlaceholder')}
+                maxLength={30}
+              />
+            </FormField>
+          </section>
+
+          <section className="create-section-card create-section-card--mode">
+            <div className="create-section-heading-row">
+              <h2>{t('create.mode')}</h2>
+              <p>{t(`create.modeHelp.${activeModeKey}`)}</p>
             </div>
+            <div className="mode-grid mode-grid--safe">
+              {MODES.map(({ value, key }) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`mode-card mode-card--safe ${mode === value ? 'active' : ''}`}
+                  onClick={() => setMode(value)}
+                >
+                  <SeatDiagram mode={key} />
+                  <strong>{t(`create.mode.${key}`)}</strong>
+                  <small>{t(`create.modeHelp.${key}`)}</small>
+                </button>
+              ))}
+            </div>
+          </section>
 
-            <div className="setup-fields">
-              <fieldset>
-                <legend>{t('create.identity') || 'Player Identity'}</legend>
-                <FormField label={t('create.name')}>
-                  <TextInput
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder={t('create.namePlaceholder')}
-                    maxLength={20}
-                  />
-                </FormField>
-              </fieldset>
-
-              <fieldset>
-                <legend>{t('create.access') || 'Private Table Access'}</legend>
-                <FormField label={t('create.password')} hint={t('create.passwordHelp')}>
-                  <TextInput
-                    type="password"
-                    autoComplete="new-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={t('create.passwordPlaceholder')}
-                    maxLength={30}
-                  />
-                </FormField>
-              </fieldset>
-
-              <fieldset>
-                <legend>{t('create.mode')}</legend>
-                <div className="mode-grid">
-                  {MODES.map(({ value, key }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      className={`mode-card ${mode === value ? 'active' : ''}`}
-                      onClick={() => setMode(value)}
-                    >
-                      <SeatDiagram mode={key} />
-                      <strong className="mt-2">{t(`create.mode.${key}`)}</strong>
-                      <small className="text-[10px] opacity-60">{t(`create.modeHelp.${key}`)}</small>
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-
-              <fieldset>
-                <legend>{t('create.ruleset')}</legend>
-                <div className="ruleset-card-donor">
-                  <div className="flex items-center justify-between mb-3">
-                    <button
-                      type="button"
-                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                        rulesetType === 'obaida_classic' 
-                          ? 'bg-gold-500 text-board-dark shadow-lg shadow-gold-500/20' 
-                          : 'bg-black/20 text-cream-200/60 hover:bg-black/40'
-                      }`}
-                      onClick={() => setRulesetType('obaida_classic')}
-                    >
-                      {t('create.ruleset.classic')}
-                    </button>
-                    <button
-                      type="button"
-                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                        rulesetType === 'custom' 
-                          ? 'bg-gold-500 text-board-dark shadow-lg shadow-gold-500/20' 
-                          : 'bg-black/20 text-cream-200/60 hover:bg-black/40'
-                      }`}
-                      onClick={() => setRulesetType('custom')}
-                    >
-                      {t('create.ruleset.custom')}
-                    </button>
-                  </div>
-                  
-                  <div className="p-3 bg-black/20 rounded-xl border border-white/5">
-                    <p className="text-xs text-cream-200/70 leading-relaxed">
-                      {rulesetType === 'obaida_classic' 
-                        ? t('create.rulesetHelp.classic')
-                        : t('create.rulesetHelp.custom')}
-                    </p>
-                  </div>
-                </div>
-              </fieldset>
-
-              {error && (
-                <Alert variant="error" className="rounded-xl text-left text-sm">
-                  {error}
-                </Alert>
-              )}
-
-              <button 
-                type="submit" 
-                className="btn-game-primary w-full py-4 text-lg mt-4" 
-                disabled={loading}
+          <section className="create-section-card">
+            <h2>{t('create.ruleset')}</h2>
+            <div className="ruleset-toggle-row">
+              <button
+                type="button"
+                className={rulesetType === 'obaida_classic' ? 'active' : ''}
+                onClick={() => setRulesetType('obaida_classic')}
               >
-                {loading ? t('general.loading') : t('create.submitTable')}
+                {t('create.ruleset.classic')}
+              </button>
+              <button
+                type="button"
+                className={rulesetType === 'custom' ? 'active' : ''}
+                onClick={() => setRulesetType('custom')}
+              >
+                {t('create.ruleset.custom')}
               </button>
             </div>
-          </form>
-        </div>
+            <p className="create-rules-help">
+              {rulesetType === 'obaida_classic'
+                ? t('create.rulesetHelp.classic')
+                : t('create.rulesetHelp.custom')}
+            </p>
+          </section>
+
+          {error && (
+            <Alert variant="error" className="rounded-xl text-left text-sm">
+              {error}
+            </Alert>
+          )}
+
+          <button type="submit" className="btn-game-primary create-submit-button" disabled={loading}>
+            {loading ? t('general.loading') : t('create.submitTable')}
+          </button>
+        </form>
       </main>
     </PageFrame>
   );
