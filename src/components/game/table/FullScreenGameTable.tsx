@@ -129,7 +129,6 @@ export function FullScreenGameTable({
         onLeave={onLeave}
         leaveBusy={leaveBusy}
         myColor={currentPlayer?.color ?? null}
-        onShowDeckGuide={() => setDeckGuideOpen(true)}
       />
 
       {(gameError || leaveWarning) && (
@@ -151,6 +150,7 @@ export function FullScreenGameTable({
             onPositionClick={boardPlay.handlePositionClick}
             isMyTurn={isMyTurn}
             getVoiceStatus={voice.getParticipantStatus}
+            onShowDeckGuide={() => setDeckGuideOpen(true)}
           />
         </div>
 

@@ -132,7 +132,9 @@ export function ImageMappedBoardVisual({
   const { t } = useApp();
   const [imageFailed, setImageFailed] = useState(false);
   const pid = idPrefix;
-  const calibrationEnabled = import.meta.env.VITE_BOARD_CALIBRATION === '1';
+  const calibrationEnabled =
+    import.meta.env.VITE_BOARD_CALIBRATION === '1' ||
+    import.meta.env.VITE_ENABLE_BOARD_CALIBRATION === 'true';
 
   const active = activeColors ?? new Set(COLORS_ORDER);
 

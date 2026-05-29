@@ -10,7 +10,7 @@ type BoardCalibrationOverlayProps = {
   positions: BoardPosition[];
 };
 
-/** Dev-only overlay — shows mapped points when VITE_BOARD_CALIBRATION=1. */
+/** Dev-only overlay — VITE_BOARD_CALIBRATION=1 or VITE_ENABLE_BOARD_CALIBRATION=true */
 export function BoardCalibrationOverlay({ positions }: BoardCalibrationOverlayProps) {
   return (
     <g className="board-calibration-overlay" pointerEvents="none">

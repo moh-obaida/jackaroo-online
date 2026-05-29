@@ -117,6 +117,13 @@ export function getImagePointForBoardPosition(position: BoardPosition): BoardIma
   return layoutPointToPercent(pt);
 }
 
+/** Canonical visual lookup — percentage coords (0–100) on the board image. */
+export function getBoardVisualPoint(position: BoardPosition): { xPercent: number; yPercent: number } | null {
+  const pt = getImagePointForBoardPosition(position);
+  if (!pt) return null;
+  return { xPercent: pt.x, yPercent: pt.y };
+}
+
 /** All logical positions for calibration/debug overlays. */
 export function getAllBoardPositions(activeColors: Set<PlayerColor>): BoardPosition[] {
   const out: BoardPosition[] = [];

@@ -78,7 +78,7 @@ export function PlayActionSheet({
     <Button
       key={`${action.type}_${action.cardId}_${action.description}`}
       variant={variant}
-      size="lg"
+      size="md"
       fullWidth
       disabled={busy}
       onClick={() => run(action)}
@@ -88,7 +88,7 @@ export function PlayActionSheet({
     </Button>
   );
 
-  const renderConfirmSummary = (action: LegalAction) => (
+  const renderConfirmSummary = (action: LegalAction, confirmLabel?: string) => (
     <div className="play-sheet__summary">
       <p className="play-sheet__summary-text">
         {t('game.actionSummary', {
@@ -97,8 +97,8 @@ export function PlayActionSheet({
         })}
       </p>
       <div className="play-sheet__summary-actions">
-        <Button variant="primary" size="lg" fullWidth disabled={busy} onClick={() => run(action)}>
-          {busy ? t('game.submittingMove') : t('game.confirm')}
+        <Button variant="primary" size="md" fullWidth disabled={busy} onClick={() => run(action)}>
+          {busy ? t('game.submittingMove') : confirmLabel ?? t('game.confirm')}
         </Button>
         {onClearCard && (
           <Button variant="ghost" size="sm" fullWidth disabled={busy} onClick={() => onClearCard()}>
@@ -106,6 +106,25 @@ export function PlayActionSheet({
           </Button>
         )}
       </div>
+    </div>
+  );
+
+  const renderNoLegalPanel = (action: LegalAction) => (
+    <div className="play-sheet__no-legal">
+      <p className="play-sheet__no-legal-title">{t('game.step.discard_all')}</p>
+      {noLegalReasonKey && (
+        <p className="play-sheet__no-legal-reason">{t(noLegalReasonKey)}</p>
+      )}
+      <Button
+        variant="primary"
+        size="md"
+        fullWidth
+        disabled={busy}
+        onClick={() => run(action)}
+        className="play-sheet__no-legal-btn"
+      >
+        {busy ? t('game.submittingMove') : t('game.burnAll')}
+      </Button>
     </div>
   );
 
@@ -124,14 +143,7 @@ export function PlayActionSheet({
       )}
 
       {view.kind === 'skip' && legalMovesReady && renderConfirmSummary(view.action)}
-      {view.kind === 'burn_all' && legalMovesReady && (
-        <>
-          {noLegalReasonKey && (
-            <p className="play-sheet__hint play-sheet__hint--reason">{t(noLegalReasonKey)}</p>
-          )}
-          {renderConfirmSummary(view.action)}
-        </>
-      )}
+      {view.kind === 'burn_all' && legalMovesReady && renderNoLegalPanel(view.action)}
 
       {view.kind === 'play_card' && legalMovesReady && (
         <>

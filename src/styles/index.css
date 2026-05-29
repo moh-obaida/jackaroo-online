@@ -1230,40 +1230,55 @@
   }
 
   .table-play-area-wrap {
-    @apply relative px-2 sm:px-3 pt-1 pb-1 flex-1 min-h-0 flex items-center justify-center overflow-visible;
+    @apply relative px-2 sm:px-3 pt-2 pb-1 flex-1 min-h-0 flex items-center justify-center overflow-hidden;
   }
 
+  /* Gameplay table — board centered, deck rail beside (never overlapping holes) */
   .table-play-area {
-    @apply relative w-full mx-auto flex items-center justify-center overflow-visible;
-    width: min(100%, 40rem);
-    aspect-ratio: 1;
-    max-height: min(calc(100dvh - 17rem), 92vw, 40rem);
+    @apply relative w-full mx-auto flex flex-col items-stretch justify-center overflow-visible;
+    width: min(100%, 44rem);
+    max-height: min(calc(100dvh - 12.5rem), 88vw, 42rem);
+    min-height: 0;
   }
 
+  .table-play-area__layout {
+    @apply relative flex flex-col items-stretch gap-2 w-full min-h-0 flex-1;
+  }
+
+  .table-play-area__stage {
+    @apply relative flex-1 min-h-0 min-w-0 flex items-center justify-center;
+    aspect-ratio: 1;
+    max-height: min(calc(100dvh - 14rem), 88vw, 40rem);
+  }
+
+  .table-play-area__deck-rail {
+    @apply jkr-layer-hud shrink-0 flex justify-center items-center px-1 py-0.5 rounded-lg border border-wood-900/40 bg-black/25;
+  }
+
+  @media (min-width: 640px) {
+    .table-play-area__layout {
+      @apply flex-row items-center gap-3;
+    }
+
+    .table-play-area__deck-rail {
+      @apply flex-col justify-center self-center py-2 px-1.5 max-w-[4.5rem];
+    }
+  }
+
+  /* Subtle rim only — avoids empty green side panels */
   .table-play-area__felt {
-    @apply absolute inset-[-8%] rounded-[2rem] jkr-layer-under-felt;
+    @apply absolute inset-0 rounded-[1.25rem] jkr-layer-under-felt pointer-events-none opacity-30;
     background:
-      radial-gradient(ellipse 70% 60% at 50% 45%, rgba(34, 100, 62, 0.5), transparent 70%),
-      repeating-linear-gradient(
-        125deg,
-        rgba(0, 0, 0, 0.04) 0px,
-        rgba(0, 0, 0, 0.04) 2px,
-        transparent 2px,
-        transparent 6px
-      ),
-      linear-gradient(165deg, #1a5c38 0%, #0f3320 45%, #0a2418 100%);
-    box-shadow:
-      inset 0 0 80px rgba(0, 0, 0, 0.45),
-      0 0 0 4px #3d2810,
-      0 0 0 8px rgba(0, 0, 0, 0.5);
+      radial-gradient(ellipse 55% 50% at 50% 50%, rgba(34, 100, 62, 0.35), transparent 72%);
+    box-shadow: inset 0 0 0 1px rgba(61, 40, 16, 0.35);
   }
 
   .table-play-area__seats {
-    @apply absolute inset-0 jkr-layer-seat;
+    @apply absolute inset-0 jkr-layer-seat z-[1];
   }
 
   .table-play-area__board {
-    @apply relative jkr-layer-board w-full max-w-full mx-auto overflow-visible;
+    @apply relative jkr-layer-board w-full h-full max-w-full max-h-full mx-auto overflow-visible z-[2];
   }
 
   .deck-discard-strip {
@@ -1271,7 +1286,7 @@
   }
 
   .deck-discard-strip--compact {
-    @apply gap-2 py-0.5;
+    @apply gap-1.5 py-0 flex-col sm:flex-col items-center;
   }
 
   .deck-discard-strip__count {
@@ -1295,11 +1310,11 @@
   }
 
   .deck-discard-strip__guide {
-    @apply btn-ghost text-[10px] px-2 py-1 ms-auto shrink-0;
+    @apply btn-ghost text-[9px] px-1.5 py-1 min-h-[2.75rem] shrink-0 leading-tight;
   }
 
   .deck-pile-icon--compact {
-    @apply w-6 h-8;
+    @apply w-5 h-7;
   }
 
   .board-wood-rim {
@@ -1344,8 +1359,8 @@
   }
 
   .game-table-hud {
-    @apply font-heading jkr-layer-hud grid grid-cols-[1fr_auto_auto] items-center gap-x-2 gap-y-1 px-3 py-1.5 shrink-0 border-b border-wood-900/50;
-    grid-template-rows: auto auto;
+    @apply font-heading jkr-layer-hud grid grid-cols-[1fr_auto_auto] items-center gap-x-2 gap-y-0 px-3 py-1.5 shrink-0 border-b border-wood-900/50;
+    grid-template-rows: auto;
     background: linear-gradient(180deg, rgba(20, 14, 8, 0.92) 0%, rgba(12, 9, 6, 0.75) 100%);
   }
 
@@ -1531,8 +1546,8 @@
     @apply jkr-layer-hand shrink-0 border-t-2 border-wood-800/80;
     background: linear-gradient(0deg, #0a0806 0%, rgba(15, 51, 32, 0.35) 40%, rgba(8, 6, 4, 0.95) 100%);
     box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.55);
-    padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
-    max-height: min(42vh, 18rem);
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+    max-height: min(38vh, 16rem);
   }
 
   .game-hand-rail__top {
@@ -1587,19 +1602,19 @@
   }
 
   .hand-dock-panel__actions {
-    @apply rounded-xl border border-wood-800/50 bg-black/35 px-2 py-1.5 mt-0.5;
+    @apply rounded-xl border border-wood-800/50 bg-black/35 px-2 py-1.5 mt-1;
   }
 
   .play-action-btn {
-    @apply text-base font-bold py-3.5 shadow-lg;
+    @apply text-sm font-bold py-2.5 min-h-[2.75rem] shadow-md;
   }
 
   .play-action-btn--alt {
-    @apply text-sm font-medium py-2.5 opacity-90;
+    @apply text-xs font-medium py-2 min-h-[2.75rem] opacity-90;
   }
 
   .play-step-bar {
-    @apply text-center mb-2;
+    @apply text-center mb-1;
   }
 
   .play-step-bar__label {
@@ -1665,7 +1680,19 @@
   }
 
   .table-seat__name {
-    @apply text-[11px] font-bold text-cream-100 truncate max-w-[5.5rem];
+    @apply text-[11px] font-bold text-cream-100 truncate max-w-[6.5rem] sm:max-w-[7.5rem];
+  }
+
+  .table-seat--compact .table-seat__name {
+    @apply max-w-[4.5rem] text-[10px];
+  }
+
+  .table-seat--compact .table-seat__rim {
+    @apply px-1.5 py-0.5 gap-1;
+  }
+
+  .table-seat--compact .table-seat__meta {
+    @apply text-[8px];
   }
 
   .table-seat__meta {
@@ -1721,7 +1748,43 @@
   }
 
   .play-sheet {
-    @apply space-y-2 mt-2;
+    @apply space-y-1.5 mt-1;
+  }
+
+  .play-sheet--busy {
+    @apply opacity-90;
+  }
+
+  .play-sheet__submitting {
+    @apply text-xs text-gold-300/90 text-center font-medium py-1;
+  }
+
+  .play-sheet__summary {
+    @apply rounded-lg border border-gold-500/30 bg-black/40 px-2 py-1.5 space-y-1.5;
+  }
+
+  .play-sheet__summary-text {
+    @apply text-xs text-cream-100 text-center font-medium m-0 leading-snug;
+  }
+
+  .play-sheet__summary-actions {
+    @apply flex flex-col gap-1;
+  }
+
+  .play-sheet__no-legal {
+    @apply rounded-lg border border-amber-600/35 bg-black/45 px-2 py-2 space-y-1;
+  }
+
+  .play-sheet__no-legal-title {
+    @apply text-xs font-semibold text-amber-200/95 text-center m-0;
+  }
+
+  .play-sheet__no-legal-reason {
+    @apply text-[11px] text-cream-200/65 text-center m-0 leading-snug truncate;
+  }
+
+  .play-sheet__no-legal-btn {
+    @apply min-h-[2.75rem] mt-0.5;
   }
 
   .play-sheet--busy {
