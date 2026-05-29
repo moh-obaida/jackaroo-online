@@ -33,6 +33,13 @@ export function TablePlayArea({
   onShowDeckGuide,
   getVoiceStatus,
 }: TablePlayAreaProps) {
+  const boardRimClass =
+    import.meta.env.VITE_BOARD_PROCEDURAL === '1'
+      ? 'board-wood-rim board-wood-rim--hero'
+      : import.meta.env.VITE_BOARD_PHYSICAL === '1'
+        ? 'board-wood-rim board-wood-rim--photo'
+        : 'board-wood-rim board-wood-rim--image';
+
   return (
     <div className="table-play-area">
       <div className="table-play-area__felt" aria-hidden />
@@ -44,13 +51,7 @@ export function TablePlayArea({
         />
       </div>
       <div className="table-play-area__board">
-        <div
-          className={
-            import.meta.env.VITE_BOARD_PROCEDURAL === '1'
-              ? 'board-wood-rim board-wood-rim--hero'
-              : 'board-wood-rim board-wood-rim--photo'
-          }
-        >
+        <div className={boardRimClass}>
           <GameBoard
             gameState={gameState}
             selectedCardId={selectedCardId}

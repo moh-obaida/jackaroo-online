@@ -1,6 +1,7 @@
 // Obaida Classic card reference — UI copy keys only (no deck order).
 
 import { CardRank } from '../../types/game';
+import { getCardCenterValue as getFaceCenterValue } from './cardFaceContent';
 
 export const CARD_GUIDE_ORDER: CardRank[] = [
   'A',
@@ -20,20 +21,7 @@ export const CARD_GUIDE_ORDER: CardRank[] = [
 
 /** Large center value shown on the card face (Jackaroo style). */
 export function getCardCenterValue(rank: CardRank): string {
-  switch (rank) {
-    case 'A':
-      return 'A';
-    case 'K':
-      return '13';
-    case 'Q':
-      return '12';
-    case 'J':
-      return 'J';
-    case '10':
-      return '10';
-    default:
-      return rank;
-  }
+  return getFaceCenterValue(rank, 'guide');
 }
 
 /** i18n key for short action hint under the card in hand. */

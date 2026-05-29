@@ -4,12 +4,9 @@ import { useApp } from '../context/AppContext';
 import { signInAsGuest } from '../lib/firebase/auth';
 import { PageFrame } from '../components/ui/PageFrame';
 import { Alert } from '../components/ui/Alert';
-import { JakarooIcon } from '../components/brand/JakarooIcon';
-import { JakarooWordmark } from '../components/brand/JakarooWordmark';
 import { JackarooBoardPreview } from '../components/home/JackarooBoardPreview';
-import { HomeFeatureIcon, HomeFeatureKey } from '../components/home/HomeFeatureIcon';
-
-const FEATURES: HomeFeatureKey[] = ['tables', 'classic', 'players', 'lang', 'turns', 'custom'];
+import { HomeExploreLinks } from '../components/marketing/HomeExploreLinks';
+import { MarketingFooter } from '../components/marketing/MarketingFooter';
 
 export function HomePage() {
   const { t, user, firebaseReady, isGuestUser } = useApp();
@@ -23,6 +20,10 @@ export function HomePage() {
 
   const displayName =
     user?.displayName || (isGuestUser ? 'Guest' : user?.email?.split('@')[0]) || 'Player';
+
+  const brandParts = t('app.name').trim().split(/\s+/);
+  const titlePrimary = brandParts[0] ?? t('app.name');
+  const titleSecondary = brandParts.slice(1).join(' ');
 
   return (
     <PageFrame variant="marketing" className="home-page p-0">
@@ -39,10 +40,11 @@ export function HomePage() {
         <section className="hero-copy-donor">
           <p className="landing-hero__eyebrow mb-4">{t('home.eyebrow')}</p>
 
-          <h1 className="hero-brand-donor">
-            <span className="sr-only">{t('app.name')}</span>
-            <JakarooIcon size="lg" className="hero-brand-donor__icon" decorative />
-            <JakarooWordmark variant="hero" decorative className="hero-brand-donor__wordmark" />
+          <h1 className="hero-title-donor">
+            <span className="hero-title-donor__line">{titlePrimary}</span>
+            {titleSecondary ? (
+              <span className="hero-title-donor__line hero-title-donor__line--accent">{titleSecondary}</span>
+            ) : null}
           </h1>
 
           <p className="hero-subtitle-donor">{t('app.tagline')}</p>
@@ -94,19 +96,11 @@ export function HomePage() {
         </section>
       </main>
 
-      <section className="feature-grid-donor px-4 pb-8">
-        {FEATURES.map((key) => (
-          <article key={key} className="feature-card-donor">
-            <div className="feature-card-icon">
-              <HomeFeatureIcon feature={key} />
-            </div>
-            <div className="min-w-0">
-              <h3 className="feature-card-title">{t(`home.feature.${key}`)}</h3>
-              <p className="feature-card-desc">{t(`home.feature.${key}.desc`)}</p>
-            </div>
-          </article>
-        ))}
-      </section>
+      <div className="marketing-page__footer-inner max-w-[1180px] mx-auto px-4 sm:px-6 w-full">
+        <HomeExploreLinks />
+      </div>
+
+      <MarketingFooter />
     </PageFrame>
   );
 }

@@ -1,9 +1,18 @@
 # Jakaroo Rescue — QA & PR Notes
 
-**Last run:** 2026-05-29 (Phase A.5 browser QA — Preview 5)  
+**Last run:** 2026-05-29 (MEGA TASK — start flow + trust messages)  
 **Branch:** `rescue/architecture-game-table` (commit `b1759f0` on remote)  
 **Preview URL:** https://deploy-preview-5--jackaroo-online.netlify.app  
-**Build:** `npm run build` — **PASS** (2026-05-29)
+**Build:** `npm run typecheck` + `npm run build` — **PASS** (2026-05-29, local)
+
+### MEGA TASK delta (2026-05-29)
+
+- **JoinRoomPage:** Removed `logOut()` before second guest (was signing out host tab). Shows `join.error.alreadySeated` when same Firebase uid is already seated.
+- **LobbyPage:** Surfaces `lobby.startFailed`, `lobby.startWaitingAll`, session errors.
+- **GamePlayContext / RoomRouteFallback:** Hand load failure → `game.handLoadFailed` (i18n).
+- **ConnectionBar:** Syncing → `connection.reconnecting` copy.
+- **docs/ARCHITECTURE.md:** Private hands / deck audit (Phase 2).
+- **Board asset:** `public/assets/board/jakaroo-board-game-empty.png` **missing** from repo — image board falls back to text until asset added.
 
 ## Phase A.5 status: **PARTIAL — NOT GREEN**
 

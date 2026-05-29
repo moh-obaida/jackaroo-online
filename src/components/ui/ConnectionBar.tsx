@@ -24,7 +24,7 @@ export function ConnectionBar() {
     status === 'offline'
       ? t('connection.offline')
       : status === 'connecting'
-        ? t('connection.syncing')
+        ? t('connection.reconnecting')
         : status === 'leaving'
           ? t('connection.leaving')
           : t('connection.roomLive');

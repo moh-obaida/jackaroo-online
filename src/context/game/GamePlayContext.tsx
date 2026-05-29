@@ -181,9 +181,7 @@ export function GamePlayProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       if (myHandRef.current.length === 0) {
-        setHandError(
-          'Failed to load your private hand. Check Firebase rules for privateHands and deploy rules to production.'
-        );
+        setHandError('game.handLoadFailed');
       }
       setHandLoaded(true);
     }, HAND_LOAD_TIMEOUT_MS);
@@ -372,7 +370,11 @@ export function GamePlayProvider({ children }: { children: React.ReactNode }) {
       await updateRoomStatus(roomCode, 'playing');
     } catch (err: unknown) {
       if (!acceptSessionUpdate(epoch, roomCode)) return;
-      setSessionError(err instanceof Error ? err.message : 'Failed to start game');
+      setSessionError(
+        err instanceof Error && err.message && !err.message.startsWith('lobby.')
+          ? err.message
+          : 'lobby.startFailed'
+      );
     } finally {
       if (acceptSessionUpdate(epoch, roomCode)) {
         setSessionLoading(false);

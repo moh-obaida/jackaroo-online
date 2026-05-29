@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
 import { getLobbySeatInfo, joinRoom } from '../lib/firebase/rooms';
-import { getAuthUserOrCurrent, logOut, signInAsGuest } from '../lib/firebase/auth';
+import { getAuthUserOrCurrent, signInAsGuest } from '../lib/firebase/auth';
 import { PageFrame } from '../components/ui/PageFrame';
 import { FormField, TextInput } from '../components/ui/FormField';
 import { Alert } from '../components/ui/Alert';
@@ -64,33 +64,29 @@ export function JoinRoomPage() {
         return;
       }
 
-      let joinUid = currentUser.uid;
-      let joinGuest = currentUser.isAnonymous;
+      const joinUid = currentUser.uid;
+      const joinGuest = currentUser.isAnonymous;
 
       setJoinStage(t('join.stage.checking'));
       const seatInfo = await getLobbySeatInfo(code.trim(), joinUid);
       const trimmedName = nameCheck.value;
       const sameGuestRejoin =
         seatInfo.inRoom && seatInfo.existingPlayerName?.trim() === trimmedName;
-      const needsFreshGuest =
-        joinGuest &&
-        !sameGuestRejoin &&
-        seatInfo.seatCount > 0 &&
-        seatInfo.seatCount < seatInfo.maxPlayers;
 
-      if (needsFreshGuest) {
-        await logOut();
-        const fresh = await signInAsGuest();
-        if (!fresh) {
-          setError('Failed to start a new guest session.');
-          return;
-        }
-        joinUid = fresh.uid;
-        joinGuest = true;
-        currentUser = fresh;
+      // Same browser profile shares Firebase Auth across tabs — logging out would
+      // also sign out the host. Require incognito / another browser for player 2.
+      if (seatInfo.inRoom && !sameGuestRejoin) {
+        setError(t('join.error.alreadySeated'));
+        return;
       }
 
-      setJoinStage(t('join.stage.takingSeat') || 'Taking your seat...');
+      if (seatInfo.inRoom && sameGuestRejoin) {
+        bindRoomFromRoute(code.trim(), { allowRejoin: true });
+        navigate(`/lobby/${code.trim()}`);
+        return;
+      }
+
+      setJoinStage(t('join.stage.takingSeat'));
       const result = await joinRoom({
         code: code.trim(),
         password: password.trim(),
@@ -122,11 +118,11 @@ export function JoinRoomPage() {
             ← {t('general.back') || 'Back'}
           </Link>
           
-          <h1 className="text-3xl font-bold text-gold-300 mb-2 text-center">
+          <h1 className="font-heading text-3xl font-bold text-gold-300 mb-2 text-center">
             {t('join.title')}
           </h1>
           <p className="text-cream-200/50 mb-8 text-center text-sm">
-            Enter the table code and password to join.
+            {t('join.subtitle')}
           </p>
 
           {!firebaseReady && (
@@ -135,7 +131,7 @@ export function JoinRoomPage() {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="join-form-stack">
             <FormField label={t('join.code')}>
               <TextInput
                 type="text"
@@ -188,7 +184,7 @@ export function JoinRoomPage() {
 
             <button 
               type="submit" 
-              className="btn-game-primary w-full py-4 text-lg" 
+              className="btn-game-primary join-submit-btn py-4 text-lg" 
               disabled={loading}
             >
               {loading ? t('general.loading') : t('join.submit')}

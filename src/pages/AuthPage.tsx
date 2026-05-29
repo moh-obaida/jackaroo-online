@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { signInWithEmail, registerWithEmail, signInAsGuest } from '../lib/firebase/auth';
 import { FormPage } from '../components/ui/FormPage';
@@ -10,6 +10,7 @@ import { Button } from '../components/ui/Button';
 export function AuthPage() {
   const { t } = useApp();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -18,6 +19,12 @@ export function AuthPage() {
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const mode = searchParams.get('mode');
+    if (mode === 'signup') setIsLogin(false);
+    else if (mode === 'login') setIsLogin(true);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,7 +114,11 @@ export function AuthPage() {
       <div className="mt-6 space-y-3 text-center border-t border-wood-800/50 pt-5">
         <button
           type="button"
-          onClick={() => setIsLogin(!isLogin)}
+          onClick={() => {
+            const next = !isLogin;
+            setIsLogin(next);
+            navigate(next ? '/auth?mode=login' : '/auth?mode=signup', { replace: true });
+          }}
           className="text-sm text-gold-300 hover:text-gold-200 transition-colors"
         >
           {isLogin ? t('auth.switchToRegister') : t('auth.switchToLogin')}

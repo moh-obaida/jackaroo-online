@@ -73,6 +73,7 @@ export function HandDock({
           legalActions={legalActions}
           hand={hand}
           selectedCardId={selectedCardId}
+          onClearCard={() => onSelectCard(null)}
           showAllActions={showAllActions}
           onToggleShowAll={onToggleShowAll}
           onSubmitAction={onSubmitAction}

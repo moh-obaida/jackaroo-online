@@ -36,8 +36,10 @@ export function GameHUD({
         <div className="game-table-hud__brand-row min-w-0 flex items-center gap-2">
           <JakarooIcon size="sm" className="opacity-90" alt="" />
           <div className="game-table-hud__meta min-w-0">
-            <p className="text-[10px] uppercase tracking-wider text-cream-200/45 tabular-nums truncate">
-              {formatTableCode(roomCode)} · {t('game.dealRound')} {gameState.dealState.dealRoundInBlock + 1}
+            <p className="text-[10px] uppercase tracking-wide text-cream-200/45 tabular-nums truncate">
+              <span className="font-brand">{formatTableCode(roomCode)}</span>
+              {' · '}
+              {t('game.dealRound')} {gameState.dealState.dealRoundInBlock + 1}
             </p>
           </div>
         </div>

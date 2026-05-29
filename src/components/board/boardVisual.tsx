@@ -21,6 +21,7 @@ import {
 } from '../../lib/board/boardGeometry';
 import { positionKey } from '../../lib/play/boardHighlights';
 import { BoardPreviewPhotoVisual, PhysicalPhotoBoardVisual } from './PhysicalPhotoBoardVisual';
+import { ImageMappedBoardVisual } from './ImageMappedBoardVisual';
 
 const COLOR_FILL: Record<PlayerColor, string> = {
   black: '#2e2e2e',
@@ -685,6 +686,7 @@ function ProceduralBoardVisual({
             <g className="board-highlights-layer">
               {renderHighlights()}
               {onPositionClick &&
+                selectedMarbleId &&
                 highlightPositions.map((pos) => {
                   const pt = boardPositionToPoint(pos, layout);
                   if (!pt) return null;
@@ -717,12 +719,15 @@ function ProceduralBoardVisual({
   );
 }
 
-/** Default: literal reference photo. Set VITE_BOARD_PROCEDURAL=1 for SVG board. */
+/** Default: image-mapped premium board. VITE_BOARD_PROCEDURAL=1 for SVG; VITE_BOARD_PHYSICAL=1 for old photo. */
 export function BoardVisual(props: BoardVisualProps) {
   if (import.meta.env.VITE_BOARD_PROCEDURAL === '1') {
     return <ProceduralBoardVisual {...props} />;
   }
-  return <PhysicalPhotoBoardVisual {...props} />;
+  if (import.meta.env.VITE_BOARD_PHYSICAL === '1') {
+    return <PhysicalPhotoBoardVisual {...props} />;
+  }
+  return <ImageMappedBoardVisual {...props} />;
 }
 
 export function BoardVisualFromGame({
@@ -760,9 +765,25 @@ function BoardPreviewProcedural({ size = 200 }: { size?: number }) {
   );
 }
 
+function BoardPreviewImageMapped({ size = 200 }: { size?: number }) {
+  return (
+    <div className="board-preview-image-mapped" style={{ width: size, height: size }}>
+      <ImageMappedBoardVisual
+        idPrefix="preview"
+        showDemoMarbles
+        activeColors={new Set(COLORS_ORDER)}
+        className="image-board-stage--preview"
+      />
+    </div>
+  );
+}
+
 export function BoardPreviewVisual({ size = 200 }: { size?: number }) {
   if (import.meta.env.VITE_BOARD_PROCEDURAL === '1') {
     return <BoardPreviewProcedural size={size} />;
   }
-  return <BoardPreviewPhotoVisual size={size} />;
+  if (import.meta.env.VITE_BOARD_PHYSICAL === '1') {
+    return <BoardPreviewPhotoVisual size={size} />;
+  }
+  return <BoardPreviewImageMapped size={size} />;
 }

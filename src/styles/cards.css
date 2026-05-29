@@ -1,0 +1,380 @@
+/* Physical-style Jakaroo gameplay cards */
+
+.card-face {
+  --card-blue: #1a4a9e;
+  --card-red: #c62828;
+  --card-red-bright: #d32f2f;
+  --card-blue-action: #1565c0;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.65rem;
+  background: #fff;
+  color: #111;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border: 2px solid var(--card-blue);
+  overflow: hidden;
+}
+
+.card-face__inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100%;
+}
+
+.card-face--hand {
+  border-width: 1.5px;
+}
+
+.card-face--guide {
+  border-width: 2.5px;
+  border-radius: 0.75rem;
+}
+
+.card-face--selected {
+  box-shadow:
+    0 0 0 3px rgba(255, 220, 120, 0.95),
+    0 10px 28px rgba(230, 184, 0, 0.4);
+}
+
+.card-face--playable:not(.card-face--selected) {
+  box-shadow:
+    0 0 0 2px rgba(45, 212, 191, 0.75),
+    0 6px 18px rgba(45, 212, 191, 0.22);
+}
+
+.card-face--disabled {
+  opacity: 0.42;
+  filter: saturate(0.55);
+}
+
+/* —— End cap (top + bottom rotated copy) —— */
+.card-face-end {
+  flex-shrink: 0;
+  padding: 0.35rem 0.45rem 0.15rem;
+}
+
+.card-face-end--guide {
+  padding: 0.5rem 0.6rem 0.2rem;
+}
+
+.card-face-corners {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.25rem;
+  line-height: 1;
+  margin-bottom: 0.15rem;
+}
+
+.card-face-corners--hand {
+  padding: 0.28rem 0.35rem 0;
+  margin-bottom: 0;
+}
+
+.card-face-corners__left {
+  display: flex;
+  align-items: baseline;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.card-face-corners__rank {
+  font-weight: 900;
+  font-size: 0.65rem;
+  letter-spacing: -0.02em;
+}
+
+.card-face-end--guide .card-face-corners__rank {
+  font-size: 0.85rem;
+}
+
+.card-face-corners__face-label {
+  font-weight: 700;
+  font-size: 0.48rem;
+  color: var(--card-red-bright);
+}
+
+.card-face-end--guide .card-face-corners__face-label {
+  font-size: 0.58rem;
+}
+
+.card-face-corners__numeric {
+  font-weight: 800;
+  font-size: 0.58rem;
+  color: #111;
+  font-variant-numeric: tabular-nums;
+}
+
+.card-face-end--guide .card-face-corners__numeric {
+  font-size: 0.72rem;
+}
+
+.card-face-rules {
+  margin-top: 0.05rem;
+}
+
+.card-rule-text__line {
+  margin: 0;
+  text-align: center;
+  font-size: 0.42rem;
+  line-height: 1.35;
+  font-weight: 600;
+  color: #111;
+}
+
+.card-face-end--guide .card-rule-text__line {
+  font-size: 0.52rem;
+  line-height: 1.4;
+}
+
+.card-rule-text__seg--red {
+  color: var(--card-red-bright);
+  font-weight: 800;
+}
+
+.card-rule-text__seg--blue {
+  color: var(--card-blue-action);
+  font-weight: 800;
+}
+
+/* —— Center value —— */
+.card-face-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.05rem;
+  padding: 0.15rem 0.25rem;
+  min-height: 0;
+}
+
+.card-face-center--hand {
+  flex: 1;
+  padding: 0.1rem 0.2rem 0.35rem;
+}
+
+.card-face-center__value {
+  font-weight: 900;
+  font-size: clamp(1.35rem, 28%, 2.4rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.card-face--guide .card-face-center__value {
+  font-size: clamp(1.75rem, 36%, 3rem);
+}
+
+.card-face-center__label {
+  font-size: 0.42rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.card-face--guide .card-face-center__label {
+  font-size: 0.55rem;
+}
+
+.card-face-center__label--red {
+  color: var(--card-red-bright);
+}
+
+.card-face-center__label--blue {
+  color: var(--card-blue-action);
+}
+
+/* Bottom half: 180° rotation for opposite player (NOT mirrored) */
+.card-face-bottom {
+  flex-shrink: 0;
+  transform: rotate(180deg);
+  transform-origin: center center;
+}
+
+.card-face-hand-hint {
+  position: absolute;
+  bottom: 0.22rem;
+  inset-inline: 0.2rem;
+  margin: 0;
+  text-align: center;
+  font-size: 0.46rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--card-red-bright);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-face-hand-index {
+  position: absolute;
+  bottom: 1.15rem;
+  inset-inline-end: 0.35rem;
+  transform: rotate(180deg);
+  opacity: 0.35;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.card-face-hand-index .card-face-corners__rank {
+  font-size: 0.55rem;
+}
+
+/* —— Card back —— */
+.card-face-back {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.65rem;
+  border: 2px solid rgba(201, 162, 39, 0.35);
+  background: linear-gradient(145deg, #1a1208 0%, #0c0906 48%, #060504 100%);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.card-face-back--compact {
+  border-radius: 0.55rem;
+  border-width: 1.5px;
+}
+
+.card-face-back__frame {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.35rem;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(201, 162, 39, 0.12), transparent 55%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.03) 0,
+      rgba(255, 255, 255, 0.03) 2px,
+      transparent 2px,
+      transparent 6px
+    );
+  border: 1px solid rgba(201, 162, 39, 0.18);
+  margin: 0.28rem;
+  border-radius: 0.45rem;
+}
+
+.card-face-back__mark {
+  font-weight: 800;
+  font-size: 0.62rem;
+  color: rgba(230, 197, 103, 0.92);
+  letter-spacing: 0.02em;
+}
+
+.card-face-back--compact .card-face-back__mark {
+  font-size: 0.52rem;
+}
+
+.card-face-back__sub {
+  font-size: 0.42rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(245, 240, 232, 0.45);
+}
+
+/* —— Playing card shell (hand / table) —— */
+.playing-card-shell {
+  position: relative;
+  flex-shrink: 0;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.playing-card-shell--hand {
+  width: 3.75rem;
+  height: 5.25rem;
+}
+
+.playing-card-shell--standard {
+  width: 4.5rem;
+  height: 6.75rem;
+}
+
+@media (min-width: 640px) {
+  .playing-card-shell--standard {
+    width: 5rem;
+    height: 7.25rem;
+  }
+}
+
+.playing-card-shell--guide {
+  width: 6.75rem;
+  height: 9.5rem;
+}
+
+@media (min-width: 640px) {
+  .playing-card-shell--guide {
+    width: 7.5rem;
+    height: 10.5rem;
+  }
+}
+
+.playing-card-shell--selected {
+  transform: translateY(-12px) scale(1.04);
+  z-index: 2;
+}
+
+.playing-card-shell--playable:not(.playing-card-shell--selected):hover {
+  transform: translateY(-4px);
+}
+
+.playing-card-shell--clickable:not(:disabled) {
+  cursor: pointer;
+}
+
+.playing-card-shell:disabled {
+  cursor: not-allowed;
+}
+
+.card-guide-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.card-guide-entry {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(61, 40, 16, 0.45);
+}
+
+.card-guide-entry:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.card-guide-entry__copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.card-guide-entry__title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(230, 197, 103, 0.9);
+  margin: 0 0 0.35rem;
+}
+
+.card-guide-entry__bullets {
+  margin: 0;
+  padding-inline-start: 1.1rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: rgba(245, 240, 232, 0.72);
+}
+
+@media (min-width: 640px) {
+  .card-guide-entry__bullets {
+    font-size: 0.8125rem;
+  }
+}
