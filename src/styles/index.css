@@ -997,7 +997,12 @@
   }
 
   .lobby-table__board {
-    @apply absolute inset-[14%] flex items-center justify-center pointer-events-none overflow-visible;
+    @apply absolute inset-[12%] flex items-center justify-center pointer-events-none overflow-visible;
+  }
+
+  .lobby-table__board .board-preview-image-mapped {
+    width: 100%;
+    height: 100%;
   }
 
   .lobby-table__board .board-frame {

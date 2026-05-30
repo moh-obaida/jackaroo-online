@@ -765,9 +765,10 @@ function BoardPreviewProcedural({ size = 200 }: { size?: number }) {
   );
 }
 
-function BoardPreviewImageMapped({ size = 200 }: { size?: number }) {
+function BoardPreviewImageMapped({ size }: { size?: number }) {
+  const style = size != null ? { width: size, height: size } : undefined;
   return (
-    <div className="board-preview-image-mapped" style={{ width: size, height: size }}>
+    <div className="board-preview-image-mapped" style={style}>
       <ImageMappedBoardVisual
         idPrefix="preview"
         showDemoMarbles
