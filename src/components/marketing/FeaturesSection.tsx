@@ -38,7 +38,7 @@ export function FeaturesSection() {
       {GROUPS.map(({ titleKey, descKey, features }) => (
         <section key={titleKey} className="feature-group">
           <header className="feature-group__header">
-            <h2 className="feature-group__title">{t(titleKey)}</h2>
+            <h2 className="feature-group__title feature-group__title--no-wrap">{t(titleKey)}</h2>
             <p className="feature-group__desc">{t(descKey)}</p>
           </header>
           <div className="feature-group__grid">

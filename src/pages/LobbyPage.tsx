@@ -82,7 +82,7 @@ function LobbyPageContent() {
     let reason: string | null = null;
     if (seatedCount < maxPlayers) {
       const need = maxPlayers - seatedCount;
-      reason = t('lobby.startNeedPlayers', {
+      reason = t(need === 1 ? 'lobby.startNeedPlayer' : 'lobby.startNeedPlayers', {
         need: String(need),
         seats: `${seatedCount}/${maxPlayers}`,
       });
@@ -213,7 +213,7 @@ function LobbyPageContent() {
 
         <section className="lobby-table-area-donor lobby-table-area-fixed">
           <div className="mini-table-donor mini-table-fixed lobby-board-preview" aria-hidden>
-            <BoardPreviewVisual size={280} />
+            <BoardPreviewVisual size={340} />
           </div>
 
           {Array.from({ length: maxPlayers }).map((_, i) => {
@@ -239,10 +239,15 @@ function LobbyPageContent() {
                   <>
                     <strong className="lobby-seat-name-fixed" title={player.name}>{player.name}</strong>
                     <div className="seat-badges-donor">
-                      {isMe && <em>{t('lobby.you')}</em>}
-                      {isMaker && <em>{t('lobby.roomMaker')}</em>}
+                      {isMe && isMaker ? (
+                        <em className="identity">{t('lobby.youHost')}</em>
+                      ) : isMe ? (
+                        <em className="identity">{t('lobby.you')}</em>
+                      ) : isMaker ? (
+                        <em className="identity">{t('lobby.roomMaker')}</em>
+                      ) : null}
                       {!isMaker && (
-                        <em className={player.ready ? 'ready' : ''}>
+                        <em className={player.ready ? 'ready' : 'waiting'}>
                           {player.ready ? t('lobby.ready') : t('lobby.notReady')}
                         </em>
                       )}

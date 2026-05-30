@@ -110,17 +110,17 @@
 
 .image-board-target-ring--legal {
   fill: none;
-  stroke: rgba(255, 214, 51, 0.88);
-  stroke-width: 0.28;
+  stroke: rgba(255, 214, 51, 0.82);
+  stroke-width: 0.2;
   pointer-events: none;
 }
 
 .image-board-marble--selectable {
-  filter: drop-shadow(0 0 4px rgba(94, 234, 212, 0.45));
+  filter: drop-shadow(0 0 3px rgba(94, 234, 212, 0.4));
 }
 
 .image-board-marble--selected {
-  filter: drop-shadow(0 0 6px rgba(255, 214, 51, 0.55));
+  filter: drop-shadow(0 0 4px rgba(255, 214, 51, 0.5));
 }
 
 /* --- Calibration overlay (dev-only) --- */

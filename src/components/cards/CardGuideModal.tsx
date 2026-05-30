@@ -40,19 +40,19 @@ export function CardGuideModal({ open, onClose }: CardGuideModalProps) {
         onClick={(e) => e.stopPropagation()}
         dir={language === 'ar' ? 'rtl' : 'ltr'}
       >
-        <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-wood-700/50 shrink-0">
+        <div className="flex items-center justify-between gap-3 px-4 py-3.5 border-b border-wood-700/50 shrink-0 bg-black/20">
           <div>
-            <h2 id="card-guide-title" className="text-lg font-semibold text-gold-300">
+            <h2 id="card-guide-title" className="text-lg font-semibold text-gold-300 m-0">
               {t('deckGuide.title')}
             </h2>
-            <p className="text-xs text-cream-200/50 mt-0.5">{t('deckGuide.subtitle')}</p>
+            <p className="text-xs text-cream-200/55 mt-0.5 m-0">{t('deckGuide.subtitle')}</p>
           </div>
           <button type="button" onClick={onClose} className="btn-secondary text-sm px-3 py-1.5 shrink-0">
             {t('general.close')}
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1 px-4 py-3 card-guide-grid">
+        <div className="overflow-y-auto flex-1 px-4 py-3 card-guide-grid max-h-[min(70vh,36rem)]">
           <p className="text-sm text-cream-200/70 bg-surface-inset/50 rounded-lg px-3 py-2 border border-wood-800/50 m-0">
             {t('deckGuide.notice')}
           </p>

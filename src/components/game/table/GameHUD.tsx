@@ -36,12 +36,12 @@ export function GameHUD({
     <>
       <header className="game-table-hud">
         <div className="game-table-hud__brand-row min-w-0 flex items-center gap-2">
-          <JakarooIcon size="sm" className="opacity-90 shrink-0" alt="" />
+          <JakarooIcon size="md" className="opacity-95 shrink-0 game-table-hud__icon" alt="" />
           <JakarooWordmark variant="header" decorative className="game-table-hud__wordmark hidden sm:inline" />
           <div className="game-table-hud__meta min-w-0">
-            <p className="text-[10px] uppercase tracking-wide text-cream-200/45 tabular-nums truncate">
+            <p className="game-table-hud__code-line tabular-nums truncate">
               <span className="font-brand">{formatTableCode(roomCode)}</span>
-              {' · '}
+              <span className="game-table-hud__code-sep" aria-hidden="true">·</span>
               {t('game.dealRound')} {gameState.dealState.dealRoundInBlock + 1}
             </p>
           </div>
@@ -74,11 +74,11 @@ export function GameHUD({
             </span>
           )}
           <Button
-            variant="danger"
+            variant="secondary"
             size="sm"
             onClick={() => setLeaveConfirmOpen(true)}
             disabled={leaveBusy}
-            className="shrink-0"
+            className="game-table-hud__leave shrink-0 text-xs"
           >
             {t('game.leaveGame')}
           </Button>

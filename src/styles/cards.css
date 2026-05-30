@@ -1,17 +1,21 @@
-/* Physical-style Jakaroo gameplay cards */
+/* Premium Jakaroo gameplay cards — ivory face, deep-blue border, gold accents */
 
 .card-face {
-  --card-blue: #1a4a9e;
-  --card-red: #c62828;
-  --card-red-bright: #d32f2f;
-  --card-blue-action: #1565c0;
+  --card-ink: #16233f;
+  --card-blue: #1d3f82;
+  --card-red: #b3261e;
+  --card-red-bright: #c62f24;
+  --card-blue-action: #1c4fa3;
+  --card-gold: #c9a227;
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 0.65rem;
-  background: #fff;
-  color: #111;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border-radius: 0.7rem;
+  background: linear-gradient(158deg, #fdfaf2 0%, #f6efdd 55%, #efe4c9 100%);
+  color: var(--card-ink);
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(201, 162, 39, 0.35);
   border: 2px solid var(--card-blue);
   overflow: hidden;
 }
@@ -22,111 +26,205 @@
   flex-direction: column;
   height: 100%;
   min-height: 100%;
+  padding: 0.3rem 0.4rem;
 }
 
 .card-face--hand {
-  border-width: 1.5px;
+  border-width: 2px;
+  border-radius: 0.6rem;
 }
 
 .card-face--guide {
   border-width: 2.5px;
-  border-radius: 0.75rem;
+  border-radius: 0.8rem;
 }
 
 .card-face--selected {
+  border-color: var(--card-gold);
   box-shadow:
-    0 0 0 3px rgba(255, 220, 120, 0.95),
-    0 10px 28px rgba(230, 184, 0, 0.4);
+    0 0 0 3px rgba(255, 214, 102, 0.95),
+    0 12px 30px rgba(201, 162, 39, 0.45);
 }
 
 .card-face--playable:not(.card-face--selected) {
   box-shadow:
-    0 0 0 2px rgba(45, 212, 191, 0.75),
-    0 6px 18px rgba(45, 212, 191, 0.22);
+    0 0 0 2px rgba(120, 170, 255, 0.85),
+    0 8px 20px rgba(40, 90, 190, 0.3),
+    inset 0 0 0 1px rgba(201, 162, 39, 0.35);
 }
 
 .card-face--disabled {
-  opacity: 0.42;
-  filter: saturate(0.55);
+  opacity: 0.72;
+  filter: saturate(0.82) brightness(0.97);
 }
 
-/* —— End cap (top + bottom rotated copy) —— */
-.card-face-end {
-  flex-shrink: 0;
-  padding: 0.35rem 0.45rem 0.15rem;
-}
-
-.card-face-end--guide {
-  padding: 0.5rem 0.6rem 0.2rem;
-}
-
-.card-face-corners {
+/* —— Corners (always upright) —— */
+.card-face__corner {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.25rem;
   line-height: 1;
-  margin-bottom: 0.15rem;
 }
 
-.card-face-corners--hand {
-  padding: 0.28rem 0.35rem 0;
-  margin-bottom: 0;
+.card-face__corner--tl {
+  align-self: flex-start;
 }
 
-.card-face-corners__left {
-  display: flex;
-  align-items: baseline;
-  gap: 0.15rem;
-  min-width: 0;
+.card-face__corner--br {
+  align-self: flex-end;
+  align-items: flex-end;
+  margin-top: auto;
 }
 
-.card-face-corners__rank {
+.card-face__rank {
   font-weight: 900;
-  font-size: 0.65rem;
+  font-size: 0.82rem;
   letter-spacing: -0.02em;
+  color: var(--card-blue);
 }
 
-.card-face-end--guide .card-face-corners__rank {
-  font-size: 0.85rem;
+.card-face--hand .card-face__corner--br .card-face__rank,
+.card-face--hand .card-face__corner--tl .card-face__rank {
+  font-size: 0.78rem;
 }
 
-.card-face-corners__face-label {
+.card-face--guide .card-face__rank {
+  font-size: 1.05rem;
+}
+
+.card-face__face-label {
   font-weight: 700;
-  font-size: 0.48rem;
+  font-size: 0.55rem;
+  margin-top: 0.05rem;
   color: var(--card-red-bright);
 }
 
-.card-face-end--guide .card-face-corners__face-label {
-  font-size: 0.58rem;
-}
-
-.card-face-corners__numeric {
+.card-face__numeric {
   font-weight: 800;
-  font-size: 0.58rem;
-  color: #111;
+  font-size: 0.6rem;
+  margin-top: 0.05rem;
+  color: var(--card-ink);
   font-variant-numeric: tabular-nums;
+  opacity: 0.75;
 }
 
-.card-face-end--guide .card-face-corners__numeric {
+.card-face--guide .card-face__numeric {
   font-size: 0.72rem;
 }
 
-.card-face-rules {
-  margin-top: 0.05rem;
+.card-face__suit {
+  font-size: 0.72rem;
+  line-height: 1;
+  margin-top: 0.1rem;
+}
+
+.card-face__suit--tr {
+  position: absolute;
+  top: 0.3rem;
+  inset-inline-end: 0.4rem;
+  font-size: 0.95rem;
+}
+
+.card-face__suit--red {
+  color: var(--card-red);
+}
+
+.card-face__suit--dark {
+  color: #2a2f3a;
+}
+
+/* —— Hand hero (large centered rank) —— */
+.card-face__hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  min-height: 0;
+}
+
+.card-face__hero-rank {
+  font-weight: 900;
+  font-size: 1.9rem;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--card-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.card-face__hero-action {
+  font-size: 0.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--card-red-bright);
+  padding: 0.05rem 0.3rem;
+  border-radius: 0.5rem;
+  background: rgba(201, 162, 39, 0.16);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* —— Center stack (guide / standard) —— */
+.card-face__center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.08rem;
+  padding: 0.1rem 0.2rem;
+  min-height: 0;
+}
+
+.card-face__center-value {
+  font-weight: 900;
+  font-size: 2.1rem;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--card-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.card-face--guide .card-face__center-value {
+  font-size: 2.6rem;
+}
+
+.card-face__center-label {
+  font-size: 0.55rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1;
+}
+
+.card-face__center-label--red {
+  color: var(--card-red-bright);
+}
+
+.card-face__center-label--blue {
+  color: var(--card-blue-action);
+}
+
+/* —— Rule text (guide / standard only) —— */
+.card-face__rules {
+  margin-top: 0.1rem;
 }
 
 .card-rule-text__line {
   margin: 0;
   text-align: center;
-  font-size: 0.42rem;
+  font-size: 0.5rem;
   line-height: 1.35;
   font-weight: 600;
-  color: #111;
+  color: var(--card-ink);
 }
 
-.card-face-end--guide .card-rule-text__line {
-  font-size: 0.52rem;
+.card-face--guide .card-rule-text__line {
+  font-size: 0.56rem;
   line-height: 1.4;
 }
 
@@ -138,89 +236,6 @@
 .card-rule-text__seg--blue {
   color: var(--card-blue-action);
   font-weight: 800;
-}
-
-/* —— Center value —— */
-.card-face-center {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.05rem;
-  padding: 0.15rem 0.25rem;
-  min-height: 0;
-}
-
-.card-face-center--hand {
-  flex: 1;
-  padding: 0.1rem 0.2rem 0.35rem;
-}
-
-.card-face-center__value {
-  font-weight: 900;
-  font-size: clamp(1.35rem, 28%, 2.4rem);
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-}
-
-.card-face--guide .card-face-center__value {
-  font-size: clamp(1.75rem, 36%, 3rem);
-}
-
-.card-face-center__label {
-  font-size: 0.42rem;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.card-face--guide .card-face-center__label {
-  font-size: 0.55rem;
-}
-
-.card-face-center__label--red {
-  color: var(--card-red-bright);
-}
-
-.card-face-center__label--blue {
-  color: var(--card-blue-action);
-}
-
-/* Bottom half: 180° rotation for opposite player (NOT mirrored) */
-.card-face-bottom {
-  flex-shrink: 0;
-  transform: rotate(180deg);
-  transform-origin: center center;
-}
-
-.card-face-hand-hint {
-  position: absolute;
-  bottom: 0.22rem;
-  inset-inline: 0.2rem;
-  margin: 0;
-  text-align: center;
-  font-size: 0.46rem;
-  font-weight: 700;
-  line-height: 1.15;
-  color: var(--card-red-bright);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.card-face-hand-index {
-  position: absolute;
-  bottom: 1.15rem;
-  inset-inline-end: 0.35rem;
-  transform: rotate(180deg);
-  opacity: 0.35;
-  line-height: 1;
-  pointer-events: none;
-}
-
-.card-face-hand-index .card-face-corners__rank {
-  font-size: 0.55rem;
 }
 
 /* —— Card back —— */
@@ -290,8 +305,8 @@
 }
 
 .playing-card-shell--hand {
-  width: 3.75rem;
-  height: 5.25rem;
+  width: 4rem;
+  height: 5.5rem;
 }
 
 .playing-card-shell--standard {
@@ -337,7 +352,9 @@
 
 .card-guide-grid {
   display: grid;
-  gap: 1rem;
+  gap: 0.75rem;
+  max-width: 42rem;
+  margin-inline: auto;
 }
 
 .card-guide-entry {

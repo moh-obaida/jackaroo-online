@@ -1,18 +1,20 @@
 import React from 'react';
-import { CardRank } from '../../types/game';
+import { CardRank, CardSuit } from '../../types/game';
 import {
   CardFaceVariant,
   getCardCenterValue,
   getCardFaceMeta,
+  getSuitSymbol,
 } from '../../lib/game/cardFaceContent';
-import { getCardHintKey } from '../../lib/game/cardGuide';
 import { useApp } from '../../context/AppContext';
 import { CardRuleText } from './CardRuleText';
+import '../../lib/cards/cardAssets';
 
 export type CardFaceState = 'normal' | 'selected' | 'playable' | 'disabled' | 'opponentBack';
 
 export type CardFaceProps = {
   rank: CardRank;
+  suit?: CardSuit;
   variant?: CardFaceVariant;
   state?: CardFaceState;
   /** Hand dock: show short action strip */
@@ -20,44 +22,23 @@ export type CardFaceProps = {
   className?: string;
 };
 
-function CardFaceEndCap({
-  rank,
-  variant,
-  showRules,
-}: {
-  rank: CardRank;
-  variant: CardFaceVariant;
-  showRules: boolean;
-}) {
-  const { t } = useApp();
-  const meta = getCardFaceMeta(rank);
-  const isGuide = variant === 'guide';
-
+function SuitPip({ suit, className = '' }: { suit?: CardSuit; className?: string }) {
+  if (!suit) return null;
+  const { symbol, tone } = getSuitSymbol(suit);
   return (
-    <div className={`card-face-end ${isGuide ? 'card-face-end--guide' : 'card-face-end--compact'}`}>
-      <div className="card-face-corners">
-        <div className="card-face-corners__left">
-          <span className="card-face-corners__rank">{meta.cornerRank}</span>
-          {meta.faceLabelKey ? (
-            <span className="card-face-corners__face-label">{t(meta.faceLabelKey)}</span>
-          ) : null}
-        </div>
-        {meta.cornerNumeric ? (
-          <span className="card-face-corners__numeric">{meta.cornerNumeric}</span>
-        ) : null}
-      </div>
-      {showRules && meta.ruleLines.length > 0 ? (
-        <CardRuleText lines={meta.ruleLines} className="card-face-rules" />
-      ) : null}
-    </div>
+    <span className={`card-face__suit card-face__suit--${tone} ${className}`.trim()} aria-hidden="true">
+      {symbol}
+    </span>
   );
 }
 
 /**
- * Physical Jakaroo card face — white, blue border, rotated bottom half (180°, not mirrored).
+ * Premium Jakaroo card face — warm ivory face, deep-blue border, gold accents.
+ * Always upright (no rotated/mirrored text), so the hand reads cleanly.
  */
 export function CardFace({
   rank,
+  suit,
   variant = 'standard',
   state = 'normal',
   showHandHint = false,
@@ -67,8 +48,6 @@ export function CardFace({
   const meta = getCardFaceMeta(rank);
   const centerValue = getCardCenterValue(rank, variant);
   const isHand = variant === 'hand';
-  const showFullLayout = !isHand;
-  const handHint = showHandHint ? t(getCardHintKey(rank)) : '';
 
   const stateClass =
     state === 'selected'
@@ -79,52 +58,75 @@ export function CardFace({
           ? 'card-face--disabled'
           : '';
 
+  if (isHand) {
+    const actionLabel = meta.centerTopKey ? t(meta.centerTopKey) : '';
+    return (
+      <div
+        className={`card-face card-face--hand ${stateClass} ${className}`.trim()}
+        dir={language === 'ar' ? 'rtl' : 'ltr'}
+      >
+        <div className="card-face__inner">
+          <div className="card-face__corner card-face__corner--tl">
+            <span className="card-face__rank">{meta.cornerRank}</span>
+            {meta.cornerNumeric && meta.cornerNumeric !== meta.cornerRank ? (
+              <span className="card-face__numeric">{meta.cornerNumeric}</span>
+            ) : null}
+            <SuitPip suit={suit} />
+          </div>
+
+          <div className="card-face__hero">
+            <span className="card-face__hero-rank">{centerValue}</span>
+            {showHandHint && actionLabel ? (
+              <span className="card-face__hero-action">{actionLabel}</span>
+            ) : null}
+          </div>
+
+          <span className="card-face__corner card-face__corner--br" aria-hidden="true">
+            <span className="card-face__rank">{meta.cornerRank}</span>
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`card-face card-face--${variant} ${stateClass} ${className}`.trim()}
       dir={language === 'ar' ? 'rtl' : 'ltr'}
     >
       <div className="card-face__inner">
-        {showFullLayout ? (
-          <>
-            <CardFaceEndCap rank={rank} variant={variant} showRules />
-            <div className="card-face-center">
-              {meta.centerTopKey ? (
-                <span className={`card-face-center__label card-face-center__label--${meta.centerTopTone ?? 'red'}`}>
-                  {t(meta.centerTopKey)}
-                </span>
-              ) : null}
-              <span className="card-face-center__value">{centerValue}</span>
-              {meta.centerBottomKey ? (
-                <span
-                  className={`card-face-center__label card-face-center__label--${meta.centerBottomTone ?? 'blue'}`}
-                >
-                  {t(meta.centerBottomKey)}
-                </span>
-              ) : null}
-            </div>
-            {/* Opposite-player orientation: rotate 180° (not scaleX mirror) */}
-            <div className="card-face-bottom" aria-hidden="true">
-              <CardFaceEndCap rank={rank} variant={variant} showRules />
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="card-face-corners card-face-corners--hand">
-              <span className="card-face-corners__rank">{meta.cornerRank}</span>
-              {meta.cornerNumeric && meta.cornerNumeric !== meta.cornerRank ? (
-                <span className="card-face-corners__numeric">{meta.cornerNumeric}</span>
-              ) : null}
-            </div>
-            <div className="card-face-center card-face-center--hand">
-              <span className="card-face-center__value">{centerValue}</span>
-            </div>
-            {handHint ? <p className="card-face-hand-hint">{handHint}</p> : null}
-            <div className="card-face-hand-index" aria-hidden="true">
-              <span className="card-face-corners__rank">{meta.cornerRank}</span>
-            </div>
-          </>
-        )}
+        <div className="card-face__corner card-face__corner--tl">
+          <span className="card-face__rank">{meta.cornerRank}</span>
+          {meta.faceLabelKey ? (
+            <span className="card-face__face-label">{t(meta.faceLabelKey)}</span>
+          ) : null}
+          {meta.cornerNumeric ? <span className="card-face__numeric">{meta.cornerNumeric}</span> : null}
+        </div>
+        <SuitPip suit={suit} className="card-face__suit--tr" />
+
+        <div className="card-face__center">
+          {meta.centerTopKey ? (
+            <span className={`card-face__center-label card-face__center-label--${meta.centerTopTone ?? 'red'}`}>
+              {t(meta.centerTopKey)}
+            </span>
+          ) : null}
+          <span className="card-face__center-value">{centerValue}</span>
+          {meta.centerBottomKey ? (
+            <span
+              className={`card-face__center-label card-face__center-label--${meta.centerBottomTone ?? 'blue'}`}
+            >
+              {t(meta.centerBottomKey)}
+            </span>
+          ) : null}
+        </div>
+
+        {meta.ruleLines.length > 0 ? (
+          <CardRuleText lines={meta.ruleLines} className="card-face__rules" />
+        ) : null}
+
+        <span className="card-face__corner card-face__corner--br" aria-hidden="true">
+          <span className="card-face__rank">{meta.cornerRank}</span>
+        </span>
       </div>
     </div>
   );

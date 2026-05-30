@@ -10,7 +10,7 @@ type PageFrameProps = {
 export function PageFrame({ children, variant = 'marketing', className = '' }: PageFrameProps) {
   const variantClass =
     variant === 'form'
-      ? 'page-frame--form max-w-lg'
+      ? 'page-frame--form max-w-[27rem]'
       : variant === 'lobby'
         ? 'page-frame--lobby max-w-3xl'
         : 'page-frame--marketing max-w-5xl';

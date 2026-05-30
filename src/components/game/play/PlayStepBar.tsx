@@ -16,7 +16,7 @@ export function PlayStepBar({ step }: PlayStepBarProps) {
     return (
       <div className="play-step-bar play-step-bar--wait">
         <span className="play-step-bar__pulse" aria-hidden />
-        <p>{t('game.waitTurn')}</p>
+        <p className="play-step-bar__wait-text">{t('game.waitTurn')}</p>
       </div>
     );
   }

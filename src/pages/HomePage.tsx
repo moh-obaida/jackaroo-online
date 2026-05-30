@@ -54,17 +54,18 @@ export function HomePage() {
 
           <div className="hero-meta-donor mt-6">
             {user ? (
-              <p className="text-sm text-cream-200/70">
-                {t('home.signedIn', { name: displayName })}
+              <div className="inline-flex items-center gap-2 text-sm rounded-full border border-gold-500/20 bg-black/30 px-3 py-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/80 shrink-0" aria-hidden="true" />
+                <span className="text-cream-200/75">{t('home.signedIn', { name: displayName })}</span>
                 {!isGuestUser && (
                   <>
-                    {' · '}
-                    <Link to="/profile" className="text-gold-400 hover:text-gold-300 underline decoration-gold-500/30">
+                    <span className="text-cream-200/25">·</span>
+                    <Link to="/profile" className="text-gold-300 hover:text-gold-200 font-medium">
                       {t('home.profile')}
                     </Link>
                   </>
                 )}
-              </p>
+              </div>
             ) : (
               <div className="flex items-center gap-3 text-sm">
                 <Link to="/auth" className="text-gold-400 hover:text-gold-300 underline decoration-gold-500/30">

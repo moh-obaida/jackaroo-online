@@ -91,11 +91,6 @@ export function HandDock({
           boardFlowHintKey={boardFlowHintKey}
         />
       </div>
-      {!isMyTurn && (
-        <div className="hand-dock-panel__waiting-overlay" aria-hidden>
-          <span>{t('game.waitTurn')}</span>
-        </div>
-      )}
     </div>
   );
 }

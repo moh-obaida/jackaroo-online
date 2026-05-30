@@ -1,6 +1,21 @@
-import { CardRank } from '../../types/game';
+import { CardRank, CardSuit } from '../../types/game';
 
 export type CardFaceVariant = 'hand' | 'standard' | 'guide';
+
+/** Suits are decorative only (Obaida Classic uses rank, not suit). */
+export function getSuitSymbol(suit: CardSuit): { symbol: string; tone: 'red' | 'dark' } {
+  switch (suit) {
+    case 'hearts':
+      return { symbol: '♥', tone: 'red' };
+    case 'diamonds':
+      return { symbol: '♦', tone: 'red' };
+    case 'clubs':
+      return { symbol: '♣', tone: 'dark' };
+    case 'spades':
+    default:
+      return { symbol: '♠', tone: 'dark' };
+  }
+}
 export type CardFaceTone = 'red' | 'blue' | 'black';
 
 export type CardFaceSegment = {

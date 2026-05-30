@@ -29,7 +29,12 @@ export function BackHomeButton({
   };
 
   return (
-    <button type="button" onClick={handleClick} className={`btn-secondary ${className}`}>
+    <button
+      type="button"
+      onClick={handleClick}
+      className={`inline-flex items-center gap-1.5 text-sm font-medium text-cream-200/60 hover:text-gold-300 transition-colors ${className}`}
+    >
+      <span aria-hidden="true" className="rtl:rotate-180">&larr;</span>
       {t('general.backHome')}
     </button>
   );

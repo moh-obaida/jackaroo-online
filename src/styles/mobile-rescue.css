@@ -291,8 +291,8 @@ svg {
 }
 
 .lobby-table-area-fixed {
-  max-width: 430px;
-  margin-block: 1.25rem;
+  max-width: 470px;
+  margin-block: 1.6rem;
 }
 
 .mini-table-fixed span {
@@ -322,9 +322,12 @@ svg {
 
 .button-disabled-fixed,
 .button-disabled-fixed:disabled {
-  opacity: 0.5;
-  filter: grayscale(0.25);
+  opacity: 0.55;
+  filter: grayscale(0.55);
   cursor: not-allowed;
+  background: rgba(40, 32, 22, 0.7) !important;
+  color: rgba(245, 240, 232, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   box-shadow: none !important;
 }
 

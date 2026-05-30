@@ -56,6 +56,7 @@ export function PlayingCard({
   const face = (
     <CardFace
       rank={card.rank}
+      suit={card.suit}
       variant={variant}
       state={state}
       showHandHint={showHint && compact}

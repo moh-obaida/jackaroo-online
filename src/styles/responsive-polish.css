@@ -500,12 +500,12 @@ body,
 
 .table-play-area {
   width: min(100%, 44rem);
-  max-height: min(calc(100dvh - 12.5rem), 88vw, 42rem);
+  max-height: min(calc(100dvh - 15rem), 88vw, 42rem);
 }
 
 .table-play-area__stage {
-  width: min(100%, min(calc(100dvh - 14rem), 88vw, 40rem));
-  max-height: min(calc(100dvh - 14rem), 88vw, 40rem);
+  width: min(100%, min(calc(100dvh - 16.5rem), 88vw, 40rem));
+  max-height: min(calc(100dvh - 16.5rem), 88vw, 40rem);
   height: auto;
 }
 
@@ -544,11 +544,11 @@ body,
   }
 
   .table-play-area {
-    max-height: min(calc(100dvh - 13rem), 88vw);
+    max-height: min(calc(100dvh - 14.5rem), 88vw);
   }
 
   .table-play-area__stage {
-    max-height: min(calc(100dvh - 14.5rem), 86vw);
+    max-height: min(calc(100dvh - 16rem), 86vw);
   }
 
   .table-play-area__deck-rail {
@@ -556,7 +556,7 @@ body,
   }
 
   .game-hand-rail {
-    max-height: min(40vh, 14rem);
+    max-height: min(36vh, 12.5rem);
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
 
@@ -572,11 +572,11 @@ body,
 @media (min-width: 768px) and (max-width: 1023px) {
   .table-play-area {
     width: min(100%, 38rem);
-    max-height: min(calc(100dvh - 12rem), 80vw, 38rem);
+    max-height: min(calc(100dvh - 14rem), 80vw, 38rem);
   }
 
   .table-play-area__stage {
-    max-height: min(calc(100dvh - 13rem), 78vw, 36rem);
+    max-height: min(calc(100dvh - 15rem), 78vw, 36rem);
   }
 }
 
@@ -625,20 +625,36 @@ body,
 @media (min-width: 1280px) {
   .table-play-area {
     width: min(100%, 42rem);
-    max-height: min(calc(100dvh - 12rem), 40rem);
+    max-height: min(calc(100dvh - 14rem), 40rem);
   }
 
   .table-play-area__stage {
-    max-height: min(calc(100dvh - 13rem), 38rem);
+    max-height: min(calc(100dvh - 15rem), 38rem);
   }
 
   .game-hand-rail {
-    max-height: min(36vh, 15rem);
+    max-height: min(33vh, 13.5rem);
   }
 }
 
-[dir='rtl'] .game-hand-rail {
-  border-inline-start: 0;
+[dir='rtl'] .lobby-seat-donor-right {
+  right: auto;
+  left: 0;
+  translate: -25% -50%;
+}
+
+[dir='rtl'] .lobby-seat-donor-left {
+  left: auto;
+  right: 0;
+  translate: 25% -50%;
+}
+
+[dir='rtl'] .hand-dock-panel__header {
+  flex-direction: row-reverse;
+}
+
+[dir='rtl'] .play-step-bar__track {
+  flex-direction: row-reverse;
 }
 
 @media (min-width: 1024px) and (max-width: 1279px) and (orientation: landscape) {

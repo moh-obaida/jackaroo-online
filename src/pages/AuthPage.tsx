@@ -74,15 +74,17 @@ export function AuthPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
             required
           />
         </FormField>
 
-        <FormField label={t('auth.password')}>
+        <FormField label={t('auth.password')} hint={!isLogin ? t('auth.passwordHint') : undefined}>
           <TextInput
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete={isLogin ? 'current-password' : 'new-password'}
             required
             minLength={6}
           />
@@ -111,7 +113,7 @@ export function AuthPage() {
         </Button>
       </form>
 
-      <div className="mt-6 space-y-3 text-center border-t border-wood-800/50 pt-5">
+      <div className="mt-6 space-y-4 text-center border-t border-wood-800/50 pt-5">
         <button
           type="button"
           onClick={() => {
@@ -123,11 +125,14 @@ export function AuthPage() {
         >
           {isLogin ? t('auth.switchToRegister') : t('auth.switchToLogin')}
         </button>
-        <div>
-          <Button variant="ghost" size="sm" onClick={handleGuest}>
-            {t('nav.guest')}
-          </Button>
+        <div className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-cream-200/30">
+          <span className="h-px flex-1 bg-wood-800/60" />
+          {t('auth.or')}
+          <span className="h-px flex-1 bg-wood-800/60" />
         </div>
+        <Button variant="secondary" fullWidth onClick={handleGuest}>
+          {t('nav.guest')}
+        </Button>
       </div>
     </FormPage>
   );

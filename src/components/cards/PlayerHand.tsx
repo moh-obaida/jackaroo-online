@@ -32,7 +32,7 @@ export function PlayerHand({
       {cards.map((card, index) => {
         const isSelected = selectedCardId === card.id;
         const canPlay = !disabled && playable.has(card.id);
-        const offset = docked ? Math.min(index - (cards.length - 1) / 2, 3) : 0;
+        const offset = docked ? Math.max(-3, Math.min(index - (cards.length - 1) / 2, 3)) : 0;
 
         return (
           <div
@@ -41,7 +41,7 @@ export function PlayerHand({
             style={
               docked
                 ? {
-                    transform: `rotate(${offset * 2.5}deg) translateY(${Math.abs(offset) * 2}px)`,
+                    transform: `rotate(${offset * 1.6}deg) translateY(${Math.abs(offset) * 1.5}px)`,
                   }
                 : undefined
             }

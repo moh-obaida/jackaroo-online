@@ -107,7 +107,7 @@ function ImageMappedMarble({
           r={r + IMAGE_BOARD_RADII.marbleSelectionRingOffset}
           fill="none"
           stroke={isSelected ? '#ffd633' : '#5eead4'}
-          strokeWidth={isSelected ? 0.32 : 0.26}
+          strokeWidth={isSelected ? 0.24 : 0.18}
           className={isSelected ? 'marble-glow marble-glow--selected' : 'marble-glow marble-glow--selectable'}
         />
       )}
@@ -116,13 +116,13 @@ function ImageMappedMarble({
           r={r + IMAGE_BOARD_RADII.marbleGateLockRingOffset}
           fill="none"
           stroke="#ffd633"
-          strokeWidth={0.3}
+          strokeWidth={0.22}
           className="gate-lock-ring"
         />
       )}
-      <ellipse cx={0.15} cy={0.35} rx={r * 0.95} ry={r * 0.75} fill="#000" opacity={0.45} />
-      <circle r={r} fill={`url(#${gradId})`} stroke={isLocked ? '#ffd633' : isOwn ? '#e6c567' : 'rgba(255,255,255,0.35)'} strokeWidth={isLocked ? 0.35 : isOwn ? 0.28 : 0.18} />
-      <circle cx={-r * 0.32} cy={-r * 0.32} r={r * 0.28} fill="#fff" opacity={0.42} />
+      <ellipse cx={0.1} cy={r * 0.32} rx={r * 0.82} ry={r * 0.5} fill="#000" opacity={0.28} />
+      <circle r={r} fill={`url(#${gradId})`} stroke={isLocked ? '#ffd633' : isOwn ? '#e6c567' : 'rgba(255,255,255,0.3)'} strokeWidth={isLocked ? 0.28 : isOwn ? 0.22 : 0.14} />
+      <circle cx={-r * 0.3} cy={-r * 0.34} r={r * 0.26} fill="#fff" opacity={0.4} />
     </g>
   );
 }

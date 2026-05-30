@@ -529,14 +529,14 @@ export function marbleAriaLabel(marble: { color: PlayerColor; id: string }, sele
 }
 
 export const IMAGE_BOARD_RADII = {
-  marbleTrack: 1.88,
-  marbleBase: 1.62,
-  marbleHighlight: 2.35,
-  marbleSelectionRingOffset: 0.58,
-  marbleGateLockRingOffset: 0.7,
+  marbleTrack: 1.62,
+  marbleBase: 1.42,
+  marbleHighlight: 2.1,
+  marbleSelectionRingOffset: 0.42,
+  marbleGateLockRingOffset: 0.55,
   hitZone: 3.15,
   hitZoneGate: 3.45,
-  legalTarget: 2.05,
+  legalTarget: 1.78,
   calibrationDot: 0.42,
 } as const;
 
