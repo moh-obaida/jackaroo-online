@@ -97,6 +97,18 @@
 
 .card-face--hand .card-face__img-wrap {
   border-radius: 0.55rem;
+  background: linear-gradient(158deg, #fdfaf2 0%, #f0e6d0 100%);
+  box-shadow:
+    0 3px 12px rgba(0, 0, 0, 0.32),
+    inset 0 0 0 1px rgba(201, 162, 39, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.card-face--hand.card-face--image.card-face--selected .card-face__img-wrap {
+  box-shadow:
+    0 0 0 2px rgba(255, 214, 102, 0.95),
+    0 8px 22px rgba(201, 162, 39, 0.4),
+    inset 0 0 0 1px rgba(201, 162, 39, 0.45);
 }
 
 .card-face--guide .card-face__img-wrap {
@@ -114,16 +126,22 @@
   -webkit-user-drag: none;
 }
 
-/* Hand: crop top half so mirrored bottom never reads upside down */
+/* Hand: full card art scaled to fit (no aggressive crop/zoom) */
+.card-face__img-wrap--hand {
+  padding: 0.2rem 0.22rem 0.24rem;
+}
+
 .card-face__img-wrap--hand .card-face__img {
-  height: 200%;
-  object-fit: cover;
-  object-position: top center;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center top;
+  transform: none;
 }
 
 .card-face__img-wrap--hand.card-face__img-wrap--flip .card-face__img {
   transform: rotate(180deg);
-  object-position: bottom center;
+  object-position: center bottom;
 }
 
 /* —— Corners (always upright) —— */

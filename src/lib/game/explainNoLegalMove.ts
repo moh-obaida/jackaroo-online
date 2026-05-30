@@ -1,12 +1,13 @@
 import { Card, GameState, PlayerState } from '../../types/game';
-import { canBringOut, canBurn } from './cards';
-import { getMarbleAtPosition, isInBase, isLockedOnOwnStartGate, getStartGatePosition } from './board';
+import { canBringOut, canBurn, getCardMoveValue } from './cards';
+import { getMarbleAtPosition, isInBase, isInHome, isLockedOnOwnStartGate, getStartGatePosition, isOnMainTrack, calculateForwardTarget } from './board';
 import { generateLegalActions } from './legalMoves';
 
 export type NoLegalMoveReasonKey =
   | 'game.noLegalReason.allInBaseNoAceKing'
   | 'game.noLegalReason.startGateBlocked'
   | 'game.noLegalReason.noMarbleMoves'
+  | 'game.noLegalReason.noExactHome'
   | 'game.noLegalReason.burnUnavailable'
   | 'game.noLegalReason.teammateOnly'
   | 'game.noLegalReason.generic';
@@ -51,6 +52,10 @@ export function explainNoLegalMove(state: GameState, hand: Card[]): NoLegalMoveR
     return 'game.noLegalReason.teammateOnly';
   }
 
+  if (hasNoExactHomeMove(state, player, hand)) {
+    return 'game.noLegalReason.noExactHome';
+  }
+
   if (!allInBase) {
     return 'game.noLegalReason.noMarbleMoves';
   }
@@ -86,4 +91,37 @@ function hasTeammateMovesOnly(state: GameState, player: PlayerState, hand: Card[
     return marble?.color === player.color;
   });
   return teammateOnly && !ownAny;
+}
+
+/** Track marbles exist but no card value can legally enter/advance home. */
+function hasNoExactHomeMove(state: GameState, player: PlayerState, hand: Card[]): boolean {
+  const trackMarbles = state.marbles.filter(
+    (m) => m.color === player.color && isOnMainTrack(m) && !m.isFinished
+  );
+  if (trackMarbles.length === 0) return false;
+
+  const forwardValues = new Set<number>();
+  for (const card of hand) {
+    if (canBringOut(card.rank) || card.rank === 'J' || card.rank === '4') continue;
+    for (const v of getCardMoveValue(card.rank)) {
+      if (v > 0) forwardValues.add(v);
+    }
+  }
+  if (forwardValues.size === 0) return false;
+
+  const anyForward = trackMarbles.some((marble) =>
+    [...forwardValues].some((steps) => calculateForwardTarget(marble, steps, state.marbles) !== null)
+  );
+  if (anyForward) return false;
+
+  const homeMarbles = state.marbles.filter(
+    (m) => m.color === player.color && isInHome(m) && !m.isFinished
+  );
+  if (homeMarbles.length === 0) return false;
+
+  return homeMarbles.every((marble) =>
+    [...forwardValues].every(
+      (steps) => calculateForwardTarget(marble, steps, state.marbles) === null
+    )
+  );
 }

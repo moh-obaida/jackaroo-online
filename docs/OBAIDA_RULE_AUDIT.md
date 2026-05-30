@@ -1,5 +1,8 @@
 # Obaida Classic — Rule Risk Audit
 
+> **Source of truth:** [OBAIDA_CLASSIC_RULES.md](./OBAIDA_CLASSIC_RULES.md)  
+> **Implementation gaps:** [OBAIDA_RULE_GAP_AUDIT.md](./OBAIDA_RULE_GAP_AUDIT.md)
+
 Audit date: 2026-05-30  
 Scope: `legalMoves.ts`, `applyAction.ts`, `board.ts`, `validators.ts`, dealing/turn helpers  
 Ruleset: **Obaida Classic** (`obaida_classic_v1`) — do not change without explicit confirmation.
@@ -22,8 +25,8 @@ Automated coverage: `src/lib/game/obaidaRuleAudit.test.ts`, `legalMoves.obaida.t
 | Queen/10 burn | Low | Partial | Next player must have cards |
 | No legal / hand sync | Medium | Yes | Empty hand + expected count → no actions |
 | Bring-out / capture | Low | Yes | Own gate blocks; eat opponent on bring-out |
-| 2p/3p dealing | High | **Gap** | Needs dedicated dealing tests |
-| Team helper | Medium | **Gap** | Finished-player help not covered |
+| 2p/3p dealing | **Gap→OK** | Yes | `dealing.test.ts` added |
+| Team helper | **Gap→OK** | Yes | Finished player teammate moves in `legalMoves.ts` |
 | Board coordinates vs rules | Low | N/A | Visual only — no engine coupling |
 
 ---

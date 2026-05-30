@@ -43,6 +43,7 @@ export function PlayActionSheet({
 }: PlayActionSheetProps) {
   const { t } = useApp();
   const [localLoading, setLocalLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const busy = localLoading || isSubmittingAction;
 
   const view = useMemo(
@@ -60,8 +61,12 @@ export function PlayActionSheet({
   const run = async (action: LegalAction) => {
     if (busy) return;
     setLocalLoading(true);
+    setSubmitError(null);
     try {
-      await onSubmitAction(legalActionToGameAction(action, playerId));
+      const result = await onSubmitAction(legalActionToGameAction(action, playerId));
+      if (!result.ok) {
+        setSubmitError(result.error);
+      }
     } finally {
       setLocalLoading(false);
     }
@@ -120,7 +125,7 @@ export function PlayActionSheet({
         size="md"
         fullWidth
         disabled={busy}
-        onClick={() => run(action)}
+        onClick={() => void run(action)}
         className="play-sheet__no-legal-btn"
       >
         {busy ? t('game.submittingMove') : t('game.burnAll')}
@@ -142,8 +147,20 @@ export function PlayActionSheet({
         <p className="play-sheet__hint play-sheet__hint--flow">{t(boardFlowHintKey)}</p>
       )}
 
+      {submitError && (
+        <p className="play-sheet__hint play-sheet__hint--error" role="alert">
+          {submitError}
+        </p>
+      )}
+
       {view.kind === 'skip' && legalMovesReady && renderConfirmSummary(view.action)}
       {view.kind === 'burn_all' && legalMovesReady && renderNoLegalPanel(view.action)}
+
+      {!legalMovesReady && isMyTurn && !busy && (
+        <p className="play-sheet__hint play-sheet__hint--loading" role="status" aria-live="polite">
+          {t('game.loadingLegalMoves')}
+        </p>
+      )}
 
       {view.kind === 'play_card' && legalMovesReady && (
         <>

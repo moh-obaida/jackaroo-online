@@ -45,6 +45,7 @@ import {
   positionEquals,
 } from './board';
 import { getRulesetConfig } from './rulesets';
+import { isPlayerFinished } from './win';
 
 // ============================================================================
 // MAIN ENTRY POINT
@@ -142,16 +143,17 @@ function generateBringOutActions(
   card: Card
 ): LegalAction[] {
   const actions: LegalAction[] = [];
-  const playerMarbles = state.marbles.filter((m) => m.color === player.color);
+  const moveColor = getActingMoveColor(state, player);
+  const playerMarbles = state.marbles.filter((m) => m.color === moveColor);
   const baseMarbles = playerMarbles.filter((m) => isInBase(m));
 
   if (baseMarbles.length === 0) return actions;
 
-  const startGate = getStartGatePosition(player.color);
+  const startGate = getStartGatePosition(moveColor);
   const marbleOnStartGate = getMarbleAtPosition(startGate, state.marbles);
 
   // Can't bring out if own marble is already on start/gate (locked)
-  if (marbleOnStartGate && marbleOnStartGate.color === player.color) {
+  if (marbleOnStartGate && marbleOnStartGate.color === moveColor) {
     return actions;
   }
 
@@ -260,8 +262,9 @@ function generateBackward4Actions(
   card: Card
 ): LegalAction[] {
   const actions: LegalAction[] = [];
+  const moveColor = getActingMoveColor(state, player);
   const playerMarbles = state.marbles.filter(
-    (m) => m.color === player.color && isOnMainTrack(m) && !m.isFinished
+    (m) => m.color === moveColor && isOnMainTrack(m) && !m.isFinished
   );
 
   for (const marble of playerMarbles) {
@@ -374,11 +377,12 @@ function generateSplitSevenActions(
   // Or split between multiple marbles (must use all 7, no waste)
   // Split cannot mix own and teammate marbles
 
+  const moveColor = getActingMoveColor(state, player);
   const ownMarbles = state.marbles.filter(
-    (m) => m.color === player.color && (isOnMainTrack(m) || isInHome(m)) && !m.isFinished
+    (m) => m.color === moveColor && (isOnMainTrack(m) || isInHome(m)) && !m.isFinished
   );
 
-  // Generate valid splits for own marbles
+  // Generate valid splits for acting color marbles
   const ownSplits = generateSplitCombinations(ownMarbles, 7, state);
   for (const split of ownSplits) {
     actions.push({
@@ -389,8 +393,8 @@ function generateSplitSevenActions(
     });
   }
 
-  // If no own splits available and in team mode, try teammate
-  if (ownSplits.length === 0 && state.mode === '4p_teams') {
+  // If no splits on acting color and player still has own marbles, try teammate
+  if (ownSplits.length === 0 && state.mode === '4p_teams' && moveColor === player.color) {
     const teammate = getTeammate(player, state);
     if (teammate) {
       const teamMarbles = state.marbles.filter(
@@ -527,21 +531,23 @@ function applyPriorityRules(
 ): LegalAction[] {
   if (actions.length === 0) return [];
 
+  const actingColor = getActingMoveColor(state, player);
+
   // Separate actions by category
   const ownMoveActions = actions.filter((a) => {
     if (a.type === 'burn_next_player') return false;
     if (a.type === 'swap') return true; // Swaps are always available
     if (a.type === 'split_seven') {
-      // Check if split uses own marbles
+      // Check if split uses acting color marbles
       if (!a.splitMoves) return false;
       return a.splitMoves.every((sm) => {
         const marble = state.marbles.find((m) => m.id === sm.marbleId);
-        return marble?.color === player.color;
+        return marble?.color === actingColor;
       });
     }
     if (a.marbleId) {
       const marble = state.marbles.find((m) => m.id === a.marbleId);
-      return marble?.color === player.color;
+      return marble?.color === actingColor;
     }
     return true;
   });
@@ -605,9 +611,9 @@ function getEligibleMarblesForMove(
   player: PlayerState,
   cardRank: string
 ): Marble[] {
-  // For most cards: own marbles on main track or in home (not base, not finished)
+  const moveColor = getActingMoveColor(state, player);
   const playerMarbles = state.marbles.filter(
-    (m) => m.color === player.color && !m.isFinished
+    (m) => m.color === moveColor && !m.isFinished
   );
 
   // Filter based on card type
@@ -643,9 +649,19 @@ function getMarbleOwnership(
   player: PlayerState,
   state: GameState
 ): string {
-  if (marble.color === player.color) return 'own';
+  const actingColor = getActingMoveColor(state, player);
+  if (marble.color === actingColor) return 'own';
   if (isTeammate(marble.color, player, state)) return 'teammate';
   return 'opponent';
+}
+
+/** Color whose marbles the current player moves (teammate when finished in team mode). */
+function getActingMoveColor(state: GameState, player: PlayerState): PlayerColor {
+  if (state.mode === '4p_teams' && isPlayerFinished(state, player.id)) {
+    const teammate = getTeammate(player, state);
+    if (teammate) return teammate.color;
+  }
+  return player.color;
 }
 
 function isBurnEnabledByRules(rank: Card['rank'], rulesConfig: CustomRulesConfig): boolean {

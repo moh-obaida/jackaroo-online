@@ -362,6 +362,8 @@ export const en: Translations = {
     'No legal move. Your start/gate is blocked by your own marble.',
   'game.noLegalReason.noMarbleMoves':
     'No legal move. No marble can move the exact value on your cards.',
+  'game.noLegalReason.noExactHome':
+    'No legal move. Marbles are near home but no card gives an exact home entry.',
   'game.noLegalReason.burnUnavailable':
     'No legal move. Burn is not available because the next player has no cards.',
   'game.noLegalReason.teammateOnly':
@@ -1003,6 +1005,8 @@ export const ar: Translations = {
     'لا حركة قانونية. بوابة البداية محجوزة بكرّتك.',
   'game.noLegalReason.noMarbleMoves':
     'لا حركة قانونية. لا يمكن تحريك أي كرة بالقيمة المطلوبة.',
+  'game.noLegalReason.noExactHome':
+    'لا حركة قانونية. الأحجار قرب البيت لكن لا توجد ورقة تدخل بالعدد الصحيح.',
   'game.noLegalReason.burnUnavailable':
     'لا حركة قانونية. الحرق غير متاح لأن اللاعب التالي بلا أوراق.',
   'game.noLegalReason.teammateOnly':

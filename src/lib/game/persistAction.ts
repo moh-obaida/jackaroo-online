@@ -24,10 +24,15 @@ import { allPlayersHandsEmpty } from './turns';
 import { STALE_MOVE_ERROR, validateMovePreconditions } from './compareAndSet';
 
 export function legalActionToGameAction(legal: LegalAction, playerId: string): GameAction {
+  const omitCard =
+    legal.type === 'burn_all_cards' ||
+    legal.type === 'skip_no_cards' ||
+    !legal.cardId;
+
   return {
     type: legal.type,
     playerId,
-    cardId: legal.cardId || undefined,
+    cardId: omitCard ? undefined : legal.cardId,
     marbleId: legal.marbleId,
     targetPosition: legal.targetPosition,
     swapMarbleId1: legal.swapMarbleId1,

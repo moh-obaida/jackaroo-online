@@ -2,8 +2,9 @@
 
 This doc ties together:
 
-- [`jakaroo_online_manus_prompt.txt`](../jakaroo_online_manus_prompt.txt) (source of truth for rules)
-- [`ARCHITECTURE_REFERENCES.md`](./ARCHITECTURE_REFERENCES.md) (Manus + **Knowledge Connect** patterns + z-index stack)
+- **[OBAIDA_CLASSIC_RULES.md](./OBAIDA_CLASSIC_RULES.md)** — MVP source of truth
+- **[OBAIDA_RULE_GAP_AUDIT.md](./OBAIDA_RULE_GAP_AUDIT.md)** — implementation status
+- **[OBAIDA_RULE_AUDIT.md](./OBAIDA_RULE_AUDIT.md)** — edge-case risk audit
 - Physical Jackaroo deck photos (red back **جاكارو / JACKAROO**, white face with **large rank number** + Arabic action text)
 - Code in this repo (engine vs UI)
 

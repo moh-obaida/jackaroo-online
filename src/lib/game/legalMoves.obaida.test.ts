@@ -119,4 +119,41 @@ describe('generateLegalActions — Obaida Classic', () => {
     expect(actions).toHaveLength(1);
     expect(actions[0].type).toBe('burn_all_cards');
   });
+
+  it('3-player mode has no marbles for inactive fourth color', () => {
+    const p1 = makePlayer('p1', 'black', 0, { team: null });
+    const p2 = makePlayer('p2', 'green', 1, { team: null });
+    const p3 = makePlayer('p3', 'blue', 2, { team: null });
+    const state = makeBaseState('3p_solo', [p1, p2, p3], 'p1');
+    expect(state.marbles.some((m) => m.color === 'white')).toBe(false);
+    expect(state.marbles).toHaveLength(12);
+  });
+
+  it('finished team player can bring out teammate marble with Ace', () => {
+    const p1 = makePlayer('p1', 'black', 0, { team: 'A' });
+    const p2 = makePlayer('p2', 'green', 1, { team: 'B' });
+    const p3 = makePlayer('p3', 'blue', 2, { team: 'A' });
+    const p4 = makePlayer('p4', 'white', 3, { team: 'B' });
+    let state = makeBaseState('4p_teams', [p1, p2, p3, p4], 'p1', {
+      handCounts: { p1: 1, p2: 0, p3: 0, p4: 0 },
+    });
+    state = {
+      ...state,
+      marbles: state.marbles.map((m) =>
+        m.color === 'black'
+          ? {
+              ...m,
+              isFinished: true,
+              position: { color: 'black', type: 'home', index: 3 },
+            }
+          : m
+      ),
+    };
+    const hand = [makeCard('A')];
+    const actions = generateLegalActions(state, hand);
+    const bringOut = actions.find((a) => a.type === 'bring_out');
+    expect(bringOut).toBeDefined();
+    const marble = state.marbles.find((m) => m.id === bringOut!.marbleId);
+    expect(marble?.color).toBe('blue');
+  });
 });

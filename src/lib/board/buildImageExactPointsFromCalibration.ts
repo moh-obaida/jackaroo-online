@@ -11,8 +11,6 @@ import { COLORS_ORDER, TRACK_LENGTH } from '../../types/game';
 import type { BoardImagePoint, ExactImagePoints } from './imageBoardCoordinateTypes';
 import calibrationClicks from './board-coordinates.json';
 
-const BOARD_CENTER: BoardImagePoint = { x: 50, y: 50 };
-
 /** Live calibration click index → bucket (108 clicks total). */
 export const CALIBRATION_CLICK_MAP = {
   home: {
@@ -88,17 +86,35 @@ function dist(a: BoardImagePoint, b: BoardImagePoint): number {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-function distFromCenter(p: BoardImagePoint): number {
-  return dist(p, BOARD_CENTER);
+/** Starting-square nest (diamond cluster beside gate), not home V path. */
+function buildStartSquareNest(
+  gate: BoardImagePoint,
+  quadrant: 'tl' | 'tr' | 'br' | 'bl'
+): BoardImagePoint[] {
+  const along = 6.4;
+  const spreadX = 2.75;
+  const spreadY = 2.25;
+  const anchor = {
+    tl: { cx: gate.x - along * 0.78, cy: gate.y + along * 0.48 },
+    tr: { cx: gate.x + along * 0.78, cy: gate.y + along * 0.48 },
+    br: { cx: gate.x + along * 0.78, cy: gate.y - along * 0.48 },
+    bl: { cx: gate.x - along * 0.78, cy: gate.y - along * 0.48 },
+  }[quadrant];
+
+  return [
+    pt({ x: anchor.cx - spreadX, y: anchor.cy - spreadY }),
+    pt({ x: anchor.cx + spreadX, y: anchor.cy - spreadY }),
+    pt({ x: anchor.cx - spreadX, y: anchor.cy + spreadY }),
+    pt({ x: anchor.cx + spreadX, y: anchor.cy + spreadY }),
+  ];
 }
 
-/**
- * Nest slots 0→3 run outer → inner (away from board center → toward center).
- * Matches engine NW/NE/SW/SE for corner nests on the live board image.
- */
-function sortBaseClusterToEngine(raw: BoardImagePoint[]): BoardImagePoint[] {
-  return [...raw].sort((a, b) => distFromCenter(b) - distFromCenter(a));
-}
+const NEST_QUADRANT: Record<PlayerColor, 'tl' | 'tr' | 'br' | 'bl'> = {
+  black: 'tl',
+  green: 'tr',
+  blue: 'br',
+  white: 'bl',
+};
 
 /** Top V — entry is tip (min y), then left-to-right on each row. */
 function sortHomeBlack(raw: BoardImagePoint[]): BoardImagePoint[] {
@@ -228,7 +244,7 @@ export function buildImageExactPointsFromCalibration(): ExactImagePoints {
         break;
     }
 
-    base[color] = sortBaseClusterToEngine(pickMany(CALIBRATION_CLICK_MAP.base[color]));
+    base[color] = buildStartSquareNest(gates[color], NEST_QUADRANT[color]);
   }
 
   const validation = validateCalibrationBuckets({ track, gates, home, base });

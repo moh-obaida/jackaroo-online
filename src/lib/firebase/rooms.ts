@@ -31,6 +31,7 @@ import { normalizeCards, normalizeGameState } from '../game/normalize';
 import { canCommitMoveTransaction } from '../game/compareAndSet';
 import { getNextTurnPlayerAfterLeave } from '../game/turns';
 import { isRoomExpired } from '../room/roomExpiry';
+import { colorForSeat, getNextJoinSeat, getSeatSlotsForMode } from '../game/seats';
 
 // ============================================================================
 // ROOM CODE GENERATION — Numeric only, saved to Firebase
@@ -255,10 +256,12 @@ export async function joinRoom(params: {
     }
 
     const usedSeats = Object.values(currentPlayers).map((p) => p.seat);
-    let nextSeat = 0;
-    while (usedSeats.includes(nextSeat)) nextSeat++;
+    const nextSeat = getNextJoinSeat(room.mode, usedSeats);
+    if (nextSeat === null) {
+      return { success: false, error: 'Room is full' };
+    }
 
-    const color = COLORS_ORDER[nextSeat];
+    const color = colorForSeat(nextSeat);
     const team = room.mode === '4p_teams' ? TEAM_ASSIGNMENTS[nextSeat] : null;
 
     const newPlayer: PlayerState = {
@@ -474,21 +477,19 @@ export async function addBots(
 
   const room = snapshot.val() as RoomData;
   const usedSeats = Object.values(room.players).map((p) => p.seat);
-  const maxPlayers = getMaxPlayers(mode);
   let botsAdded = 0;
 
+  const validSeats = getSeatSlotsForMode(mode);
   const seatOrder =
-    preferredSeat !== undefined
-      ? [preferredSeat]
-      : Array.from({ length: maxPlayers }, (_, i) => i);
+    preferredSeat !== undefined ? [preferredSeat] : validSeats;
 
   for (const seat of seatOrder) {
     if (botsAdded >= count) break;
-    if (seat < 0 || seat >= maxPlayers) continue;
+    if (!validSeats.includes(seat)) continue;
     if (usedSeats.includes(seat)) continue;
 
     const botId = `bot_${seat}_${Date.now()}`;
-    const color = COLORS_ORDER[seat];
+    const color = colorForSeat(seat);
     const team = mode === '4p_teams' ? TEAM_ASSIGNMENTS[seat] : null;
 
     const botPlayer: PlayerState = {
