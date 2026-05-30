@@ -40,48 +40,186 @@ export function boardPositionImageKey(position: BoardPosition): string {
   return `${position.color}:${position.type}:${position.index}`;
 }
 
-/**
- * Per-point image overrides — paste calibrated values here while tuning.
- * Keys use boardPositionImageKey().
- */
-const IMAGE_COORDINATE_OVERRIDES: Partial<Record<string, BoardImagePoint>> = {
-  // "black:track:0": { x: 00.00, y: 00.00 },
-  // "black:start_gate:0": { x: 00.00, y: 00.00 },
+
+/** Emergency per-point overrides — prefer IMAGE_EXACT_POINTS; use only for last-minute tuning. */
+const IMAGE_COORDINATE_OVERRIDES: Partial<Record<string, BoardImagePoint>> = {};
+
+export type ExactImagePoints = {
+  track: Record<PlayerColor, BoardImagePoint[]>;
+  gates: Record<PlayerColor, BoardImagePoint | null>;
+  home: Record<PlayerColor, BoardImagePoint[]>;
+  base: Record<PlayerColor, BoardImagePoint[]>;
 };
 
 /**
- * Exact calibrated image coordinates.
- * Values are percentages in the 0–100 SVG board coordinate system.
- * These must match the board image used by IMAGE_BOARD_GAME_SRC.
+ * Full exact image coordinate map (108 visual points).
+ * Source: live clicked coordinates from calibration tool on rendered gameplay board.
+ * Date: 2026-05-30
+ * Warning: valid only for IMAGE_BOARD_GAME_SRC (jakaroo-board-game-empty.png).
  *
- * Procedural fallback remains active until every slot is filled.
+ * Classification (from 108 calibration clicks):
+ * - home black: indices 0–3 (top V cluster)
+ * - perimeter 4–79: gate + 18 track × 4 (clockwise, engine order)
+ *   black gate=4, track 5–22; green gate=23, track 24–41; blue gate=42, track 43–60; white gate=61, track 62–79
+ * - home green: 80–83; home blue: 84–87; home white: 88–91
+ * - base white: 92–95; base blue: 96–99; base black: 100–103; base green: 104–107
+ *
+ * Track arrays match BoardPosition { color, type: "track", index } — do not reorder unless engine changes.
  */
-const IMAGE_EXACT_POINTS = {
+const IMAGE_EXACT_POINTS: ExactImagePoints = {
   track: {
-    black: [] as BoardImagePoint[],
-    green: [] as BoardImagePoint[],
-    blue: [] as BoardImagePoint[],
-    white: [] as BoardImagePoint[],
+    black: [
+      { x: 27.58, y: 13.02 }, // 0 — click 5
+      { x: 30.44, y: 16.46 }, // 1 — click 6
+      { x: 33.30, y: 19.51 }, // 2 — click 7
+      { x: 36.35, y: 22.57 }, // 3 — click 8
+      { x: 39.41, y: 25.62 }, // 4 — click 9
+      { x: 43.61, y: 25.43 }, // 5 — click 10
+      { x: 47.61, y: 25.43 }, // 6 — click 11
+      { x: 52.19, y: 25.62 }, // 7 — click 12
+      { x: 56.20, y: 25.43 }, // 8 — click 13
+      { x: 60.59, y: 25.62 }, // 9 — click 14
+      { x: 63.65, y: 22.38 }, // 10 — click 15
+      { x: 66.51, y: 19.32 }, // 11 — click 16
+      { x: 69.56, y: 16.08 }, // 12 — click 17
+      { x: 72.81, y: 13.02 }, // 13 — click 18
+      { x: 75.67, y: 10.16 }, // 14 — click 19
+      { x: 78.91, y: 13.22 }, // 15 — click 20
+      { x: 81.77, y: 16.27 }, // 16 — click 21
+      { x: 85.02, y: 19.13 }, // 17 — click 22
+    ],
+    green: [
+      { x: 85.02, y: 25.62 }, // 0 — click 24
+      { x: 82.16, y: 28.48 }, // 1 — click 25
+      { x: 78.91, y: 31.92 }, // 2 — click 26
+      { x: 76.05, y: 35.16 }, // 3 — click 27
+      { x: 74.52, y: 38.79 }, // 4 — click 28
+      { x: 74.33, y: 43.37 }, // 5 — click 29
+      { x: 74.33, y: 47.57 }, // 6 — click 30
+      { x: 74.52, y: 51.96 }, // 7 — click 31
+      { x: 74.52, y: 56.15 }, // 8 — click 32
+      { x: 74.52, y: 60.73 }, // 9 — click 33
+      { x: 76.24, y: 64.55 }, // 10 — click 34
+      { x: 79.29, y: 67.80 }, // 11 — click 35
+      { x: 82.54, y: 71.04 }, // 12 — click 36
+      { x: 85.40, y: 74.28 }, // 13 — click 37
+      { x: 88.84, y: 77.53 }, // 14 — click 38
+      { x: 85.78, y: 80.96 }, // 15 — click 39
+      { x: 82.35, y: 84.02 }, // 16 — click 40
+      { x: 79.29, y: 87.26 }, // 17 — click 41
+    ],
+    blue: [
+      { x: 72.81, y: 86.88 }, // 0 — click 43
+      { x: 69.94, y: 84.21 }, // 1 — click 44
+      { x: 66.89, y: 80.77 }, // 2 — click 45
+      { x: 63.84, y: 77.53 }, // 3 — click 46
+      { x: 60.97, y: 74.28 }, // 4 — click 47
+      { x: 56.58, y: 74.28 }, // 5 — click 48
+      { x: 52.19, y: 73.90 }, // 6 — click 49
+      { x: 47.81, y: 74.09 }, // 7 — click 50
+      { x: 43.61, y: 74.09 }, // 8 — click 51
+      { x: 39.41, y: 74.09 }, // 9 — click 52
+      { x: 35.78, y: 77.91 }, // 10 — click 53
+      { x: 32.73, y: 80.96 }, // 11 — click 54
+      { x: 29.87, y: 84.40 }, // 12 — click 55
+      { x: 26.43, y: 87.64 }, // 13 — click 56
+      { x: 23.57, y: 91.08 }, // 14 — click 57
+      { x: 20.13, y: 87.07 }, // 15 — click 58
+      { x: 17.46, y: 84.40 }, // 16 — click 59
+      { x: 14.03, y: 80.77 }, // 17 — click 60
+    ],
+    white: [
+      { x: 14.22, y: 74.48 }, // 0 — click 62
+      { x: 17.46, y: 71.04 }, // 1 — click 63
+      { x: 20.52, y: 68.18 }, // 2 — click 64
+      { x: 23.57, y: 64.55 }, // 3 — click 65
+      { x: 25.10, y: 60.54 }, // 4 — click 66
+      { x: 25.29, y: 55.96 }, // 5 — click 67
+      { x: 25.29, y: 51.57 }, // 6 — click 68
+      { x: 25.29, y: 47.19 }, // 7 — click 69
+      { x: 25.29, y: 42.99 }, // 8 — click 70
+      { x: 25.67, y: 38.98 }, // 9 — click 71
+      { x: 23.57, y: 34.78 }, // 10 — click 72
+      { x: 20.71, y: 31.92 }, // 11 — click 73
+      { x: 17.84, y: 28.48 }, // 12 — click 74
+      { x: 14.98, y: 25.81 }, // 13 — click 75
+      { x: 11.74, y: 21.99 }, // 14 — click 76
+      { x: 14.98, y: 19.70 }, // 15 — click 77
+      { x: 17.84, y: 16.27 }, // 16 — click 78
+      { x: 21.28, y: 12.64 }, // 17 — click 79
+    ],
   },
   gates: {
-    black: null as BoardImagePoint | null,
-    green: null as BoardImagePoint | null,
-    blue: null as BoardImagePoint | null,
-    white: null as BoardImagePoint | null,
+    black: { x: 24.33, y: 9.97 }, // click 4
+    green: { x: 88.07, y: 22.57 }, // click 23
+    blue: { x: 76.05, y: 90.31 }, // click 42
+    white: { x: 10.97, y: 77.53 }, // click 61
   },
   home: {
-    black: [] as BoardImagePoint[],
-    green: [] as BoardImagePoint[],
-    blue: [] as BoardImagePoint[],
-    white: [] as BoardImagePoint[],
+    black: [
+      { x: 37.88, y: 7.87 }, // 0 — click 0
+      { x: 34.06, y: 11.50 }, // 1 — click 1
+      { x: 37.69, y: 15.12 }, // 2 — click 2
+      { x: 41.51, y: 11.50 }, // 3 — click 3
+    ],
+    green: [
+      { x: 86.35, y: 31.73 }, // 0 — click 80
+      { x: 83.30, y: 34.78 }, // 1 — click 81
+      { x: 86.35, y: 38.41 }, // 2 — click 82
+      { x: 89.79, y: 35.16 }, // 3 — click 83
+    ],
+    blue: [
+      { x: 62.50, y: 85.16 }, // 0 — click 84
+      { x: 65.94, y: 88.41 }, // 1 — click 85
+      { x: 62.50, y: 92.41 }, // 2 — click 86
+      { x: 59.26, y: 88.41 }, // 3 — click 87
+    ],
+    white: [
+      { x: 16.89, y: 64.36 }, // 0 — click 88
+      { x: 13.26, y: 67.80 }, // 1 — click 89
+      { x: 9.83, y: 64.17 }, // 2 — click 90
+      { x: 13.26, y: 60.73 }, // 3 — click 91
+    ],
   },
   base: {
-    black: [] as BoardImagePoint[],
-    green: [] as BoardImagePoint[],
-    blue: [] as BoardImagePoint[],
-    white: [] as BoardImagePoint[],
+    black: [
+      { x: 21.09, y: 19.13 }, // 0 — click 100
+      { x: 24.14, y: 22.19 }, // 1 — click 101
+      { x: 27.19, y: 25.62 }, // 2 — click 102
+      { x: 30.25, y: 28.48 }, // 3 — click 103
+    ],
+    green: [
+      { x: 78.91, y: 19.51 }, // 0 — click 104
+      { x: 75.86, y: 22.57 }, // 1 — click 105
+      { x: 73.00, y: 25.24 }, // 2 — click 106
+      { x: 69.75, y: 28.67 }, // 3 — click 107
+    ],
+    blue: [
+      { x: 79.29, y: 80.96 }, // 0 — click 96
+      { x: 76.05, y: 77.15 }, // 1 — click 97
+      { x: 72.81, y: 74.28 }, // 2 — click 98
+      { x: 69.75, y: 71.23 }, // 3 — click 99
+    ],
+    white: [
+      { x: 20.32, y: 80.58 }, // 0 — click 92
+      { x: 23.57, y: 77.72 }, // 1 — click 93
+      { x: 26.62, y: 74.09 }, // 2 — click 94
+      { x: 30.06, y: 70.66 }, // 3 — click 95
+    ],
   },
-} as const;
+};
+
+function isValidPoint(p: BoardImagePoint | null | undefined): p is BoardImagePoint {
+  if (!p) return false;
+  return (
+    Number.isFinite(p.x) &&
+    Number.isFinite(p.y) &&
+    p.x >= 0 &&
+    p.x <= 100 &&
+    p.y >= 0 &&
+    p.y <= 100
+  );
+}
 
 function isExactTrackComplete(): boolean {
   return COLORS_ORDER.every((c) => IMAGE_EXACT_POINTS.track[c].length === TRACK_LENGTH);
@@ -99,32 +237,72 @@ function isExactGatesComplete(): boolean {
   return COLORS_ORDER.every((c) => IMAGE_EXACT_POINTS.gates[c] != null);
 }
 
+export function isExactImageMapComplete(): boolean {
+  return isExactTrackComplete() && isExactHomeComplete() && isExactBaseComplete() && isExactGatesComplete();
+}
+
+let exactMapValidated = false;
+
+/** Dev-only — warns once if exact map counts/ranges are invalid. */
+function validateExactImagePoints(): void {
+  if (!import.meta.env?.DEV || exactMapValidated) return;
+  exactMapValidated = true;
+
+  for (const color of COLORS_ORDER) {
+    if (IMAGE_EXACT_POINTS.base[color].length !== 4) {
+      console.warn('[imageBoard] exact base incomplete', color, IMAGE_EXACT_POINTS.base[color].length);
+    }
+    if (IMAGE_EXACT_POINTS.home[color].length !== HOME_LENGTH) {
+      console.warn('[imageBoard] exact home incomplete', color, IMAGE_EXACT_POINTS.home[color].length);
+    }
+    if (IMAGE_EXACT_POINTS.track[color].length !== TRACK_LENGTH) {
+      console.warn('[imageBoard] exact track incomplete', color, IMAGE_EXACT_POINTS.track[color].length);
+    }
+    if (!IMAGE_EXACT_POINTS.gates[color]) {
+      console.warn('[imageBoard] exact gate missing', color);
+    }
+
+    const sections: BoardImagePoint[][] = [
+      IMAGE_EXACT_POINTS.base[color],
+      IMAGE_EXACT_POINTS.home[color],
+      IMAGE_EXACT_POINTS.track[color],
+    ];
+    if (IMAGE_EXACT_POINTS.gates[color]) sections.push([IMAGE_EXACT_POINTS.gates[color]!]);
+
+    for (const arr of sections) {
+      for (const pt of arr) {
+        if (!isValidPoint(pt)) console.warn('[imageBoard] invalid exact point', color, pt);
+      }
+    }
+  }
+}
+
 function getExactImagePoint(position: BoardPosition): BoardImagePoint | null {
   const { color, type, index } = position;
   switch (type) {
-    case 'track':
-      if (!isExactTrackComplete()) return null;
-      return IMAGE_EXACT_POINTS.track[color][index] ?? null;
-    case 'start_gate':
-      if (!isExactGatesComplete()) return null;
-      return IMAGE_EXACT_POINTS.gates[color];
-    case 'home':
-      if (!isExactHomeComplete()) return null;
-      return IMAGE_EXACT_POINTS.home[color][index] ?? null;
-    case 'base':
-      if (!isExactBaseComplete()) return null;
-      return IMAGE_EXACT_POINTS.base[color][index] ?? null;
+    case 'track': {
+      const pt = IMAGE_EXACT_POINTS.track[color][index];
+      return isValidPoint(pt) ? pt : null;
+    }
+    case 'start_gate': {
+      const pt = IMAGE_EXACT_POINTS.gates[color];
+      return isValidPoint(pt) ? pt : null;
+    }
+    case 'home': {
+      const pt = IMAGE_EXACT_POINTS.home[color][index];
+      return isValidPoint(pt) ? pt : null;
+    }
+    case 'base': {
+      const pt = IMAGE_EXACT_POINTS.base[color][index];
+      return isValidPoint(pt) ? pt : null;
+    }
     default:
       return null;
   }
 }
 
-/**
- * Home lanes on the premium board image follow the cardinal V-slots toward center,
- * not the procedural geometry centerline (which lands in the deck well).
- * Tune with VITE_BOARD_CALIBRATION=1 — see docs/BOARD_CALIBRATION.md.
- */
-const IMAGE_HOME_LANE_POINTS: Record<PlayerColor, BoardImagePoint[]> = {
+/** Legacy manual home lanes — emergency fallback only when exact map slot missing. */
+const IMAGE_HOME_LANE_FALLBACK: Record<PlayerColor, BoardImagePoint[]> = {
   black: [
     { x: 50.0, y: 24.2 },
     { x: 50.0, y: 30.1 },
@@ -152,7 +330,6 @@ const IMAGE_HOME_LANE_POINTS: Record<PlayerColor, BoardImagePoint[]> = {
 };
 
 export type ImageBoardPoints = {
-  /** 72 outer track spots (18 × 4 colors, black section first). */
   mainTrack: BoardImagePoint[];
   gates: Record<PlayerColor, BoardImagePoint>;
   home: Record<PlayerColor, BoardImagePoint[]>;
@@ -168,38 +345,39 @@ function layoutPointToPercent(pt: { x: number; y: number }): BoardImagePoint {
 }
 
 function buildImageBoardPoints(): ImageBoardPoints {
-  const layout = BOARD_LAYOUT;
   const mainTrack: BoardImagePoint[] = [];
   const gates = {} as Record<PlayerColor, BoardImagePoint>;
   const home = {} as Record<PlayerColor, BoardImagePoint[]>;
   const base = {} as Record<PlayerColor, BoardImagePoint[]>;
 
   for (const color of COLORS_ORDER) {
-    const gatePt = boardPositionToPoint({ color, type: 'start_gate', index: 0 }, layout);
-    if (gatePt) gates[color] = layoutPointToPercent(gatePt);
+    const gatePt = getExactImagePoint({ color, type: 'start_gate', index: 0 });
+    if (gatePt) gates[color] = gatePt;
 
-    home[color] = [...IMAGE_HOME_LANE_POINTS[color]];
+    home[color] = [];
+    for (let i = 0; i < HOME_LENGTH; i++) {
+      const pt = getExactImagePoint({ color, type: 'home', index: i });
+      if (pt) home[color].push(pt);
+    }
 
     base[color] = [];
     for (let i = 0; i < 4; i++) {
-      const pt = boardPositionToPoint({ color, type: 'base', index: i }, layout);
-      if (pt) base[color].push(layoutPointToPercent(pt));
+      const pt = getExactImagePoint({ color, type: 'base', index: i });
+      if (pt) base[color].push(pt);
     }
 
     for (let i = 0; i < TRACK_LENGTH; i++) {
-      const pt = boardPositionToPoint({ color, type: 'track', index: i }, layout);
-      if (pt) mainTrack.push(layoutPointToPercent(pt));
+      const pt = getExactImagePoint({ color, type: 'track', index: i });
+      if (pt) mainTrack.push(pt);
     }
   }
 
   return { mainTrack, gates, home, base };
 }
 
-export const IMAGE_BOARD_POINTS = buildImageBoardPoints();
-
 function getProceduralImagePoint(position: BoardPosition): BoardImagePoint | null {
   if (position.type === 'home') {
-    const lanePt = IMAGE_HOME_LANE_POINTS[position.color]?.[position.index];
+    const lanePt = IMAGE_HOME_LANE_FALLBACK[position.color]?.[position.index];
     if (lanePt) return lanePt;
   }
 
@@ -209,6 +387,8 @@ function getProceduralImagePoint(position: BoardPosition): BoardImagePoint | nul
 }
 
 export function getImagePointForBoardPosition(position: BoardPosition): BoardImagePoint | null {
+  validateExactImagePoints();
+
   const overrideKey = boardPositionImageKey(position);
   const override = IMAGE_COORDINATE_OVERRIDES[overrideKey];
   if (override) return override;
@@ -218,7 +398,7 @@ export function getImagePointForBoardPosition(position: BoardPosition): BoardIma
 
   const procedural = getProceduralImagePoint(position);
   if (!procedural) {
-    if (import.meta.env.DEV) {
+    if (import.meta.env?.DEV) {
       console.warn('[imageBoard] unmapped position', position);
     }
     return null;
@@ -226,14 +406,14 @@ export function getImagePointForBoardPosition(position: BoardPosition): BoardIma
   return procedural;
 }
 
-/** Canonical visual lookup — percentage coords (0–100) on the board image. */
+export const IMAGE_BOARD_POINTS = buildImageBoardPoints();
+
 export function getBoardVisualPoint(position: BoardPosition): { xPercent: number; yPercent: number } | null {
   const pt = getImagePointForBoardPosition(position);
   if (!pt) return null;
   return { xPercent: pt.x, yPercent: pt.y };
 }
 
-/** All logical positions for calibration/debug overlays. */
 export function getAllBoardPositions(activeColors: Set<PlayerColor>): BoardPosition[] {
   const out: BoardPosition[] = [];
   for (const color of COLORS_ORDER) {
@@ -292,19 +472,18 @@ export function marbleAriaLabel(marble: { color: PlayerColor; id: string }, sele
   return `${c} marble`;
 }
 
-/** SVG radii in viewBox units (0–100). */
 export const IMAGE_BOARD_RADII = {
   marbleTrack: 2.15,
   marbleBase: 1.85,
   marbleHighlight: 2.55,
+  marbleSelectionRingOffset: 0.65,
+  marbleGateLockRingOffset: 0.78,
   hitZone: 3.15,
   hitZoneGate: 3.45,
-  /** Thin ring aligned to hole — not a filled blob */
-  legalTarget: 2.05,
+  legalTarget: 2.15,
   calibrationDot: 0.42,
 } as const;
 
-/** Calibration overlay dot colors by position type. */
 export const CALIBRATION_DOT_COLORS: Record<BoardPosition['type'], string> = {
   track: '#e6c567',
   start_gate: '#5eead4',

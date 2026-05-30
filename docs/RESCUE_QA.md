@@ -180,6 +180,23 @@ Enable `VITE_ENABLE_BOARD_CALIBRATION=true` or `VITE_BOARD_CALIBRATION=1`, then 
 
 Disable calibration env flags before production deploy.
 
+### Board map QA (full exact map)
+
+With calibration enabled on the **gameplay** board, spot-check:
+
+| Area | Verify |
+|------|--------|
+| Base (16) | All nest marbles centered in holes |
+| Gates (4) | Start/gate rings centered; lock ring not oversized |
+| Home (16) | Home path direction correct; marbles in grooves |
+| Track (72) | Target rings on holes, not between holes |
+| Hit zones | Tap/click matches visible hole |
+| Resize | Desktop 1280+, tablet 768–1024 — no overlay drift |
+| Refresh | Positions unchanged after reload |
+| One real move | Marble lands on destination hole center |
+
+Regenerate assisted data: `node scripts/extract-image-exact-points.mjs`. Tune individual points via `IMAGE_COORDINATE_OVERRIDES` if needed.
+
 ---
 
 ## Sign-off checklist (human)

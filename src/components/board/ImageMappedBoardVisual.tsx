@@ -104,15 +104,21 @@ function ImageMappedMarble({
     >
       {isSelectable && (
         <circle
-          r={r + 1.1}
+          r={r + IMAGE_BOARD_RADII.marbleSelectionRingOffset}
           fill="none"
           stroke={isSelected ? '#ffd633' : '#5eead4'}
-          strokeWidth={isSelected ? 0.45 : 0.35}
+          strokeWidth={isSelected ? 0.36 : 0.3}
           className={isSelected ? 'marble-glow marble-glow--selected' : 'marble-glow marble-glow--selectable'}
         />
       )}
       {isLocked && (
-        <circle r={r + 1.3} fill="none" stroke="#ffd633" strokeWidth={0.4} className="gate-lock-ring" />
+        <circle
+          r={r + IMAGE_BOARD_RADII.marbleGateLockRingOffset}
+          fill="none"
+          stroke="#ffd633"
+          strokeWidth={0.34}
+          className="gate-lock-ring"
+        />
       )}
       <ellipse cx={0.15} cy={0.35} rx={r * 0.95} ry={r * 0.75} fill="#000" opacity={0.45} />
       <circle r={r} fill={`url(#${gradId})`} stroke={isLocked ? '#ffd633' : isOwn ? '#e6c567' : 'rgba(255,255,255,0.35)'} strokeWidth={isLocked ? 0.35 : isOwn ? 0.28 : 0.18} />

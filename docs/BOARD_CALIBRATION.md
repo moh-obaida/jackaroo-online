@@ -19,11 +19,33 @@ getImagePointForBoardPosition(position)
 getBoardVisualPoint(position)
 ```
 
-Marble centers, legal target rings, hit zones, and calibration dots all call this function.
+## Full exact map (primary source)
+
+`IMAGE_EXACT_POINTS` in `src/lib/board/imageBoardCoordinates.ts` holds **108 visual coordinates**:
+
+| Category | Count |
+|----------|------:|
+| Base/nest per color (×4 colors) | 16 |
+| Start/gate per color | 4 |
+| Track per color (18 × 4) | 72 |
+| Home per color (4 × 4) | 16 |
+| **Total** | **108** |
+
+### Track order warning
+
+Track arrays **must match engine order**, not arbitrary visual clockwise clicking.
+
+- Order follows `BoardPosition { color, type: "track", index }` and `getGlobalTrackIndex()` in `src/lib/game/board.ts`.
+- Geometry builds clockwise from black’s gate along `boardGeometry.ts` outer track (`buildOuterTrackFromWaypoints`).
+- `black:track:0` is the first track spot after black’s start gate in engine order; `black:track:17` is the last spot before green’s section.
+- Use calibration overlay labels (`B T1`, `G T1`, …) to verify index ↔ hole before pasting coordinates.
+- **Do not reorder track arrays visually** unless `boardGeometry` / engine order changes.
+
+**Current map (2026-05-30):** 108 live-clicked coordinates from calibration mode on the rendered gameplay board, classified into `IMAGE_EXACT_POINTS` (perimeter clicks 4–79 → 4 gates + 72 track; clusters 0–3 / 80–91 → home; 92–107 → base). Re-verify in calibration mode after any board image change.
+
+Optional hole-assisted draft: `node scripts/extract-image-exact-points.mjs` (review only; do not paste blindly over live clicks).
 
 ## Enable calibration mode
-
-Set **one** of these in `.env.local` (never commit enabled values to production):
 
 ```env
 VITE_ENABLE_BOARD_CALIBRATION=true
@@ -31,82 +53,50 @@ VITE_ENABLE_BOARD_CALIBRATION=true
 VITE_BOARD_CALIBRATION=1
 ```
 
-Restart the dev server, then open a **game** or lobby with the board visible.
-
-When disabled (default), there is **zero** calibration UI, no console logs, and no click handlers.
+Restart dev server. Open the **gameplay** board (not lobby preview alone). When disabled, zero calibration UI.
 
 ## Workflow
 
-1. Enable calibration (see above).
-2. Open the app and navigate to an active **gameplay** board (not a cropped screenshot).
-3. Click the center of each hole that needs tuning.
-4. Copy the logged `{ x, y }` values from the browser console or the floating dev panel.
-5. Paste into `src/lib/board/imageBoardCoordinates.ts`:
-   - Per-point override: `IMAGE_COORDINATE_OVERRIDES` keyed by `"color:type:index"`.
-   - Or fill `IMAGE_EXACT_POINTS` sections when ready for full image-based mapping.
-6. Refresh and verify marbles, rings, and hit zones align.
-7. Test on desktop (1280+), laptop, iPad/tablet width, and mobile landscape if supported.
-8. **Disable calibration** before production deploy.
-
-## Where to paste coordinates
-
-### Per-point overrides (recommended while tuning)
-
-```ts
-const IMAGE_COORDINATE_OVERRIDES: Partial<Record<string, BoardImagePoint>> = {
-  "black:track:0": { x: 52.34, y: 18.92 },
-  "green:start_gate:0": { x: 75.10, y: 50.00 },
-};
-```
-
-Key format: `boardPositionImageKey(position)` → `"color:type:index"`.
-
-### Full exact map (future)
-
-`IMAGE_EXACT_POINTS` holds arrays per color for track, home, base, and gate points. Procedural fallback remains active until every slot is filled.
+1. Enable calibration.
+2. Open gameplay board in the running app.
+3. Click exact center of each hole; copy `{ x, y }` from console or dev panel.
+4. Paste into `IMAGE_EXACT_POINTS` (or `IMAGE_COORDINATE_OVERRIDES` for emergency single-point fixes).
+5. Refresh and verify marbles, rings, and hit zones.
+6. Test desktop, tablet, mobile widths.
+7. **Disable calibration before production.**
 
 ## Lookup order
 
-`getImagePointForBoardPosition` resolves in this order:
+1. `IMAGE_COORDINATE_OVERRIDES[boardPositionImageKey(position)]`
+2. `IMAGE_EXACT_POINTS` (type / color / index)
+3. `IMAGE_HOME_LANE_FALLBACK` (home only, emergency)
+4. Procedural geometry + `boardInset` (emergency)
 
-1. `IMAGE_COORDINATE_OVERRIDES` (exact key match)
-2. `IMAGE_EXACT_POINTS` (when that category is fully populated)
-3. Home lane manual points (`IMAGE_HOME_LANE_POINTS`)
-4. Procedural geometry + `IMAGE_BOARD_CALIBRATION.boardInset`
-
-## Using the click helper
-
-Click anywhere on the board stage. The console prints:
+## Key format
 
 ```ts
-{ x: 52.34, y: 18.92 }
+boardPositionImageKey(position) // "black:track:0", "green:start_gate:0", …
 ```
 
-And a ready-to-paste line:
+Types match `BoardPosition.type`: `base`, `start_gate`, `track`, `home`.
 
-```ts
-{ x: 52.34, y: 18.92 },
-```
+## Click helper
 
-Clicking a mapped hit zone also logs the logical position key and override snippet.
-
-A floating dev panel (top-right) shows live cursor `x`/`y` and the last click.
+Stage click logs `{ x, y }` and a paste-ready line. Hit-zone click also logs position key and override snippet. Floating panel shows cursor and last click.
 
 ## Visual debug (calibration on)
 
-| Position type | Dot color |
-|---------------|-----------|
-| Track         | Gold      |
-| Start gate    | Cyan      |
-| Home          | Blue      |
-| Base          | Green     |
-
-Labels appear on hover or when a point is selected. Demo/game marbles render above the dots.
+| Type | Dot color |
+|------|-----------|
+| Track | Gold |
+| Start gate | Cyan |
+| Home | Blue |
+| Base | Green |
 
 ## Lobby preview
 
-The lobby mini-board uses the same `ImageMappedBoardVisual` component but is **not** the source of truth for calibration. Always tune on the full gameplay board first.
+Same component, but **not** the calibration source of truth. Always verify on full gameplay board.
 
-## Testing checklist
+## Testing
 
-See [RESCUE_QA.md](./RESCUE_QA.md) — Board calibration checklist.
+See [RESCUE_QA.md](./RESCUE_QA.md) — Board map QA checklist.
