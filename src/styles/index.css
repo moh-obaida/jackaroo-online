@@ -1235,7 +1235,7 @@
   }
 
   .table-play-area-wrap {
-    @apply relative px-2 sm:px-3 pt-2 pb-1 flex-1 min-h-0 flex items-center justify-center overflow-hidden;
+    @apply relative px-2 sm:px-3 pt-2 pb-1 flex-1 min-h-0 flex items-center justify-center overflow-visible;
   }
 
   /* Gameplay table — board centered, deck rail beside (never overlapping holes) */
@@ -1251,9 +1251,12 @@
   }
 
   .table-play-area__stage {
-    @apply relative flex-1 min-h-0 min-w-0 flex items-center justify-center;
-    aspect-ratio: 1;
+    @apply relative flex-1 min-h-0 min-w-0 flex items-center justify-center shrink-0;
+    aspect-ratio: 1 / 1;
+    width: min(100%, min(calc(100dvh - 14rem), 88vw, 40rem));
+    max-width: 100%;
     max-height: min(calc(100dvh - 14rem), 88vw, 40rem);
+    height: auto;
   }
 
   .table-play-area__deck-rail {
@@ -1283,7 +1286,7 @@
   }
 
   .table-play-area__board {
-    @apply relative jkr-layer-board w-full h-full max-w-full max-h-full mx-auto overflow-visible z-[2];
+    @apply relative jkr-layer-board w-full h-full min-h-0 min-w-0 max-w-full max-h-full mx-auto flex items-center justify-center overflow-visible z-[2];
   }
 
   .deck-discard-strip {
@@ -1344,7 +1347,7 @@
   }
 
   .board-wood-rim--image {
-    @apply p-0 bg-transparent overflow-visible;
+    @apply p-0 bg-transparent overflow-visible w-full h-full min-h-0 min-w-0 flex items-center justify-center;
     box-shadow: none;
     background: transparent;
   }

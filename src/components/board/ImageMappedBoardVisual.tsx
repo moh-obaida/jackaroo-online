@@ -107,7 +107,7 @@ function ImageMappedMarble({
           r={r + IMAGE_BOARD_RADII.marbleSelectionRingOffset}
           fill="none"
           stroke={isSelected ? '#ffd633' : '#5eead4'}
-          strokeWidth={isSelected ? 0.36 : 0.3}
+          strokeWidth={isSelected ? 0.32 : 0.26}
           className={isSelected ? 'marble-glow marble-glow--selected' : 'marble-glow marble-glow--selectable'}
         />
       )}
@@ -116,7 +116,7 @@ function ImageMappedMarble({
           r={r + IMAGE_BOARD_RADII.marbleGateLockRingOffset}
           fill="none"
           stroke="#ffd633"
-          strokeWidth={0.34}
+          strokeWidth={0.3}
           className="gate-lock-ring"
         />
       )}

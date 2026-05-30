@@ -504,7 +504,9 @@ body,
 }
 
 .table-play-area__stage {
+  width: min(100%, min(calc(100dvh - 14rem), 88vw, 40rem));
   max-height: min(calc(100dvh - 14rem), 88vw, 40rem);
+  height: auto;
 }
 
 .table-play-area__board,
@@ -592,7 +594,7 @@ body,
     align-items: center;
     justify-content: center;
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .table-play-area {

@@ -41,7 +41,9 @@ Track arrays **must match engine order**, not arbitrary visual clockwise clickin
 - Use calibration overlay labels (`B T1`, `G T1`, …) to verify index ↔ hole before pasting coordinates.
 - **Do not reorder track arrays visually** unless `boardGeometry` / engine order changes.
 
-**Current map (2026-05-30):** 108 live-clicked coordinates from calibration mode on the rendered gameplay board, classified into `IMAGE_EXACT_POINTS` (perimeter clicks 4–79 → 4 gates + 72 track; clusters 0–3 / 80–91 → home; 92–107 → base). Re-verify in calibration mode after any board image change.
+**Current map (2026-05-30):** 108 live-clicked coordinates, classified into `IMAGE_EXACT_POINTS`. Base/nest clusters (clicks 80–83, 92–107) are **mathematically normalized** to balanced NW/NE/SW/SE squares around each cluster center (see comments in `imageBoardCoordinates.ts`). Green home (104–107) is linearized along its diagonal; black/blue/white V-shaped home paths keep clicked shape with engine order. Marbles use reduced radii so hole rims stay visible.
+
+**Board display:** gameplay stage uses `width: min(100%, max-height)` + `aspect-ratio: 1` so the square board is not cropped by overflow. Image and SVG overlay share the same box (`object-fit: contain`). Re-verify after any board image change; disable calibration in production.
 
 Optional hole-assisted draft: `node scripts/extract-image-exact-points.mjs` (review only; do not paste blindly over live clicks).
 

@@ -142,6 +142,27 @@ export function isOnMainTrack(marble: Marble): boolean {
   return marble.position.type === 'track' || marble.position.type === 'start_gate';
 }
 
+/**
+ * First empty home slot for a color (0–3), or -1 if home is full.
+ */
+export function getFirstVacantHomeIndex(
+  color: PlayerColor,
+  marbles: Marble[],
+  excludeMarbleId?: string
+): number {
+  for (let i = 0; i < HOME_LENGTH; i++) {
+    const occupied = marbles.find(
+      (m) =>
+        m.id !== excludeMarbleId &&
+        m.color === color &&
+        m.position.type === 'home' &&
+        m.position.index === i
+    );
+    if (!occupied) return i;
+  }
+  return -1;
+}
+
 // ============================================================================
 // HOME ENTRY LOGIC
 // ============================================================================
@@ -459,16 +480,9 @@ export function calculateForwardTarget(
   const homeCalc = calculateHomeEntry(marble.position, marble.color, steps);
 
   if (homeCalc.entersHome) {
-    // Verify home spots are accessible (no blocking in home)
-    const homeMarbles = allMarbles.filter(
-      (m) => m.color === marble.color && m.position.type === 'home' && m.id !== marble.id
-    );
-
-    // Check all home spots from 0 to target are clear
-    for (let i = 0; i <= homeCalc.homeIndex; i++) {
-      if (homeMarbles.find((m) => m.position.index === i)) {
-        return null; // Blocked in home
-      }
+    const firstVacant = getFirstVacantHomeIndex(marble.color, allMarbles, marble.id);
+    if (firstVacant < 0 || homeCalc.homeIndex !== firstVacant) {
+      return null; // Must enter next home slot in order (no skipping)
     }
 
     // Also check the track path up to home entry for locked blockers
@@ -515,18 +529,28 @@ export function calculateHomeMoveForward(
   if (marble.position.type !== 'home') return null;
 
   const targetIndex = marble.position.index + steps;
-  if (targetIndex >= HOME_LENGTH) return null; // Overshoot
+  if (targetIndex >= HOME_LENGTH || steps < 1) return null;
 
-  // Check no marble blocking in between
-  const homeMarbles = allMarbles.filter(
-    (m) => m.color === marble.color && m.position.type === 'home' && m.id !== marble.id
-  );
-
-  for (let i = marble.position.index + 1; i <= targetIndex; i++) {
-    if (homeMarbles.find((m) => m.position.index === i)) {
-      return null; // Blocked
-    }
+  // All slots before target (except the mover's current slot) must be occupied
+  for (let i = 0; i < targetIndex; i++) {
+    if (i === marble.position.index) continue;
+    const occupied = allMarbles.find(
+      (m) =>
+        m.color === marble.color &&
+        m.position.type === 'home' &&
+        m.position.index === i
+    );
+    if (!occupied) return null;
   }
+
+  const blocked = allMarbles.find(
+    (m) =>
+      m.id !== marble.id &&
+      m.color === marble.color &&
+      m.position.type === 'home' &&
+      m.position.index === targetIndex
+  );
+  if (blocked) return null;
 
   return { color: marble.color, type: 'home', index: targetIndex };
 }

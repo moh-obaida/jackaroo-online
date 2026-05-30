@@ -197,6 +197,12 @@ With calibration enabled on the **gameplay** board, spot-check:
 
 Regenerate assisted data: `node scripts/extract-image-exact-points.mjs`. Tune individual points via `IMAGE_COORDINATE_OVERRIDES` if needed.
 
+### Obaida Classic rule engine audit
+
+See [OBAIDA_RULE_AUDIT.md](./OBAIDA_RULE_AUDIT.md) for risky edge cases (home entry, gate blocker, King path, split 7, burn, hand sync). Automated tests: `src/lib/game/obaidaRuleAudit.test.ts`.
+
+**Base/nest visual QA:** With calibration on, confirm `B nest 1–4` dots form a balanced TL square (not a diagonal line). Green TR nest should have even spacing on all sides. Marbles should sit inside holes with visible gold rim.
+
 ---
 
 ## Sign-off checklist (human)

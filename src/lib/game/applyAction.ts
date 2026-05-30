@@ -19,6 +19,7 @@ import {
   isOnMainTrack,
   positionEquals,
   calculateForwardTarget as calculateForwardTargetFn,
+  calculateHomeMoveForward,
 } from './board';
 import { isKing } from './cards';
 import { getRulesetConfig } from './rulesets';
@@ -219,11 +220,7 @@ function applySplitSeven(state: GameState, action: GameAction): GameState {
     let targetPos: BoardPosition | null = null;
 
     if (marble.position.type === 'home') {
-      // Move within home
-      const targetIndex = marble.position.index + splitMove.steps;
-      if (targetIndex < HOME_LENGTH) {
-        targetPos = { color: marble.color, type: 'home', index: targetIndex };
-      }
+      targetPos = calculateHomeMoveForward(marble, splitMove.steps, marbles);
     } else {
       // Move on main track (may enter home)
       targetPos = calculateForwardTargetFn(marble, splitMove.steps, marbles);

@@ -51,18 +51,88 @@ export type ExactImagePoints = {
   base: Record<PlayerColor, BoardImagePoint[]>;
 };
 
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+function avg(nums: number[]): number {
+  return nums.reduce((s, v) => s + v, 0) / nums.length;
+}
+
+/** Engine base order: 0 NW, 1 NE, 2 SW, 3 SE — balanced square from live-click cluster. */
+function normalizeBaseNest(raw: BoardImagePoint[]): {
+  points: BoardImagePoint[];
+  center: BoardImagePoint;
+  offset: { x: number; y: number };
+} {
+  const cx = avg(raw.map((p) => p.x));
+  const cy = avg(raw.map((p) => p.y));
+  const offsetX = avg(raw.map((p) => Math.abs(p.x - cx)));
+  const offsetY = avg(raw.map((p) => Math.abs(p.y - cy)));
+  return {
+    center: { x: round2(cx), y: round2(cy) },
+    offset: { x: round2(offsetX), y: round2(offsetY) },
+    points: [
+      { x: round2(cx - offsetX), y: round2(cy - offsetY) },
+      { x: round2(cx + offsetX), y: round2(cy - offsetY) },
+      { x: round2(cx - offsetX), y: round2(cy + offsetY) },
+      { x: round2(cx + offsetX), y: round2(cy + offsetY) },
+    ],
+  };
+}
+
+/** Linear home path: index 0 = start (entry), index 3 = innermost. */
+function normalizeHomePathLinear(
+  start: BoardImagePoint,
+  end: BoardImagePoint
+): BoardImagePoint[] {
+  return [0, 1, 2, 3].map((i) => ({
+    x: round2(start.x + ((end.x - start.x) * i) / 3),
+    y: round2(start.y + ((end.y - start.y) * i) / 3),
+  }));
+}
+
+const BASE_BLACK = normalizeBaseNest([
+  { x: 21.09, y: 19.13 },
+  { x: 24.14, y: 22.19 },
+  { x: 27.19, y: 25.62 },
+  { x: 30.25, y: 28.48 },
+]);
+const BASE_GREEN = normalizeBaseNest([
+  { x: 86.35, y: 31.73 },
+  { x: 83.3, y: 34.78 },
+  { x: 86.35, y: 38.41 },
+  { x: 89.79, y: 35.16 },
+]);
+const BASE_BLUE = normalizeBaseNest([
+  { x: 79.29, y: 80.96 },
+  { x: 76.05, y: 77.15 },
+  { x: 72.81, y: 74.28 },
+  { x: 69.75, y: 71.23 },
+]);
+const BASE_WHITE = normalizeBaseNest([
+  { x: 20.32, y: 80.58 },
+  { x: 23.57, y: 77.72 },
+  { x: 26.62, y: 74.09 },
+  { x: 30.06, y: 70.66 },
+]);
+
 /**
  * Full exact image coordinate map (108 visual points).
  * Source: live clicked coordinates from calibration tool on rendered gameplay board.
- * Date: 2026-05-30
+ * Date: 2026-05-30 (base nests mathematically normalized)
  * Warning: valid only for IMAGE_BOARD_GAME_SRC (jakaroo-board-game-empty.png).
  *
- * Classification (from 108 calibration clicks, corrected 2026-05-30):
- * - home black: 0–3 (top V); home blue: 84–87 (bottom V); home white: 88–91 (left V)
- * - home green: 104–107 (UR diagonal toward center, x decreases)
- * - base black: 100–103 (TL nest); base green: 80–83 (TR nest); base blue: 96–99 (BR nest); base white: 92–95 (BL nest)
- * - perimeter 4–79: gate + 18 track × 4 (clockwise, engine order)
- *   black gate=4, track 5–22; green gate=23, track 24–41; blue gate=42, track 43–60; white gate=61, track 62–79
+ * Click-group → bucket map:
+ * - home.black: clicks 0–3 (top V, kept shape)
+ * - home.green: clicks 104–107 (UR diagonal, linearized)
+ * - home.blue: clicks 84–87 (bottom V, kept shape)
+ * - home.white: clicks 88–91 (left V, kept shape)
+ * - base.black: clicks 100–103 (TL nest, normalized NW/NE/SW/SE)
+ * - base.green: clicks 80–83 (TR nest, normalized)
+ * - base.blue: clicks 96–99 (BR nest, normalized)
+ * - base.white: clicks 92–95 (BL nest, normalized)
+ * - perimeter 4–79: gate + 18 track × 4 (unchanged click order)
  *
  * Track arrays match BoardPosition { color, type: "track", index } — do not reorder unless engine changes.
  */
@@ -156,56 +226,42 @@ const IMAGE_EXACT_POINTS: ExactImagePoints = {
     white: { x: 10.97, y: 77.53 }, // click 61
   },
   home: {
+    // clicks 0–3 — top V; engine 0 = entry (min y)
     black: [
-      { x: 37.88, y: 7.87 }, // 0 — click 0
-      { x: 34.06, y: 11.50 }, // 1 — click 1
-      { x: 37.69, y: 15.12 }, // 2 — click 2
-      { x: 41.51, y: 11.50 }, // 3 — click 3
+      { x: 37.88, y: 7.87 },
+      { x: 34.06, y: 11.5 },
+      { x: 41.51, y: 11.5 },
+      { x: 37.69, y: 15.12 },
     ],
-    green: [
-      { x: 78.91, y: 19.51 }, // 0 — click 104 (outer, toward track)
-      { x: 75.86, y: 22.57 }, // 1 — click 105
-      { x: 73.00, y: 25.24 }, // 2 — click 106
-      { x: 69.75, y: 28.67 }, // 3 — click 107 (inner)
-    ],
+    // clicks 104–107 — UR diagonal; linearized outer → inner
+    green: normalizeHomePathLinear(
+      { x: 78.91, y: 19.51 },
+      { x: 69.75, y: 28.67 }
+    ),
+    // clicks 84–87 — bottom V; engine 0 = entry (max y)
     blue: [
-      { x: 62.50, y: 85.16 }, // 0 — click 84
-      { x: 65.94, y: 88.41 }, // 1 — click 85
-      { x: 62.50, y: 92.41 }, // 2 — click 86
-      { x: 59.26, y: 88.41 }, // 3 — click 87
+      { x: 62.5, y: 92.41 },
+      { x: 65.94, y: 88.41 },
+      { x: 59.26, y: 88.41 },
+      { x: 62.5, y: 85.16 },
     ],
+    // clicks 88–91 — left V; engine 0 = entry (min x)
     white: [
-      { x: 16.89, y: 64.36 }, // 0 — click 88
-      { x: 13.26, y: 67.80 }, // 1 — click 89
-      { x: 9.83, y: 64.17 }, // 2 — click 90
-      { x: 13.26, y: 60.73 }, // 3 — click 91
+      { x: 9.83, y: 64.17 },
+      { x: 13.26, y: 67.8 },
+      { x: 16.89, y: 64.36 },
+      { x: 13.26, y: 60.73 },
     ],
   },
   base: {
-    black: [
-      { x: 21.09, y: 19.13 }, // 0 — click 100
-      { x: 24.14, y: 22.19 }, // 1 — click 101
-      { x: 27.19, y: 25.62 }, // 2 — click 102
-      { x: 30.25, y: 28.48 }, // 3 — click 103
-    ],
-    green: [
-      { x: 86.35, y: 31.73 }, // 0 — click 80 (NW)
-      { x: 89.79, y: 35.16 }, // 1 — click 83 (NE)
-      { x: 83.30, y: 34.78 }, // 2 — click 81 (SW)
-      { x: 86.35, y: 38.41 }, // 3 — click 82 (SE)
-    ],
-    blue: [
-      { x: 79.29, y: 80.96 }, // 0 — click 96
-      { x: 76.05, y: 77.15 }, // 1 — click 97
-      { x: 72.81, y: 74.28 }, // 2 — click 98
-      { x: 69.75, y: 71.23 }, // 3 — click 99
-    ],
-    white: [
-      { x: 20.32, y: 80.58 }, // 0 — click 92
-      { x: 23.57, y: 77.72 }, // 1 — click 93
-      { x: 26.62, y: 74.09 }, // 2 — click 94
-      { x: 30.06, y: 70.66 }, // 3 — click 95
-    ],
+    // base.black — clicks 100–103; center { x: 25.67, y: 23.86 }, offset { x: 3.05, y: 3.2 }
+    black: BASE_BLACK.points,
+    // base.green — clicks 80–83; center { x: 86.45, y: 35.02 }, offset { x: 1.67, y: 1.76 }
+    green: BASE_GREEN.points,
+    // base.blue — clicks 96–99; center { x: 74.47, y: 75.91 }, offset { x: 3.2, y: 3.15 }
+    blue: BASE_BLUE.points,
+    // base.white — clicks 92–95; center { x: 25.14, y: 75.76 }, offset { x: 3.2, y: 3.39 }
+    white: BASE_WHITE.points,
   },
 };
 
@@ -473,14 +529,14 @@ export function marbleAriaLabel(marble: { color: PlayerColor; id: string }, sele
 }
 
 export const IMAGE_BOARD_RADII = {
-  marbleTrack: 1.95,
-  marbleBase: 1.68,
-  marbleHighlight: 2.55,
-  marbleSelectionRingOffset: 0.65,
-  marbleGateLockRingOffset: 0.78,
+  marbleTrack: 1.88,
+  marbleBase: 1.62,
+  marbleHighlight: 2.35,
+  marbleSelectionRingOffset: 0.58,
+  marbleGateLockRingOffset: 0.7,
   hitZone: 3.15,
   hitZoneGate: 3.45,
-  legalTarget: 2.15,
+  legalTarget: 2.05,
   calibrationDot: 0.42,
 } as const;
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { BoardPosition } from '../../types/game';
 import {
   boardPositionAriaLabel,
+  boardPositionImageKey,
   boardPositionShortLabel,
   CALIBRATION_DOT_COLORS,
   getImagePointForBoardPosition,
@@ -98,7 +99,7 @@ export function BoardCalibrationOverlay({
                   fill="rgba(240,235,224,0.75)"
                   className="board-calibration-label board-calibration-label--coords"
                 >
-                  {pt.x.toFixed(2)}, {pt.y.toFixed(2)}
+                  {boardPositionImageKey(pos)} · {pt.x.toFixed(2)}, {pt.y.toFixed(2)}
                 </text>
               </g>
             )}
