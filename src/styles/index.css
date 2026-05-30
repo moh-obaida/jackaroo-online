@@ -2068,19 +2068,19 @@ html[dir='rtl'] .text-start {
 }
 
 .hero-title-donor {
-  @apply font-brand flex flex-col items-center lg:items-start gap-0 mb-3 md:mb-4 m-0;
+  @apply font-brand flex flex-wrap items-baseline justify-center lg:justify-start gap-x-[0.28em] gap-y-0 mb-3 md:mb-4 m-0;
   font-weight: 600;
   font-size: clamp(2.75rem, 5.5vw, 4.25rem);
-  line-height: 0.95;
+  line-height: 1.08;
   letter-spacing: -0.02em;
   color: rgb(245 240 232);
 }
 
-.hero-title-donor__line {
-  @apply block;
+.hero-title-donor__word {
+  @apply inline-block whitespace-nowrap;
 }
 
-.hero-title-donor__line--accent {
+.hero-title-donor__word--accent {
   @apply text-gold-300;
   font-weight: 700;
 }
@@ -2746,6 +2746,7 @@ html[dir='rtl'] .text-start {
   background: linear-gradient(165deg, #1a5c38 0%, #0f3320 100%);
 }
 
+.lobby-board-preview .board-preview-premium-photo,
 .lobby-board-preview .board-preview-image-mapped,
 .lobby-board-preview .image-board-stage {
   width: 100%;

@@ -21,10 +21,6 @@ export function HomePage() {
   const displayName =
     user?.displayName || (isGuestUser ? 'Guest' : user?.email?.split('@')[0]) || 'Player';
 
-  const brandParts = t('app.name').trim().split(/\s+/);
-  const titlePrimary = brandParts[0] ?? t('app.name');
-  const titleSecondary = brandParts.slice(1).join(' ');
-
   return (
     <PageFrame variant="marketing" className="home-page p-0">
       {!firebaseReady && (
@@ -41,10 +37,8 @@ export function HomePage() {
           <p className="landing-hero__eyebrow mb-4">{t('home.eyebrow')}</p>
 
           <h1 className="hero-title-donor">
-            <span className="hero-title-donor__line">{titlePrimary}</span>
-            {titleSecondary ? (
-              <span className="hero-title-donor__line hero-title-donor__line--accent">{titleSecondary}</span>
-            ) : null}
+            <span className="hero-title-donor__word">Jakaroo</span>
+            <span className="hero-title-donor__word hero-title-donor__word--accent">Online</span>
           </h1>
 
           <p className="hero-subtitle-donor">{t('app.tagline')}</p>

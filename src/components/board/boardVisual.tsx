@@ -20,6 +20,7 @@ import {
   trackSectionPolylines,
 } from '../../lib/board/boardGeometry';
 import { positionKey } from '../../lib/play/boardHighlights';
+import { HOME_BOARD_PREMIUM_SRC } from '../../lib/brand/assets';
 import { BoardPreviewPhotoVisual, PhysicalPhotoBoardVisual } from './PhysicalPhotoBoardVisual';
 import { ImageMappedBoardVisual } from './ImageMappedBoardVisual';
 
@@ -765,13 +766,29 @@ function BoardPreviewProcedural({ size = 200 }: { size?: number }) {
   );
 }
 
+/** Static premium board photo (marbles baked in) — lobby/marketing preview only. */
+function BoardPreviewPremiumPhoto({ size }: { size?: number }) {
+  const style = size != null ? { width: size, height: size } : undefined;
+  return (
+    <div className="board-preview-premium-photo" style={style}>
+      <img
+        src={HOME_BOARD_PREMIUM_SRC}
+        alt=""
+        className="board-preview-premium-photo__image"
+        draggable={false}
+        decoding="async"
+      />
+    </div>
+  );
+}
+
+/** Empty board + SVG demo marbles — opt-in via VITE_BOARD_PREVIEW_MAPPED=1 (dev only). */
 function BoardPreviewImageMapped({ size }: { size?: number }) {
   const style = size != null ? { width: size, height: size } : undefined;
   return (
     <div className="board-preview-image-mapped" style={style}>
       <ImageMappedBoardVisual
         idPrefix="preview"
-        showDemoMarbles
         activeColors={new Set(COLORS_ORDER)}
         className="image-board-stage--preview"
       />
@@ -786,5 +803,8 @@ export function BoardPreviewVisual({ size = 200 }: { size?: number }) {
   if (import.meta.env.VITE_BOARD_PHYSICAL === '1') {
     return <BoardPreviewPhotoVisual size={size} />;
   }
-  return <BoardPreviewImageMapped size={size} />;
+  if (import.meta.env.VITE_BOARD_PREVIEW_MAPPED === '1') {
+    return <BoardPreviewImageMapped size={size} />;
+  }
+  return <BoardPreviewPremiumPhoto size={size} />;
 }

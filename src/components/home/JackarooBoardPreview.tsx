@@ -8,7 +8,7 @@ type JackarooBoardPreviewProps = {
   variant?: 'hero' | 'watermark';
 };
 
-/** Home marketing board — premium photo asset only (not gameplay board). */
+/** Home hero — static premium board photo (marbles in image; no SVG overlay). */
 export function JackarooBoardPreview({
   className = '',
   variant = 'hero',
