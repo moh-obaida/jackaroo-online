@@ -160,7 +160,25 @@ npm run dev
 
 Real WebRTC voice, text chat, rematch, matchmaking, tournaments, stats, aggressive Home/Create redesign per [DESIGN_REFERENCES.md](./DESIGN_REFERENCES.md).
 
-**Board visual (2026-05-29):** SVG rebuild attempted (`boardVisual.tsx`, `boardGeometry.ts`). Build should be re-run after merge. No wooden-board reference photo in repo — **needs user overlay comparison** before visual sign-off.
+**Board visual (2026-05-29):** Image-mapped premium board (`ImageMappedBoardVisual`) is the default gameplay renderer. Coordinate tuning uses dev-only calibration mode — see [BOARD_CALIBRATION.md](./BOARD_CALIBRATION.md). Do **not** calibrate from screenshots; use the live app board.
+
+### Board calibration checklist
+
+Enable `VITE_ENABLE_BOARD_CALIBRATION=true` or `VITE_BOARD_CALIBRATION=1`, then verify on the **gameplay** board (not lobby preview alone):
+
+| Viewport | Checks |
+|----------|--------|
+| Desktop 1280+ | Mapped dots align with holes; marbles centered; legal target rings centered |
+| Laptop | Same as desktop after refresh |
+| iPad / tablet width | No overlay drift; object-fit contain; hit zones tappable |
+| Mobile landscape (if used) | Board not cropped; marbles/rings still aligned |
+| After refresh | Positions unchanged |
+| Move marble | Marble animates to correct hole center |
+| Select marble | Selection ring centered on marble |
+| Target ring | Gold ring centered on destination hole |
+| Legal click zone | Tap/click registers on hole, not offset |
+
+Disable calibration env flags before production deploy.
 
 ---
 

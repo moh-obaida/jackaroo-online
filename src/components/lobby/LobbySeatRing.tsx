@@ -68,7 +68,7 @@ export function LobbySeatRing({
     <div className="lobby-table">
       <div className="lobby-table__felt" aria-hidden />
       <div className="lobby-table__board jkr-layer-board">
-        <BoardPreviewVisual size={maxPlayers >= 4 ? 240 : 220} />
+        <BoardPreviewVisual />
       </div>
 
       {Array.from({ length: Math.min(maxPlayers, seatPositions.length) }, (_, seatIndex) => {

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
   BoardPosition,
@@ -14,8 +14,15 @@ import {
   IMAGE_BOARD_RADII,
   marbleAriaLabel,
 } from '../../lib/board/imageBoardCoordinates';
+import {
+  boardStagePointFromMouseEvent,
+  logCalibrationClick,
+} from '../../lib/board/boardCalibrationLog';
+import { isBoardCalibrationEnabled } from '../../lib/board/isBoardCalibrationEnabled';
+import type { BoardImagePoint } from '../../lib/board/imageBoardCoordinateTypes';
 import { positionKey } from '../../lib/play/boardHighlights';
 import { BoardCalibrationOverlay } from './BoardCalibrationOverlay';
+import { BoardCalibrationPanel } from './BoardCalibrationPanel';
 
 export type ImageMappedBoardVisualProps = {
   idPrefix?: string;
@@ -131,10 +138,14 @@ export function ImageMappedBoardVisual({
 }: ImageMappedBoardVisualProps) {
   const { t } = useApp();
   const [imageFailed, setImageFailed] = useState(false);
+  const stageRef = useRef<HTMLDivElement>(null);
   const pid = idPrefix;
-  const calibrationEnabled =
-    import.meta.env.VITE_BOARD_CALIBRATION === '1' ||
-    import.meta.env.VITE_ENABLE_BOARD_CALIBRATION === 'true';
+  const calibrationEnabled = isBoardCalibrationEnabled();
+
+  const [cursorPoint, setCursorPoint] = useState<BoardImagePoint | null>(null);
+  const [lastClickPoint, setLastClickPoint] = useState<BoardImagePoint | null>(null);
+  const [hoveredPosition, setHoveredPosition] = useState<BoardPosition | null>(null);
+  const [selectedCalPosition, setSelectedCalPosition] = useState<BoardPosition | null>(null);
 
   const active = activeColors ?? new Set(COLORS_ORDER);
 
@@ -161,22 +172,58 @@ export function ImageMappedBoardVisual({
   const marbleRadius = (type: BoardPosition['type']) =>
     type === 'base' ? IMAGE_BOARD_RADII.marbleBase : IMAGE_BOARD_RADII.marbleTrack;
 
-  const handleStageClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!calibrationEnabled) return;
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 100;
-      const y = ((e.clientY - rect.top) / rect.height) * 100;
-      console.log('[board-calibration]', { x: Number(x.toFixed(2)), y: Number(y.toFixed(2)) });
+  const updateCursorFromEvent = useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      if (!calibrationEnabled || !stageRef.current) return;
+      setCursorPoint(boardStagePointFromMouseEvent(e, stageRef.current));
     },
     [calibrationEnabled]
   );
 
+  const handleStageClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!calibrationEnabled || !stageRef.current) return;
+      const point = boardStagePointFromMouseEvent(e, stageRef.current);
+      setLastClickPoint(point);
+      logCalibrationClick(point);
+    },
+    [calibrationEnabled]
+  );
+
+  const handleCalPositionClick = useCallback(
+    (pos: BoardPosition, e: React.MouseEvent) => {
+      if (!calibrationEnabled || !stageRef.current) return;
+      e.stopPropagation();
+      const mapped = getImagePointForBoardPosition(pos);
+      const point = mapped ?? boardStagePointFromMouseEvent(e, stageRef.current);
+      setLastClickPoint(point);
+      setSelectedCalPosition(pos);
+      logCalibrationClick(point, pos);
+    },
+    [calibrationEnabled]
+  );
+
+  const stageClassName = [
+    'image-board-stage',
+    'board-frame',
+    calibrationEnabled ? 'image-board-stage--calibration' : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <div
-      className={`image-board-stage board-frame ${className}`}
-      onClick={handleStageClick}
+      ref={stageRef}
+      className={stageClassName}
+      onClick={calibrationEnabled ? handleStageClick : undefined}
+      onMouseMove={calibrationEnabled ? updateCursorFromEvent : undefined}
+      onMouseLeave={calibrationEnabled ? () => setCursorPoint(null) : undefined}
     >
+      {calibrationEnabled && (
+        <BoardCalibrationPanel cursor={cursorPoint} lastClick={lastClickPoint} />
+      )}
+
       {imageFailed ? (
         <div className="image-board-fallback" role="status">
           {t('game.boardUnavailable')}
@@ -207,7 +254,14 @@ export function ImageMappedBoardVisual({
           ))}
         </defs>
 
-        {calibrationEnabled && <BoardCalibrationOverlay positions={allPositions} />}
+        {calibrationEnabled && (
+          <BoardCalibrationOverlay
+            positions={allPositions}
+            hoveredPosition={hoveredPosition}
+            selectedPosition={selectedCalPosition}
+            cursor={cursorPoint}
+          />
+        )}
 
         {/* Legal target rings */}
         {isMyTurn &&
@@ -226,7 +280,7 @@ export function ImageMappedBoardVisual({
             );
           })}
 
-        {/* Marbles */}
+        {/* Marbles — rendered above calibration dots */}
         {displayMarbles.map((marble) => {
           const pt = getImagePointForBoardPosition(marble.position);
           if (!pt) return null;
@@ -258,7 +312,8 @@ export function ImageMappedBoardVisual({
             if (!pt) return null;
             const isTarget = highlightKeys.has(positionKey(pos));
             const interactive =
-              isMyTurn && isTarget && onPositionClick && (selectedMarbleId != null || calibrationEnabled);
+              calibrationEnabled ||
+              (isMyTurn && isTarget && onPositionClick && selectedMarbleId != null);
             const r =
               pos.type === 'start_gate' ? IMAGE_BOARD_RADII.hitZoneGate : IMAGE_BOARD_RADII.hitZone;
             return (
@@ -268,27 +323,42 @@ export function ImageMappedBoardVisual({
                 cy={pt.y}
                 r={r}
                 className={`image-board-hit-zone${calibrationEnabled ? ' image-board-hit-zone--debug' : ''}`}
-                fill={calibrationEnabled ? 'rgba(255,255,255,0.1)' : 'transparent'}
-                stroke={calibrationEnabled ? 'rgba(230,197,103,0.35)' : 'transparent'}
-                strokeWidth={calibrationEnabled ? 0.15 : 0}
-                style={{ cursor: interactive ? 'pointer' : undefined, pointerEvents: interactive || calibrationEnabled ? 'auto' : 'none' }}
-                role={interactive ? 'button' : undefined}
-                tabIndex={interactive ? 0 : undefined}
+                fill={calibrationEnabled ? 'rgba(255,255,255,0.08)' : 'transparent'}
+                stroke={calibrationEnabled ? 'rgba(230,197,103,0.28)' : 'transparent'}
+                strokeWidth={calibrationEnabled ? 0.12 : 0}
+                style={{
+                  cursor: interactive ? 'crosshair' : undefined,
+                  pointerEvents: interactive ? 'auto' : 'none',
+                }}
+                role={interactive && !calibrationEnabled ? 'button' : undefined}
+                tabIndex={interactive && !calibrationEnabled ? 0 : undefined}
                 aria-label={boardPositionAriaLabel(pos)}
+                onMouseEnter={
+                  calibrationEnabled
+                    ? () => setHoveredPosition(pos)
+                    : undefined
+                }
+                onMouseLeave={
+                  calibrationEnabled ? () => setHoveredPosition(null) : undefined
+                }
                 onClick={
                   interactive
                     ? (e) => {
+                        if (calibrationEnabled) {
+                          handleCalPositionClick(pos, e);
+                          return;
+                        }
                         e.stopPropagation();
-                        onPositionClick(pos);
+                        onPositionClick?.(pos);
                       }
                     : undefined
                 }
                 onKeyDown={
-                  interactive
+                  interactive && !calibrationEnabled
                     ? (e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          onPositionClick(pos);
+                          onPositionClick?.(pos);
                         }
                       }
                     : undefined

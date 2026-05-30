@@ -1,6 +1,7 @@
 /* Image-mapped gameplay board — scoped to .image-board-stage
  * Z-order: image (base) → SVG overlay (marbles/highlights/hits) at inset 0
  * Coordinates: percentage viewBox 0–100 via getBoardVisualPoint / getImagePointForBoardPosition
+ * Asset: jakaroo-board-game-empty.png — 1024×1024 (square); aspect-ratio 1/1 matches native size.
  */
 
 .image-board-stage {
@@ -12,6 +13,10 @@
   aspect-ratio: 1 / 1;
   margin: 0 auto;
   overflow: visible;
+}
+
+.image-board-stage--calibration {
+  cursor: crosshair;
 }
 
 .image-board-image {
@@ -55,6 +60,11 @@
   transition: fill 0.15s ease;
 }
 
+.image-board-hit-zone--debug:hover {
+  fill: rgba(230, 197, 103, 0.18);
+  stroke: rgba(230, 197, 103, 0.55);
+}
+
 .image-board-hit-zone:focus-visible {
   outline: none;
   fill: rgba(230, 184, 0, 0.28);
@@ -62,14 +72,20 @@
   stroke-width: 0.5;
 }
 
+/* Lobby / preview — fill container, same component as gameplay */
 .image-board-stage--preview {
   width: 100%;
-  max-width: none;
-  max-height: none;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .board-preview-image-mapped {
-  max-width: 100%;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .image-board-target-ring--legal {
@@ -87,14 +103,109 @@
   filter: drop-shadow(0 0 6px rgba(255, 214, 51, 0.55));
 }
 
+/* --- Calibration overlay (dev-only) --- */
+
 .board-calibration-label {
-  font-family: ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   pointer-events: none;
+}
+
+.board-calibration-label--coords {
+  font-size: 0.95;
+}
+
+.board-calibration-crosshair {
+  stroke: rgba(230, 197, 103, 0.35);
+  stroke-width: 0.08;
+  stroke-dasharray: 0.6 0.6;
+  pointer-events: none;
+}
+
+.board-calibration-dot {
+  opacity: 0.9;
+}
+
+.board-calibration-point--selected .board-calibration-dot {
+  opacity: 1;
+}
+
+.board-calibration-panel {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 20;
+  min-width: 11rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.45rem;
+  background: rgba(8, 6, 4, 0.92);
+  border: 1px solid rgba(230, 197, 103, 0.35);
+  color: rgba(240, 235, 224, 0.92);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  pointer-events: none;
+  user-select: text;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+.board-calibration-panel__title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(230, 197, 103, 0.85);
+  margin-bottom: 0.35rem;
+}
+
+.board-calibration-panel__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.board-calibration-panel__row--last {
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.board-calibration-panel__key {
+  color: rgba(240, 235, 224, 0.55);
+}
+
+.board-calibration-panel__val {
+  color: #5eead4;
+  font-weight: 600;
+}
+
+.board-calibration-panel__divider {
+  height: 1px;
+  margin: 0.35rem 0;
+  background: rgba(230, 197, 103, 0.2);
+}
+
+.board-calibration-panel__code,
+.board-calibration-panel__paste {
+  display: block;
+  color: #e6c567;
+  word-break: break-all;
+}
+
+.board-calibration-panel__paste {
+  margin-top: 0.25rem;
+  font-size: 0.62rem;
+  opacity: 0.85;
 }
 
 @media (max-width: 639px) {
   .image-board-stage {
     width: 100%;
     max-height: 100%;
+  }
+
+  .board-calibration-panel {
+    top: 0.25rem;
+    right: 0.25rem;
+    min-width: 9rem;
+    font-size: 0.6rem;
   }
 }
