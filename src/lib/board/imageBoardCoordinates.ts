@@ -57,12 +57,12 @@ export type ExactImagePoints = {
  * Date: 2026-05-30
  * Warning: valid only for IMAGE_BOARD_GAME_SRC (jakaroo-board-game-empty.png).
  *
- * Classification (from 108 calibration clicks):
- * - home black: indices 0–3 (top V cluster)
+ * Classification (from 108 calibration clicks, corrected 2026-05-30):
+ * - home black: 0–3 (top V); home blue: 84–87 (bottom V); home white: 88–91 (left V)
+ * - home green: 104–107 (UR diagonal toward center, x decreases)
+ * - base black: 100–103 (TL nest); base green: 80–83 (TR nest); base blue: 96–99 (BR nest); base white: 92–95 (BL nest)
  * - perimeter 4–79: gate + 18 track × 4 (clockwise, engine order)
  *   black gate=4, track 5–22; green gate=23, track 24–41; blue gate=42, track 43–60; white gate=61, track 62–79
- * - home green: 80–83; home blue: 84–87; home white: 88–91
- * - base white: 92–95; base blue: 96–99; base black: 100–103; base green: 104–107
  *
  * Track arrays match BoardPosition { color, type: "track", index } — do not reorder unless engine changes.
  */
@@ -163,10 +163,10 @@ const IMAGE_EXACT_POINTS: ExactImagePoints = {
       { x: 41.51, y: 11.50 }, // 3 — click 3
     ],
     green: [
-      { x: 86.35, y: 31.73 }, // 0 — click 80
-      { x: 83.30, y: 34.78 }, // 1 — click 81
-      { x: 86.35, y: 38.41 }, // 2 — click 82
-      { x: 89.79, y: 35.16 }, // 3 — click 83
+      { x: 78.91, y: 19.51 }, // 0 — click 104 (outer, toward track)
+      { x: 75.86, y: 22.57 }, // 1 — click 105
+      { x: 73.00, y: 25.24 }, // 2 — click 106
+      { x: 69.75, y: 28.67 }, // 3 — click 107 (inner)
     ],
     blue: [
       { x: 62.50, y: 85.16 }, // 0 — click 84
@@ -189,10 +189,10 @@ const IMAGE_EXACT_POINTS: ExactImagePoints = {
       { x: 30.25, y: 28.48 }, // 3 — click 103
     ],
     green: [
-      { x: 78.91, y: 19.51 }, // 0 — click 104
-      { x: 75.86, y: 22.57 }, // 1 — click 105
-      { x: 73.00, y: 25.24 }, // 2 — click 106
-      { x: 69.75, y: 28.67 }, // 3 — click 107
+      { x: 86.35, y: 31.73 }, // 0 — click 80 (NW)
+      { x: 89.79, y: 35.16 }, // 1 — click 83 (NE)
+      { x: 83.30, y: 34.78 }, // 2 — click 81 (SW)
+      { x: 86.35, y: 38.41 }, // 3 — click 82 (SE)
     ],
     blue: [
       { x: 79.29, y: 80.96 }, // 0 — click 96
@@ -473,8 +473,8 @@ export function marbleAriaLabel(marble: { color: PlayerColor; id: string }, sele
 }
 
 export const IMAGE_BOARD_RADII = {
-  marbleTrack: 2.15,
-  marbleBase: 1.85,
+  marbleTrack: 1.95,
+  marbleBase: 1.68,
   marbleHighlight: 2.55,
   marbleSelectionRingOffset: 0.65,
   marbleGateLockRingOffset: 0.78,
