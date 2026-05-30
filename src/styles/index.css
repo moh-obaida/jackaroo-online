@@ -1309,33 +1309,70 @@
   }
 
   .board-center-piles {
-    @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 jkr-layer-hud pointer-events-none flex items-center justify-center;
-    width: min(22%, 5.5rem);
-    height: min(28%, 7.5rem);
-    z-index: 20;
+    @apply absolute left-1/2 top-1/2 jkr-layer-hud pointer-events-none flex items-center justify-center;
+    width: min(44%, 10.5rem);
+    max-width: 92%;
+    z-index: 25;
+    transform: translate(-50%, -50%);
+  }
+
+  .board-center-piles__main {
+    @apply flex flex-col items-center justify-center w-full;
+    gap: 0.2rem;
+  }
+
+  .board-center-piles__label {
+    @apply text-[8px] sm:text-[9px] uppercase tracking-wider text-cream-200/55 font-semibold text-center leading-none;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.65);
   }
 
   .board-center-piles__discard {
-    @apply relative flex items-center justify-center;
-    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55));
+    @apply relative flex items-center justify-center w-full;
+    filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.62));
   }
 
-  .board-center-piles__discard-card.playing-card-shell--standard {
-    width: 3.35rem;
-    height: 4.65rem;
+  .board-center-piles__stack {
+    @apply absolute inset-0 flex items-center justify-center pointer-events-none;
+  }
+
+  .board-center-piles__stack-layer {
+    @apply absolute rounded-lg border border-wood-700/50;
+    width: clamp(5.25rem, 18vmin, 8.25rem);
+    height: clamp(7.35rem, 25.2vmin, 11.55rem);
+    background: linear-gradient(145deg, #4a3520, #1a1008);
+    box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.45);
+    transform: rotate(-4deg) translate(-3px, 3px);
+  }
+
+  .board-center-piles__stack-layer--2 {
+    transform: rotate(3deg) translate(3px, -2px);
+    opacity: 0.88;
+  }
+
+  .board-center-piles__discard-card.playing-card-shell--standard,
+  .board-center-piles__discard-card.playing-card-shell--standard-ar-art {
+    --card-shell-w: clamp(5.25rem, 18vmin, 8.25rem);
+    --card-shell-h: clamp(7.35rem, 25.2vmin, 11.55rem);
+    width: var(--card-shell-w);
+    height: var(--card-shell-h);
+    position: relative;
+    z-index: 1;
   }
 
   .board-center-piles__discard-empty {
-    @apply rounded-lg border border-dashed border-cream-200/20;
-    width: 3.35rem;
-    height: 4.65rem;
-    background: rgba(0, 0, 0, 0.25);
+    @apply rounded-lg border border-dashed border-cream-200/25 flex items-center justify-center text-center px-2;
+    width: clamp(5.25rem, 18vmin, 8.25rem);
+    height: clamp(7.35rem, 25.2vmin, 11.55rem);
+    background: rgba(0, 0, 0, 0.32);
+    font-size: clamp(0.55rem, 1.8vmin, 0.68rem);
+    line-height: 1.25;
+    color: rgba(245, 240, 232, 0.45);
   }
 
   .board-center-piles__deck {
-    @apply pointer-events-auto absolute -bottom-1 -end-1 flex flex-col items-center gap-0.5 rounded-lg border border-wood-800/60 px-1.5 py-1 transition-colors;
-    background: linear-gradient(165deg, rgba(22, 16, 10, 0.92), rgba(8, 6, 4, 0.96));
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+    @apply pointer-events-auto flex flex-row items-center gap-1.5 rounded-lg border border-wood-800/60 px-2 py-1 transition-colors mt-0.5;
+    background: linear-gradient(165deg, rgba(22, 16, 10, 0.94), rgba(8, 6, 4, 0.98));
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
   }
 
   .board-center-piles__deck:hover {
@@ -1343,13 +1380,21 @@
   }
 
   .board-center-piles__deck-stack {
-    @apply block w-6 h-8 rounded-sm;
+    @apply block w-7 h-9 sm:w-8 sm:h-10 rounded-sm shrink-0;
     background: linear-gradient(145deg, #4a3520, #1a1008);
     box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.45);
   }
 
+  .board-center-piles__deck-meta {
+    @apply flex flex-col items-start leading-none gap-0.5 min-w-0;
+  }
+
   .board-center-piles__deck-count {
-    @apply text-[9px] font-bold text-cream-200/75 leading-none;
+    @apply text-xs sm:text-sm font-bold text-cream-200/90 tabular-nums;
+  }
+
+  .board-center-piles__deck-hint {
+    @apply text-[8px] sm:text-[9px] uppercase tracking-wide text-cream-200/45 truncate max-w-[5.5rem];
   }
 
   .deck-discard-strip {
@@ -1639,7 +1684,7 @@
     background: linear-gradient(0deg, #0a0806 0%, rgba(18, 48, 32, 0.45) 35%, rgba(10, 8, 6, 0.98) 100%);
     box-shadow: 0 -10px 36px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(201, 162, 39, 0.08);
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
-    max-height: min(34vh, 13.5rem);
+    max-height: min(42vh, 16.5rem);
   }
 
   .game-hand-rail__top {
@@ -1659,7 +1704,7 @@
   }
 
   .hand-dock-panel {
-    @apply relative max-w-2xl mx-auto w-full px-2 pt-1 overflow-hidden;
+    @apply relative max-w-2xl mx-auto w-full px-2 pt-1 overflow-visible;
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
   }
 
@@ -1947,26 +1992,43 @@
   }
 
   .player-hand {
-    @apply flex items-end justify-center overflow-hidden pb-0.5 px-2 min-h-[5.25rem] max-w-full;
-    --hand-card-w: 3.65rem;
-    --hand-card-h: 5.05rem;
+    @apply flex items-end justify-center overflow-visible pb-0.5 px-1 sm:px-2 min-h-[5.85rem] max-w-full;
+    --hand-card-w: clamp(4rem, 13vw, 5rem);
+    --hand-card-h: clamp(5.55rem, 18.2vw, 7rem);
     --hand-scale: 1;
     transform: scale(var(--hand-scale));
     transform-origin: bottom center;
   }
 
+  .player-hand--ar-art {
+    --hand-card-w: clamp(4.2rem, 13.8vw, 5.25rem);
+    --hand-card-h: clamp(5.85rem, 19.2vw, 7.35rem);
+  }
+
   .player-hand[data-count='5'],
   .player-hand[data-count='6'] {
-    --hand-scale: 0.94;
-    --hand-card-w: 3.35rem;
-    --hand-card-h: 4.65rem;
+    --hand-scale: 0.97;
+    --hand-card-w: clamp(3.75rem, 12vw, 4.65rem);
+    --hand-card-h: clamp(5.2rem, 16.8vw, 6.5rem);
+  }
+
+  .player-hand--ar-art[data-count='5'],
+  .player-hand--ar-art[data-count='6'] {
+    --hand-card-w: clamp(3.9rem, 12.4vw, 4.85rem);
+    --hand-card-h: clamp(5.45rem, 17.4vw, 6.8rem);
   }
 
   .player-hand[data-count='7'],
   .player-hand[data-count='8'] {
-    --hand-scale: 0.88;
-    --hand-card-w: 3.05rem;
-    --hand-card-h: 4.25rem;
+    --hand-scale: 0.93;
+    --hand-card-w: clamp(3.5rem, 11vw, 4.35rem);
+    --hand-card-h: clamp(4.85rem, 15.4vw, 6.1rem);
+  }
+
+  .player-hand--ar-art[data-count='7'],
+  .player-hand--ar-art[data-count='8'] {
+    --hand-card-w: clamp(3.65rem, 11.4vw, 4.55rem);
+    --hand-card-h: clamp(5.05rem, 16vw, 6.35rem);
   }
 
   .player-hand[data-count='9'],
@@ -1974,14 +2036,48 @@
   .player-hand[data-count='11'],
   .player-hand[data-count='12'],
   .player-hand[data-count='13'] {
-    --hand-scale: 0.82;
-    --hand-card-w: 2.75rem;
-    --hand-card-h: 3.85rem;
+    --hand-scale: 0.9;
+    --hand-card-w: clamp(3.25rem, 10.2vw, 4.05rem);
+    --hand-card-h: clamp(4.5rem, 14.2vw, 5.65rem);
+  }
+
+  .player-hand--ar-art[data-count='9'],
+  .player-hand--ar-art[data-count='10'],
+  .player-hand--ar-art[data-count='11'],
+  .player-hand--ar-art[data-count='12'],
+  .player-hand--ar-art[data-count='13'] {
+    --hand-card-w: clamp(3.4rem, 10.6vw, 4.25rem);
+    --hand-card-h: clamp(4.7rem, 14.8vw, 5.9rem);
   }
 
   .player-hand--docked .playing-card-shell--hand {
-    width: var(--hand-card-w);
-    height: var(--hand-card-h);
+    --card-shell-w: var(--hand-card-w);
+    --card-shell-h: var(--hand-card-h);
+  }
+
+  @media (min-width: 768px) {
+    .player-hand {
+      --hand-card-w: clamp(4.35rem, 7.5vw, 5.35rem);
+      --hand-card-h: clamp(6.05rem, 10.5vw, 7.45rem);
+      min-height: 6.35rem;
+    }
+
+    .player-hand--ar-art {
+      --hand-card-w: clamp(4.55rem, 7.8vw, 5.55rem);
+      --hand-card-h: clamp(6.35rem, 11vw, 7.75rem);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .player-hand {
+      --hand-card-w: clamp(4.5rem, 6.8vw, 5.5rem);
+      --hand-card-h: clamp(6.25rem, 9.5vw, 7.65rem);
+    }
+
+    .player-hand--ar-art {
+      --hand-card-w: clamp(4.75rem, 7.1vw, 5.75rem);
+      --hand-card-h: clamp(6.55rem, 9.9vw, 7.95rem);
+    }
   }
 
   .player-hand--docked .player-hand__slot {

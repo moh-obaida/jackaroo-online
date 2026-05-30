@@ -144,6 +144,115 @@
   object-position: center bottom;
 }
 
+/* —— Playing card shell (hand / table) —— */
+.playing-card-shell {
+  --card-shell-w: 4.5rem;
+  --card-shell-h: 6.25rem;
+  position: relative;
+  flex-shrink: 0;
+  width: var(--card-shell-w);
+  height: var(--card-shell-h);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.playing-card-shell--hand {
+  --card-shell-w: clamp(4rem, 13vw, 5rem);
+  --card-shell-h: clamp(5.55rem, 18.2vw, 7rem);
+}
+
+.playing-card-shell--hand-ar-art {
+  --card-shell-w: clamp(4.2rem, 13.8vw, 5.25rem);
+  --card-shell-h: clamp(5.85rem, 19.2vw, 7.35rem);
+}
+
+.playing-card-shell--standard {
+  --card-shell-w: clamp(4.35rem, 10vw, 5.35rem);
+  --card-shell-h: clamp(6.05rem, 14.2vw, 7.85rem);
+}
+
+.playing-card-shell--standard-ar-art {
+  --card-shell-w: clamp(4.55rem, 10.5vw, 5.65rem);
+  --card-shell-h: clamp(6.35rem, 14.8vw, 8.15rem);
+}
+
+.playing-card-shell--guide {
+  --card-shell-w: clamp(6.75rem, 44vw, 8rem);
+  --card-shell-h: clamp(9.45rem, 61vw, 11.2rem);
+}
+
+@media (min-width: 768px) {
+  .playing-card-shell--hand {
+    --card-shell-w: clamp(4.35rem, 7.5vw, 5.35rem);
+    --card-shell-h: clamp(6.05rem, 10.5vw, 7.45rem);
+  }
+
+  .playing-card-shell--hand-ar-art {
+    --card-shell-w: clamp(4.55rem, 7.8vw, 5.55rem);
+    --card-shell-h: clamp(6.35rem, 11vw, 7.75rem);
+  }
+
+  .playing-card-shell--standard {
+    --card-shell-w: clamp(4.65rem, 6.5vw, 5.65rem);
+    --card-shell-h: clamp(6.45rem, 9.1vw, 8.25rem);
+  }
+
+  .playing-card-shell--standard-ar-art {
+    --card-shell-w: clamp(4.85rem, 6.8vw, 5.85rem);
+    --card-shell-h: clamp(6.75rem, 9.5vw, 8.55rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .playing-card-shell--hand {
+    --card-shell-w: clamp(4.5rem, 6.8vw, 5.5rem);
+    --card-shell-h: clamp(6.25rem, 9.5vw, 7.65rem);
+  }
+
+  .playing-card-shell--hand-ar-art {
+    --card-shell-w: clamp(4.75rem, 7.1vw, 5.75rem);
+    --card-shell-h: clamp(6.55rem, 9.9vw, 7.95rem);
+  }
+}
+
+.card-face--image-ar .card-face__img-wrap {
+  border-width: 2.5px;
+  box-shadow:
+    0 3px 14px rgba(0, 0, 0, 0.34),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.card-face--image-ar .card-face__img-wrap--hand {
+  padding: 0.06rem 0.08rem 0.1rem;
+}
+
+.card-face--image-ar .card-face__img {
+  filter: contrast(1.07) saturate(1.05);
+}
+
+.card-face--image-ar .card-face__img-wrap--hand .card-face__img {
+  width: 112%;
+  height: 112%;
+  max-width: none;
+  max-height: none;
+  margin: -6%;
+  object-fit: contain;
+  object-position: center top;
+}
+
+.card-face--image-ar.card-face--guide .card-face__img-wrap {
+  padding: 0.12rem 0.14rem;
+}
+
+.card-face--image-ar.card-face--guide .card-face__img {
+  width: 102%;
+  height: 102%;
+  margin: -1%;
+  object-fit: contain;
+  object-position: center;
+}
+
 /* —— Corners (always upright) —— */
 .card-face__corner {
   display: flex;
@@ -171,7 +280,7 @@
 
 .card-face--hand .card-face__corner--br .card-face__rank,
 .card-face--hand .card-face__corner--tl .card-face__rank {
-  font-size: 0.78rem;
+  font-size: clamp(0.78rem, 2.4vw, 0.92rem);
 }
 
 .card-face--guide .card-face__rank {
@@ -232,7 +341,7 @@
 
 .card-face__hero-rank {
   font-weight: 900;
-  font-size: 1.9rem;
+  font-size: clamp(1.85rem, 6vw, 2.35rem);
   line-height: 0.9;
   letter-spacing: -0.04em;
   color: var(--card-ink);
@@ -240,18 +349,20 @@
 }
 
 .card-face__hero-action {
-  font-size: 0.5rem;
+  font-size: clamp(0.52rem, 1.8vw, 0.64rem);
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   color: var(--card-red-bright);
-  padding: 0.05rem 0.3rem;
+  padding: 0.08rem 0.32rem;
   border-radius: 0.5rem;
   background: rgba(201, 162, 39, 0.16);
-  max-width: 100%;
+  max-width: 94%;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.15;
 }
 
 /* —— Center stack (guide / standard) —— */
@@ -268,7 +379,7 @@
 
 .card-face__center-value {
   font-weight: 900;
-  font-size: 2.1rem;
+  font-size: clamp(1.95rem, 5.5vw, 2.35rem);
   line-height: 0.95;
   letter-spacing: -0.03em;
   color: var(--card-ink);
@@ -276,11 +387,11 @@
 }
 
 .card-face--guide .card-face__center-value {
-  font-size: 2.6rem;
+  font-size: clamp(2.35rem, 7vw, 2.85rem);
 }
 
 .card-face__center-label {
-  font-size: 0.55rem;
+  font-size: clamp(0.52rem, 1.6vw, 0.62rem);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -303,14 +414,14 @@
 .card-rule-text__line {
   margin: 0;
   text-align: center;
-  font-size: 0.5rem;
+  font-size: clamp(0.48rem, 1.5vw, 0.58rem);
   line-height: 1.35;
   font-weight: 600;
   color: var(--card-ink);
 }
 
 .card-face--guide .card-rule-text__line {
-  font-size: 0.56rem;
+  font-size: clamp(0.54rem, 1.7vw, 0.64rem);
   line-height: 1.4;
 }
 
@@ -381,44 +492,7 @@
   color: rgba(245, 240, 232, 0.45);
 }
 
-/* —— Playing card shell (hand / table) —— */
-.playing-card-shell {
-  position: relative;
-  flex-shrink: 0;
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
-}
-
-.playing-card-shell--hand {
-  width: 4rem;
-  height: 5.5rem;
-}
-
-.playing-card-shell--standard {
-  width: 4.5rem;
-  height: 6.75rem;
-}
-
-@media (min-width: 640px) {
-  .playing-card-shell--standard {
-    width: 5rem;
-    height: 7.25rem;
-  }
-}
-
-.playing-card-shell--guide {
-  width: 6.75rem;
-  height: 9.5rem;
-}
-
-@media (min-width: 640px) {
-  .playing-card-shell--guide {
-    width: 7.5rem;
-    height: 10.5rem;
-  }
-}
-
+/* —— Shell interaction states —— */
 .playing-card-shell--selected {
   transform: translateY(-12px) scale(1.04);
   z-index: 2;

@@ -20,8 +20,9 @@ export function PlayerHand({
   disabled,
   docked = false,
 }: PlayerHandProps) {
-  const { t } = useApp();
+  const { t, language } = useApp();
   const playable = new Set(playableCardIds);
+  const isArArt = language === 'ar';
 
   if (cards.length === 0) {
     return <div className="text-center text-cream-200/45 text-sm py-4">{t('game.noCards')}</div>;
@@ -29,7 +30,13 @@ export function PlayerHand({
 
   return (
     <div
-      className={`player-hand ${docked ? 'player-hand--docked' : ''}`}
+      className={[
+        'player-hand',
+        docked ? 'player-hand--docked' : '',
+        isArArt ? 'player-hand--ar-art' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
       data-count={docked ? cards.length : undefined}
     >
       {cards.map((card, index) => {

@@ -556,7 +556,7 @@ body,
   }
 
   .game-hand-rail {
-    max-height: min(36vh, 12.5rem);
+    max-height: min(44vh, 15.5rem);
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
 
@@ -565,7 +565,7 @@ body,
   }
 
   .player-hand {
-    min-height: 4.75rem;
+    min-height: 5.5rem;
   }
 }
 
@@ -633,7 +633,7 @@ body,
   }
 
   .game-hand-rail {
-    max-height: min(33vh, 13.5rem);
+    max-height: min(36vh, 15rem);
   }
 }
 

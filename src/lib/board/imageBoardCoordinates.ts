@@ -7,7 +7,7 @@
  * Step 1: VITE_ENABLE_BOARD_CALIBRATION=true
  * Step 2: Open gameplay board in the app (not screenshots)
  * Step 3: Click hole centers; copy x/y from console or dev panel
- * Step 4: Update src/lib/board/board-coordinates.json (108 clicks) or IMAGE_COORDINATE_OVERRIDES
+ * Step 4: Update IMAGE_EXACT_POINTS in this file (108 points, nest-first click order)
  * Step 5: Refresh and verify marbles/rings align
  * Step 6: Disable calibration before production
  */
@@ -20,9 +20,6 @@ import {
   TRACK_LENGTH,
 } from '../../types/game';
 import { boardPositionToPoint, getBoardLayout } from './boardGeometry';
-import { buildImageExactPointsFromCalibration } from './buildImageExactPointsFromCalibration';
-
-export { CALIBRATION_CLICK_MAP, validateCalibrationBuckets } from './buildImageExactPointsFromCalibration';
 import type { BoardImagePoint, ExactImagePoints } from './imageBoardCoordinateTypes';
 
 export type { ExactImagePoints } from './imageBoardCoordinateTypes';
@@ -46,18 +43,205 @@ export function boardPositionImageKey(position: BoardPosition): string {
 }
 
 
-/** Emergency per-point overrides — prefer board-coordinates.json map; use only for last-minute tuning. */
+/** Emergency per-point overrides — use only for last-minute single-hole tuning. */
 const IMAGE_COORDINATE_OVERRIDES: Partial<Record<string, BoardImagePoint>> = {};
 
 /**
- * Full exact image coordinate map (108 visual points).
- * Built from src/lib/board/board-coordinates.json — live clicks from calibration tool.
- * Valid only for IMAGE_BOARD_GAME_SRC (jakaroo-board-game-empty.png).
- *
- * Track/gate arrays use click order directly. Base/home clusters are sorted into engine
- * slot order (NW→SE nests; home entry → inner). See buildImageExactPointsFromCalibration.ts.
+ * Click index → bucket for the nest-first calibration sequence (108 points).
+ * Extra accidental point { x: 32.15, y: 71.24 } was removed before mapping.
  */
-const IMAGE_EXACT_POINTS: ExactImagePoints = buildImageExactPointsFromCalibration();
+export const CALIBRATION_CLICK_MAP = {
+  base: {
+    black: [0, 1, 2, 3],
+    green: [4, 5, 6, 7],
+    blue: [8, 9, 10, 11],
+    white: [12, 13, 14, 15],
+  },
+  home: {
+    black: [16, 17, 18, 19],
+    green: [20, 21, 22, 23],
+    blue: [24, 25, 26, 27],
+    white: [28, 29, 30, 31],
+  },
+  gates: {
+    black: 32,
+    green: 51,
+    blue: 70,
+    white: 89,
+  },
+  track: {
+    black: Array.from({ length: TRACK_LENGTH }, (_, i) => 33 + i),
+    green: Array.from({ length: TRACK_LENGTH }, (_, i) => 52 + i),
+    blue: Array.from({ length: TRACK_LENGTH }, (_, i) => 71 + i),
+    white: Array.from({ length: TRACK_LENGTH }, (_, i) => 90 + i),
+  },
+} as const;
+
+/**
+ * Full exact image coordinate map (108 visual points).
+ * Manually recalibrated 2026-05-30 — nest-first click order, mathematically cleaned.
+ * Valid only for IMAGE_BOARD_GAME_SRC (jakaroo-board-game-empty.png).
+ */
+const IMAGE_EXACT_POINTS: ExactImagePoints = {
+  base: {
+    black: [
+      { x: 39.1, y: 7.99 },
+      { x: 35.9, y: 11.43 },
+      { x: 39.1, y: 14.87 },
+      { x: 42.31, y: 11.43 },
+    ],
+    green: [
+      { x: 82.36, y: 31.79 },
+      { x: 85.24, y: 35.13 },
+      { x: 79.48, y: 35.13 },
+      { x: 82.36, y: 38.48 },
+    ],
+    blue: [
+      { x: 61.19, y: 85.04 },
+      { x: 64.31, y: 88.66 },
+      { x: 61.19, y: 92.29 },
+      { x: 58.06, y: 88.66 },
+    ],
+    white: [
+      { x: 17.72, y: 67.94 },
+      { x: 20.68, y: 64.41 },
+      { x: 17.72, y: 60.88 },
+      { x: 14.76, y: 64.41 },
+    ],
+  },
+  home: {
+    black: [
+      { x: 24.42, y: 19.38 },
+      { x: 27.11, y: 22.54 },
+      { x: 29.79, y: 25.7 },
+      { x: 32.48, y: 28.86 },
+    ],
+    green: [
+      { x: 75.25, y: 19.38 },
+      { x: 72.67, y: 22.48 },
+      { x: 70.1, y: 25.57 },
+      { x: 67.52, y: 28.67 },
+    ],
+    blue: [
+      { x: 75.9, y: 81.09 },
+      { x: 73.16, y: 77.81 },
+      { x: 70.42, y: 74.52 },
+      { x: 67.68, y: 71.24 },
+    ],
+    white: [
+      { x: 21.13, y: 84.25 },
+      { x: 23.87, y: 80.97 },
+      { x: 26.62, y: 77.68 },
+      { x: 29.36, y: 74.4 },
+    ],
+  },
+  gates: {
+    black: { x: 27.22, y: 9.9 },
+    green: { x: 83.8, y: 22.54 },
+    blue: { x: 73.27, y: 90.38 },
+    white: { x: 15.71, y: 77.74 },
+  },
+  track: {
+    black: [
+      { x: 30.02, y: 13.24 },
+      { x: 32.81, y: 16.4 },
+      { x: 35.44, y: 19.19 },
+      { x: 37.91, y: 22.35 },
+      { x: 40.54, y: 25.45 },
+      { x: 44.32, y: 25.47 },
+      { x: 48.11, y: 25.46 },
+      { x: 51.89, y: 25.45 },
+      { x: 55.68, y: 25.44 },
+      { x: 59.46, y: 25.43 },
+      { x: 62.25, y: 22.35 },
+      { x: 64.72, y: 19.19 },
+      { x: 67.52, y: 16.03 },
+      { x: 70.15, y: 13.06 },
+      { x: 72.78, y: 10.08 },
+      { x: 75.58, y: 13.06 },
+      { x: 78.21, y: 16.03 },
+      { x: 81.17, y: 19.19 },
+    ],
+    green: [
+      { x: 81.0, y: 25.51 },
+      { x: 78.37, y: 28.67 },
+      { x: 75.74, y: 31.83 },
+      { x: 73.11, y: 34.99 },
+      { x: 71.68, y: 38.89 },
+      { x: 71.66, y: 43.2 },
+      { x: 71.67, y: 47.52 },
+      { x: 71.67, y: 51.83 },
+      { x: 71.71, y: 56.15 },
+      { x: 71.7, y: 60.46 },
+      { x: 73.11, y: 64.54 },
+      { x: 75.9, y: 68.08 },
+      { x: 78.7, y: 71.05 },
+      { x: 81.5, y: 74.21 },
+      { x: 84.29, y: 77.56 },
+      { x: 81.5, y: 80.9 },
+      { x: 78.7, y: 84.06 },
+      { x: 75.9, y: 87.41 },
+    ],
+    blue: [
+      { x: 70.31, y: 87.41 },
+      { x: 67.68, y: 84.06 },
+      { x: 65.05, y: 80.9 },
+      { x: 62.25, y: 77.56 },
+      { x: 59.62, y: 74.21 },
+      { x: 55.77, y: 74.21 },
+      { x: 51.92, y: 74.21 },
+      { x: 48.08, y: 74.21 },
+      { x: 44.23, y: 74.21 },
+      { x: 40.38, y: 74.21 },
+      { x: 37.58, y: 77.37 },
+      { x: 34.79, y: 80.9 },
+      { x: 32.15, y: 84.43 },
+      { x: 29.19, y: 87.41 },
+      { x: 26.56, y: 91.12 },
+      { x: 23.93, y: 87.78 },
+      { x: 21.13, y: 84.43 },
+      { x: 18.34, y: 81.09 },
+    ],
+    white: [
+      { x: 18.67, y: 74.58 },
+      { x: 21.3, y: 71.24 },
+      { x: 24.1, y: 68.26 },
+      { x: 26.73, y: 64.92 },
+      { x: 28.23, y: 60.46 },
+      { x: 28.24, y: 56.22 },
+      { x: 28.27, y: 51.98 },
+      { x: 28.28, y: 47.75 },
+      { x: 28.29, y: 43.51 },
+      { x: 28.28, y: 39.27 },
+      { x: 27.06, y: 34.99 },
+      { x: 24.26, y: 32.2 },
+      { x: 21.46, y: 28.86 },
+      { x: 19.0, y: 25.7 },
+      { x: 16.37, y: 22.54 },
+      { x: 18.83, y: 19.56 },
+      { x: 21.63, y: 16.03 },
+      { x: 24.26, y: 13.06 },
+    ],
+  },
+};
+
+/** Dev helper — count validation for IMAGE_EXACT_POINTS. */
+export function validateImageExactPointCounts(): { ok: boolean; total: number } {
+  let total = 0;
+  for (const color of COLORS_ORDER) {
+    total += IMAGE_EXACT_POINTS.base[color].length;
+    total += IMAGE_EXACT_POINTS.home[color].length;
+    total += IMAGE_EXACT_POINTS.track[color].length;
+    if (IMAGE_EXACT_POINTS.gates[color]) total += 1;
+  }
+  const ok =
+    total === 108 &&
+    isExactTrackComplete() &&
+    isExactHomeComplete() &&
+    isExactBaseComplete() &&
+    isExactGatesComplete();
+  return { ok, total };
+}
 
 function isValidPoint(p: BoardImagePoint | null | undefined): p is BoardImagePoint {
   if (!p) return false;

@@ -1,7 +1,13 @@
 import type { CardRank } from '../../types/game';
+import type { Language } from '../i18n/translations';
 
 /** Polished Arabic Jakaroo card art in public/assets/cards/. */
 export const CARD_IMAGE_ASSETS_AVAILABLE = true;
+
+/** PNG faces are Arabic-only; English keeps the CSS/text card layout. */
+export function shouldUseCardRankImages(language: Language): boolean {
+  return language === 'ar' && CARD_IMAGE_ASSETS_AVAILABLE;
+}
 
 const CARD_RANKS: CardRank[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '../../types/game';
 import { getCardHintKey } from '../../lib/game/cardGuide';
 import { useApp } from '../../context/AppContext';
+import { shouldUseCardRankImages } from '../../lib/cards/cardAssets';
 import { CardFace, CardFaceBack } from './CardFace';
 
 export interface PlayingCardProps {
@@ -42,9 +43,13 @@ export function PlayingCard({
   const state = cardFaceState(selected, playable, disabled);
   const hint = t(getCardHintKey(card.rank));
 
+  const useCardArt = shouldUseCardRankImages(language);
+
   const shellClass = [
     'playing-card-shell',
     compact ? 'playing-card-shell--hand' : 'playing-card-shell--standard',
+    useCardArt && compact ? 'playing-card-shell--hand-ar-art' : '',
+    useCardArt && !compact ? 'playing-card-shell--standard-ar-art' : '',
     selected ? 'playing-card-shell--selected' : '',
     playable && !selected ? 'playing-card-shell--playable' : '',
     onClick && !disabled ? 'playing-card-shell--clickable' : '',

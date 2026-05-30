@@ -7,9 +7,9 @@ import {
   getSuitSymbol,
 } from '../../lib/game/cardFaceContent';
 import {
-  CARD_IMAGE_ASSETS_AVAILABLE,
   cardRankNeedsHandFlip,
   getCardRankImageSrc,
+  shouldUseCardRankImages,
 } from '../../lib/cards/cardAssets';
 import { useApp } from '../../context/AppContext';
 import { CardRuleText } from './CardRuleText';
@@ -55,7 +55,7 @@ function CardFaceImage({
 
   return (
     <div
-      className={`card-face card-face--image card-face--${variant} ${stateClass} ${className}`.trim()}
+      className={`card-face card-face--image card-face--image-ar card-face--${variant} ${stateClass} ${className}`.trim()}
     >
       <div
         className={[
@@ -98,7 +98,7 @@ export function CardFace({
           ? 'card-face--disabled'
           : '';
 
-  if (CARD_IMAGE_ASSETS_AVAILABLE && getCardRankImageSrc(rank)) {
+  if (shouldUseCardRankImages(language) && getCardRankImageSrc(rank)) {
     return <CardFaceImage rank={rank} variant={variant} stateClass={stateClass} className={className} />;
   }
 

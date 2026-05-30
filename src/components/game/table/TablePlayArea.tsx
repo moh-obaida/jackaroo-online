@@ -69,6 +69,7 @@ export function TablePlayArea({
               />
               <BoardCenterPiles
                 deckCount={gameState.deck.length}
+                discardCount={gameState.discardPile.length}
                 topDiscard={topDiscard}
                 onShowDeckGuide={onShowDeckGuide}
               />
