@@ -14,10 +14,22 @@ export function formatBoardImagePointPaste(point: BoardImagePoint): string {
   return `{ x: ${point.x}, y: ${point.y} },`;
 }
 
+/** JSON array item for board-coordinates.json (no trailing comma on last item). */
+export function formatBoardJsonArrayItem(point: BoardImagePoint, index: number): string {
+  return `  // click ${index}\n  { "x": ${point.x}, "y": ${point.y} }`;
+}
+
 /** Log click coordinates and optional override snippet to the dev console. */
-export function logCalibrationClick(point: BoardImagePoint, position?: BoardPosition): void {
+export function logCalibrationClick(
+  point: BoardImagePoint,
+  position?: BoardPosition,
+  clickIndex?: number
+): void {
   const rounded = { x: roundBoardPercent(point.x), y: roundBoardPercent(point.y) };
   console.log('[board-calibration] click', rounded);
+  if (clickIndex != null) {
+    console.log('[board-calibration] json-index', clickIndex, formatBoardJsonArrayItem(rounded, clickIndex));
+  }
   console.log('[board-calibration] paste', formatBoardImagePointPaste(rounded));
   if (position) {
     const key = boardPositionImageKey(position);

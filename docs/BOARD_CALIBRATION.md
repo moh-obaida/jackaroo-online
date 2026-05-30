@@ -41,7 +41,41 @@ Track arrays **must match engine order**, not arbitrary visual clockwise clickin
 - Use calibration overlay labels (`B T1`, `G T1`, …) to verify index ↔ hole before pasting coordinates.
 - **Do not reorder track arrays visually** unless `boardGeometry` / engine order changes.
 
-**Current map (2026-05-30):** 108 live-clicked coordinates, classified into `IMAGE_EXACT_POINTS`. Base/nest clusters (clicks 80–83, 92–107) are **mathematically normalized** to balanced NW/NE/SW/SE squares around each cluster center (see comments in `imageBoardCoordinates.ts`). Green home (104–107) is linearized along its diagonal; black/blue/white V-shaped home paths keep clicked shape with engine order. Marbles use reduced radii so hole rims stay visible.
+**Current map:** 108 live-clicked coordinates in `src/lib/board/board-coordinates.json`, classified at build time by `buildImageExactPointsFromCalibration.ts`. Run `npm run validate:board-coordinates` after updating the JSON.
+
+### Click index → bucket map
+
+Perimeter clicks **0–79** (in capture order):
+
+| Click indices | Bucket |
+|---------------|--------|
+| 0–3 | `home.black` (top V) |
+| 4 | `gates.black` |
+| 5–22 | `track.black` (18 spaces) |
+| 23 | `gates.green` |
+| 24–41 | `track.green` (18 spaces) |
+| 42 | `gates.blue` |
+| 43–60 | `track.blue` (18 spaces) |
+| 61 | `gates.white` |
+| 62–79 | `track.white` (18 spaces) |
+
+Nest / home cluster clicks **80–107**:
+
+| Click indices | Bucket |
+|---------------|--------|
+| 80–83 | `base.green` (TR nest) |
+| 84–87 | `home.blue` (bottom V) |
+| 88–91 | `home.white` (left V) |
+| 92–95 | `base.white` (BL nest) |
+| 96–99 | `base.blue` (BR nest) |
+| 100–103 | `base.black` (TL nest) |
+| 104–107 | `home.green` (UR diagonal) |
+
+**Slot sorting after classification:**
+
+- **Track / gates:** used directly from click order (gates are never merged into track arrays).
+- **Base nests:** sorted outer → inner by distance from board center (50, 50) → engine slots 0–3 (NW→SE).
+- **Home paths:** black = min-y entry; green = click order; blue = max-y entry; white = verified path 90→89→88→91.
 
 **Board display:** gameplay stage uses `width: min(100%, max-height)` + `aspect-ratio: 1` so the square board is not cropped by overflow. Image and SVG overlay share the same box (`object-fit: contain`). Re-verify after any board image change; disable calibration in production.
 
@@ -62,7 +96,7 @@ Restart dev server. Open the **gameplay** board (not lobby preview alone). When 
 1. Enable calibration.
 2. Open gameplay board in the running app.
 3. Click exact center of each hole; copy `{ x, y }` from console or dev panel.
-4. Paste into `IMAGE_EXACT_POINTS` (or `IMAGE_COORDINATE_OVERRIDES` for emergency single-point fixes).
+4. Replace `src/lib/board/board-coordinates.json` with the exported array (108 items), or use `IMAGE_COORDINATE_OVERRIDES` for single-point fixes.
 5. Refresh and verify marbles, rings, and hit zones.
 6. Test desktop, tablet, mobile widths.
 7. **Disable calibration before production.**

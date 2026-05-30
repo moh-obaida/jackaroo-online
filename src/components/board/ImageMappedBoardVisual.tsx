@@ -107,7 +107,7 @@ function ImageMappedMarble({
           r={r + IMAGE_BOARD_RADII.marbleSelectionRingOffset}
           fill="none"
           stroke={isSelected ? '#ffd633' : '#5eead4'}
-          strokeWidth={isSelected ? 0.24 : 0.18}
+          strokeWidth={isSelected ? 0.18 : 0.14}
           className={isSelected ? 'marble-glow marble-glow--selected' : 'marble-glow marble-glow--selectable'}
         />
       )}
@@ -116,12 +116,12 @@ function ImageMappedMarble({
           r={r + IMAGE_BOARD_RADII.marbleGateLockRingOffset}
           fill="none"
           stroke="#ffd633"
-          strokeWidth={0.22}
+          strokeWidth={0.16}
           className="gate-lock-ring"
         />
       )}
       <ellipse cx={0.1} cy={r * 0.32} rx={r * 0.82} ry={r * 0.5} fill="#000" opacity={0.28} />
-      <circle r={r} fill={`url(#${gradId})`} stroke={isLocked ? '#ffd633' : isOwn ? '#e6c567' : 'rgba(255,255,255,0.3)'} strokeWidth={isLocked ? 0.28 : isOwn ? 0.22 : 0.14} />
+      <circle r={r} fill={`url(#${gradId})`} stroke={isLocked ? '#ffd633' : isOwn ? '#e6c567' : 'rgba(255,255,255,0.3)'} strokeWidth={isLocked ? 0.22 : isOwn ? 0.18 : 0.12} />
       <circle cx={-r * 0.3} cy={-r * 0.34} r={r * 0.26} fill="#fff" opacity={0.4} />
     </g>
   );
@@ -150,6 +150,7 @@ export function ImageMappedBoardVisual({
 
   const [cursorPoint, setCursorPoint] = useState<BoardImagePoint | null>(null);
   const [lastClickPoint, setLastClickPoint] = useState<BoardImagePoint | null>(null);
+  const [stageClickCount, setStageClickCount] = useState(0);
   const [hoveredPosition, setHoveredPosition] = useState<BoardPosition | null>(null);
   const [selectedCalPosition, setSelectedCalPosition] = useState<BoardPosition | null>(null);
 
@@ -191,7 +192,10 @@ export function ImageMappedBoardVisual({
       if (!calibrationEnabled || !stageRef.current) return;
       const point = boardStagePointFromMouseEvent(e, stageRef.current);
       setLastClickPoint(point);
-      logCalibrationClick(point);
+      setStageClickCount((n) => {
+        logCalibrationClick(point, undefined, n);
+        return n + 1;
+      });
     },
     [calibrationEnabled]
   );
@@ -227,7 +231,11 @@ export function ImageMappedBoardVisual({
       onMouseLeave={calibrationEnabled ? () => setCursorPoint(null) : undefined}
     >
       {calibrationEnabled && (
-        <BoardCalibrationPanel cursor={cursorPoint} lastClick={lastClickPoint} />
+        <BoardCalibrationPanel
+          cursor={cursorPoint}
+          lastClick={lastClickPoint}
+          clickCount={stageClickCount}
+        />
       )}
 
       {imageFailed ? (

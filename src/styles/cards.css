@@ -58,6 +58,74 @@
   filter: saturate(0.82) brightness(0.97);
 }
 
+/* —— PNG card art —— */
+.card-face--image {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.card-face--image.card-face--selected {
+  box-shadow:
+    0 0 0 3px rgba(255, 214, 102, 0.95),
+    0 12px 30px rgba(201, 162, 39, 0.45);
+}
+
+.card-face--image.card-face--playable:not(.card-face--selected) {
+  box-shadow:
+    0 0 0 2px rgba(120, 170, 255, 0.85),
+    0 8px 20px rgba(40, 90, 190, 0.3);
+}
+
+.card-face--image.card-face--disabled {
+  opacity: 0.72;
+  filter: saturate(0.82) brightness(0.97);
+}
+
+.card-face__img-wrap {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  overflow: hidden;
+  border: 2px solid var(--card-blue);
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(201, 162, 39, 0.2);
+  background: #fdfaf2;
+}
+
+.card-face--hand .card-face__img-wrap {
+  border-radius: 0.55rem;
+}
+
+.card-face--guide .card-face__img-wrap {
+  border-radius: 0.75rem;
+  border-width: 2.5px;
+}
+
+.card-face__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Hand: crop top half so mirrored bottom never reads upside down */
+.card-face__img-wrap--hand .card-face__img {
+  height: 200%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.card-face__img-wrap--hand.card-face__img-wrap--flip .card-face__img {
+  transform: rotate(180deg);
+  object-position: bottom center;
+}
+
 /* —— Corners (always upright) —— */
 .card-face__corner {
   display: flex;
@@ -336,6 +404,14 @@
 .playing-card-shell--selected {
   transform: translateY(-12px) scale(1.04);
   z-index: 2;
+}
+
+.player-hand--docked .playing-card-shell--selected {
+  transform: translateY(-8px) scale(1.03);
+}
+
+.player-hand--docked {
+  padding-top: 0.35rem;
 }
 
 .playing-card-shell--playable:not(.playing-card-shell--selected):hover {

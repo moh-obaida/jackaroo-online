@@ -19,6 +19,21 @@ function normalizeRoomCode(raw: string | undefined): string | null {
   return code && code.length > 0 ? code : null;
 }
 
+function buildJoinLink(roomCode: string): string {
+  const url = new URL('/join', window.location.origin);
+  url.searchParams.set('code', roomCode);
+  return url.toString();
+}
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function LobbyPageContent() {
   const { t, user } = useApp();
   const {
@@ -35,8 +50,9 @@ function LobbyPageContent() {
   const roomCode = normalizeRoomCode(rawCode);
   const routeState = useRoomRouteState('lobby', roomCode);
 
-  const [copied, setCopied] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
   const [passwordCopied, setPasswordCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [leaveBusy, setLeaveBusy] = useState(false);
   const [deckGuideOpen, setDeckGuideOpen] = useState(false);
   const playerId = user?.uid?.trim() || null;
@@ -120,26 +136,27 @@ function LobbyPageContent() {
 
   const handleCopyCode = useCallback(async () => {
     if (!roomCode) return;
-    try {
-      await navigator.clipboard.writeText(roomCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setCopied(false);
+    if (await copyText(roomCode)) {
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
     }
   }, [roomCode]);
 
-  const handleCopyInvite = useCallback(async () => {
-    if (!roomCode) return;
-    const inviteText = `Join my Jakaroo table. Code: ${roomCode}${hostPassword ? ` Password: ${hostPassword}` : ''}`;
-    try {
-      await navigator.clipboard.writeText(inviteText);
+  const handleCopyPassword = useCallback(async () => {
+    if (!hostPassword) return;
+    if (await copyText(hostPassword)) {
       setPasswordCopied(true);
       setTimeout(() => setPasswordCopied(false), 2000);
-    } catch {
-      setPasswordCopied(false);
     }
-  }, [roomCode, hostPassword]);
+  }, [hostPassword]);
+
+  const handleCopyLink = useCallback(async () => {
+    if (!roomCode) return;
+    if (await copyText(buildJoinLink(roomCode))) {
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    }
+  }, [roomCode]);
 
   const handleReady = useCallback(async () => {
     if (!playerId || !roomCode) return;
@@ -194,19 +211,46 @@ function LobbyPageContent() {
           </p>
         </section>
 
-        <section className="invite-plaque-donor invite-plaque-fixed">
-          <span className="text-[10px] uppercase tracking-widest text-cream-200/40 font-bold mb-1 block">
-            {t('lobby.code')}
-          </span>
-          <strong className="lobby-code-fixed">
-            {roomCode}
-          </strong>
-          <div className="lobby-copy-row-fixed">
-            <button type="button" onClick={handleCopyCode} className="btn-game-secondary px-4 py-2 text-xs">
-              {copied ? t('lobby.copied') : t('lobby.copy')}
+        <section className="invite-plaque-donor invite-plaque-fixed lobby-invite-plaque">
+          <div className="lobby-invite-plaque__row">
+            <span className="lobby-invite-plaque__label">{t('lobby.code')}</span>
+            <strong className="lobby-invite-plaque__code lobby-code-fixed">{roomCode}</strong>
+            <button
+              type="button"
+              onClick={handleCopyCode}
+              className="btn-game-secondary lobby-invite-plaque__copy px-4 py-2 text-xs"
+            >
+              {codeCopied ? t('lobby.copied') : t('lobby.copy')}
             </button>
-            <button type="button" onClick={handleCopyInvite} className="btn-game-secondary px-4 py-2 text-xs">
-              {passwordCopied ? t('lobby.copied') : t('lobby.copyInvite')}
+          </div>
+
+          <div className="lobby-invite-plaque__row lobby-invite-plaque__row--password">
+            <span className="lobby-invite-plaque__label">{t('lobby.password')}</span>
+            <strong className="lobby-invite-plaque__secret">
+              {hostPassword ?? '—'}
+            </strong>
+            {hostPassword && (
+              <button
+                type="button"
+                onClick={handleCopyPassword}
+                className="btn-game-secondary lobby-invite-plaque__copy px-4 py-2 text-xs"
+              >
+                {passwordCopied ? t('lobby.passwordCopied') : t('lobby.copyPassword')}
+              </button>
+            )}
+          </div>
+
+          {!hostPassword && (
+            <p className="lobby-invite-plaque__password-hint">{t('lobby.passwordUnavailable')}</p>
+          )}
+
+          <div className="lobby-copy-row-fixed">
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="btn-game-secondary px-4 py-2 text-xs flex-1 min-w-[8rem]"
+            >
+              {linkCopied ? t('lobby.linkCopied') : t('lobby.copyLink')}
             </button>
           </div>
         </section>

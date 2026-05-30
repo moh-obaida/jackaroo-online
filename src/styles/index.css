@@ -1611,7 +1611,7 @@
   }
 
   .hand-dock-panel {
-    @apply relative max-w-2xl mx-auto w-full px-2 pt-1;
+    @apply relative max-w-2xl mx-auto w-full px-2 pt-1 overflow-hidden;
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
   }
 
@@ -1895,13 +1895,45 @@
   }
 
   .player-hand {
-    @apply flex items-end justify-center overflow-x-auto overflow-y-visible pb-0.5 px-2 snap-x snap-mandatory min-h-[5.25rem] max-w-full;
-    scrollbar-width: thin;
-    -webkit-overflow-scrolling: touch;
+    @apply flex items-end justify-center overflow-hidden pb-0.5 px-2 min-h-[5.25rem] max-w-full;
+    --hand-card-w: 3.65rem;
+    --hand-card-h: 5.05rem;
+    --hand-scale: 1;
+    transform: scale(var(--hand-scale));
+    transform-origin: bottom center;
+  }
+
+  .player-hand[data-count='5'],
+  .player-hand[data-count='6'] {
+    --hand-scale: 0.94;
+    --hand-card-w: 3.35rem;
+    --hand-card-h: 4.65rem;
+  }
+
+  .player-hand[data-count='7'],
+  .player-hand[data-count='8'] {
+    --hand-scale: 0.88;
+    --hand-card-w: 3.05rem;
+    --hand-card-h: 4.25rem;
+  }
+
+  .player-hand[data-count='9'],
+  .player-hand[data-count='10'],
+  .player-hand[data-count='11'],
+  .player-hand[data-count='12'],
+  .player-hand[data-count='13'] {
+    --hand-scale: 0.82;
+    --hand-card-w: 2.75rem;
+    --hand-card-h: 3.85rem;
+  }
+
+  .player-hand--docked .playing-card-shell--hand {
+    width: var(--hand-card-w);
+    height: var(--hand-card-h);
   }
 
   .player-hand--docked .player-hand__slot {
-    @apply snap-center shrink-0 origin-bottom jkr-layer-hand -me-1.5 sm:-me-1 first:me-0;
+    @apply shrink-0 origin-bottom jkr-layer-hand -me-1.5 sm:-me-1 first:me-0;
   }
 
   .player-hand__slot--selected {

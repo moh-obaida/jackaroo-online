@@ -8,13 +8,18 @@ import {
 type BoardCalibrationPanelProps = {
   cursor: BoardImagePoint | null;
   lastClick: BoardImagePoint | null;
+  clickCount?: number;
 };
 
 /** Floating dev-only panel — rendered only when calibration env flag is on. */
-export function BoardCalibrationPanel({ cursor, lastClick }: BoardCalibrationPanelProps) {
+export function BoardCalibrationPanel({ cursor, lastClick, clickCount = 0 }: BoardCalibrationPanelProps) {
   return (
     <div className="board-calibration-panel" aria-hidden>
       <div className="board-calibration-panel__title">Board calibration</div>
+      <div className="board-calibration-panel__row">
+        <span className="board-calibration-panel__key">clicks</span>
+        <span className="board-calibration-panel__val">{clickCount} / 108</span>
+      </div>
       <div className="board-calibration-panel__row">
         <span className="board-calibration-panel__key">x</span>
         <span className="board-calibration-panel__val">{cursor ? cursor.x : '—'}</span>
@@ -33,6 +38,9 @@ export function BoardCalibrationPanel({ cursor, lastClick }: BoardCalibrationPan
       {lastClick && (
         <code className="board-calibration-panel__paste">{formatBoardImagePointPaste(lastClick)}</code>
       )}
+      <p className="board-calibration-panel__hint">
+        Save 108 stage clicks to <code>src/lib/board/board-coordinates.json</code>
+      </p>
     </div>
   );
 }

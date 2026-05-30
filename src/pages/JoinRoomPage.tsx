@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useGame } from '../context/GameContext';
 import { getLobbySeatInfo, joinRoom } from '../lib/firebase/rooms';
@@ -23,6 +23,7 @@ export function JoinRoomPage() {
   const { t, user, firebaseReady } = useApp();
   const { bindRoomFromRoute } = useGame();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
@@ -30,6 +31,11 @@ export function JoinRoomPage() {
   const [loading, setLoading] = useState(false);
   const [joinStage, setJoinStage] = useState<string | null>(null);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fromUrl = searchParams.get('code')?.trim();
+    if (fromUrl) setCode(fromUrl.toUpperCase());
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,22 +1,25 @@
 import type { CardRank } from '../../types/game';
 
+/** Polished Arabic Jakaroo card art in public/assets/cards/. */
+export const CARD_IMAGE_ASSETS_AVAILABLE = true;
+
+const CARD_RANKS: CardRank[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+export const CARD_RANK_IMAGE_SRC: Record<CardRank, string> = Object.fromEntries(
+  CARD_RANKS.map((rank) => [rank, `/assets/cards/${rank}.png`])
+) as Record<CardRank, string>;
+
 /**
- * Card image assets — not present in repo yet.
- *
- * Gameplay uses the premium CSS fallback in CardFace (see src/styles/cards.css).
- * When PNG/SVG art is added, place files under public/assets/cards/ and map ranks here.
+ * Ranks whose PNG is stored 180° from the desired hand orientation.
+ * Hand view crops the top half; flip whole image when the upright half is at the bottom.
  */
+export const CARD_RANK_HAND_FLIP: Partial<Record<CardRank, boolean>> = {};
 
-export const CARD_IMAGE_ASSETS_AVAILABLE = false;
-
-/** Future: `/assets/cards/{rank}.png` once art is checked in. */
-export const CARD_RANK_IMAGE_SRC: Partial<Record<CardRank, string>> = {};
-
-export function getCardRankImageSrc(_rank: CardRank): string | null {
+export function getCardRankImageSrc(rank: CardRank): string | null {
   if (!CARD_IMAGE_ASSETS_AVAILABLE) return null;
-  return null;
+  return CARD_RANK_IMAGE_SRC[rank] ?? null;
 }
 
-if (import.meta.env.DEV && !CARD_IMAGE_ASSETS_AVAILABLE) {
-  console.info('[cards] No polished card image assets in public/assets/cards/ — using CSS card faces.');
+export function cardRankNeedsHandFlip(rank: CardRank): boolean {
+  return CARD_RANK_HAND_FLIP[rank] === true;
 }

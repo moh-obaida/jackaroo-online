@@ -28,11 +28,14 @@ export function PlayerHand({
   }
 
   return (
-    <div className={`player-hand ${docked ? 'player-hand--docked' : ''}`}>
+    <div
+      className={`player-hand ${docked ? 'player-hand--docked' : ''}`}
+      data-count={docked ? cards.length : undefined}
+    >
       {cards.map((card, index) => {
         const isSelected = selectedCardId === card.id;
         const canPlay = !disabled && playable.has(card.id);
-        const offset = docked ? Math.max(-3, Math.min(index - (cards.length - 1) / 2, 3)) : 0;
+        const offset = docked ? Math.max(-2, Math.min(index - (cards.length - 1) / 2, 2)) : 0;
 
         return (
           <div
@@ -41,7 +44,7 @@ export function PlayerHand({
             style={
               docked
                 ? {
-                    transform: `rotate(${offset * 1.6}deg) translateY(${Math.abs(offset) * 1.5}px)`,
+                    transform: `rotate(${offset * 1.1}deg) translateY(${Math.abs(offset) * 1}px)`,
                   }
                 : undefined
             }

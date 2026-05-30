@@ -6,9 +6,13 @@ import {
   getCardFaceMeta,
   getSuitSymbol,
 } from '../../lib/game/cardFaceContent';
+import {
+  CARD_IMAGE_ASSETS_AVAILABLE,
+  cardRankNeedsHandFlip,
+  getCardRankImageSrc,
+} from '../../lib/cards/cardAssets';
 import { useApp } from '../../context/AppContext';
 import { CardRuleText } from './CardRuleText';
-import '../../lib/cards/cardAssets';
 
 export type CardFaceState = 'normal' | 'selected' | 'playable' | 'disabled' | 'opponentBack';
 
@@ -17,7 +21,7 @@ export type CardFaceProps = {
   suit?: CardSuit;
   variant?: CardFaceVariant;
   state?: CardFaceState;
-  /** Hand dock: show short action strip */
+  /** Hand dock: show short action strip (CSS fallback only) */
   showHandHint?: boolean;
   className?: string;
 };
@@ -32,9 +36,45 @@ function SuitPip({ suit, className = '' }: { suit?: CardSuit; className?: string
   );
 }
 
+function CardFaceImage({
+  rank,
+  variant,
+  stateClass,
+  className,
+}: {
+  rank: CardRank;
+  variant: CardFaceVariant;
+  stateClass: string;
+  className: string;
+}) {
+  const src = getCardRankImageSrc(rank);
+  if (!src) return null;
+
+  const isHand = variant === 'hand';
+  const flip = isHand && cardRankNeedsHandFlip(rank);
+
+  return (
+    <div
+      className={`card-face card-face--image card-face--${variant} ${stateClass} ${className}`.trim()}
+    >
+      <div
+        className={[
+          'card-face__img-wrap',
+          isHand ? 'card-face__img-wrap--hand' : '',
+          flip ? 'card-face__img-wrap--flip' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        <img src={src} alt="" className="card-face__img" draggable={false} decoding="async" />
+      </div>
+    </div>
+  );
+}
+
 /**
- * Premium Jakaroo card face — warm ivory face, deep-blue border, gold accents.
- * Always upright (no rotated/mirrored text), so the hand reads cleanly.
+ * Jakaroo card face — polished PNG art when available, CSS fallback otherwise.
+ * Hand variant crops the top half so mirrored bottom text never reads upside down.
  */
 export function CardFace({
   rank,
@@ -57,6 +97,10 @@ export function CardFace({
         : state === 'disabled'
           ? 'card-face--disabled'
           : '';
+
+  if (CARD_IMAGE_ASSETS_AVAILABLE && getCardRankImageSrc(rank)) {
+    return <CardFaceImage rank={rank} variant={variant} stateClass={stateClass} className={className} />;
+  }
 
   if (isHand) {
     const actionLabel = meta.centerTopKey ? t(meta.centerTopKey) : '';
